@@ -17,7 +17,7 @@ Screenshots were cropped from a user-provided iPhone image. They illustrate the 
 
 | File | Description |
 |---|---|
-| [scripts/HK-Bus-ETA.js](scripts/HK-Bus-ETA.js) | KMB and Citybus ETA widget; 3 upcoming buses; HKT official timestamp; independent favorites; adaptive workdays |
+| [scripts/HK-Bus-ETA.js](scripts/HK-Bus-ETA.js) | KMB and Citybus ETA widget; 3 upcoming buses; stable/live countdown modes; HKT source timestamp; independent favorites; adaptive workdays |
 | [scripts/HK-MTR-Next-Train.js](scripts/HK-MTR-Next-Train.js) | New MTR Next Train implementation; line/station/UP/DOWN/BOTH; independent favorite; adaptive workdays |
 | [docs/METHODOLOGY.md](docs/METHODOLOGY.md) | Technical architecture, API freshness, scheduling, failure modes, privacy, validation / 詳細原理 |
 | [docs/images/mtr_widget.png](docs/images/mtr_widget.png) | Cropped image preview embedded in SVG |
@@ -64,11 +64,15 @@ iPhone、[Scriptable](https://apps.apple.com/app/scriptable/id1405459188)、網�
 - Adaptive OFF：要求 **1 分鐘**。
 - 手動打開 Scriptable 並執行會查詢新資料。
 
+**倒數顯示修正（v2.4） / Countdown rollover fix:** 巴士 Script 預設改用「穩定快照」模式，喺 Widget 重新執行時計算剩餘時間並顯示，不再使用會喺 ETA 過後正向計時嘅 iOS timer。此顯示**不會逐秒變動**，所以請參考右邊到站時刻、底部「官方更新」及必要時點擊重新查詢。想保留逐秒動畫：Scriptable → **⚙ 通勤設定 → 倒數顯示 → 動態**；原有 iOS timer 仍可能喺 ETA 過時後正向計時。兩種模式嘅 Widget 資料都只會喺 iOS 真正重新執行時更新。
+
+**English:** Bus countdown v2.4 defaults to **stable snapshot**: remaining time is calculated only when the widget reloads, avoiding the native timer counting up after ETA has passed. This is *not* a live countdown and can become stale. Choose **⚙ commute settings → countdown display → live** to opt back into second-by-second animation, with possible post-ETA count-up. The right-hand ETA and official data timestamp remain unchanged.
+
 **所有間隔都係 `refreshAfterDate` 最早可刷新時間，唔係保證更新嘅 Timer。** 真正刷新由 iOS 控制；為免趕唔到車，出門前應點 Widget、開啟 Scriptable 查最新 ETA。
 
 ### 5. 睇到咩？／時間點樣計？
 
-巴士：最多三班預計到站、系統動態倒數、預計到站時間，以及最底嘅 `官方更新 HH:mm:ss HKT`。**底部時間來自巴士 ETA 內容的 `data_timestamp`**，唔係手機請求 API 嗰一刻。如果冇時間戳，顯示「時間未提供」。
+巴士：最多三班預計到站、可切換的剩餘時間快照／系統動態倒數、預計到站時間，以及最底嘅 `官方更新 HH:mm:ss HKT`。**底部時間來自巴士 ETA 內容的 `data_timestamp`**，唔係手機請求 API 嗰一刻。如果冇時間戳，顯示「時間未提供」。
 
 港鐵：下一班及其後班次、方向、目的地、月台（如 API 有提供可於腳本中擴展），並以港鐵 `sys_time` 等欄位表示 API 系統時間；**唔係每秒實時列車定位**。港鐵 API 的 `yyyy-MM-dd HH:mm:ss` 係香港本地時間，程式會明確用 UTC+8 解析。
 
