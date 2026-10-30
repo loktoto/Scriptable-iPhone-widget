@@ -1,4 +1,4 @@
-// HK Bus ETA v2.3 — Scriptable (iOS)
+// HK Bus ETA v2.4 — Scriptable (iOS)
 // 九巴 / 城巴、三班車倒數、官方資料時間、獨立收藏
 // 新增：智能刷新開關、可選工作日及通勤時段（香港時間）
 // Widget 實際背景刷新由 iOS 決定，以下均為「最早要求刷新」。
@@ -54,6 +54,8 @@ function saveFavorites() { saveJSON(favoritesPath, favorites); }
 
 const DEFAULT_PREFS = {
   adaptiveEnabled: true,
+  // 'snapshot' 避免 iOS 計時器過零後正向計時；'live' 保留逐秒倒數。
+  countdownMode: 'snapshot',
   workdays: [1, 2, 3, 4, 5], // 0=星期日，1=星期一，…，6=星期六
   morning: { start: '07:30', end: '09:30' },
   evening: { start: '18:00', end: '20:00' },
@@ -78,6 +80,7 @@ function normalizePrefs(raw) {
   return {
     adaptiveEnabled: typeof raw.adaptiveEnabled === 'boolean'
       ? raw.adaptiveEnabled : DEFAULT_PREFS.adaptiveEnabled,
+    countdownMode: raw.countdownMode === 'live' ? 'live' : 'snapshot',
     workdays: days,
     morning: cleanWindow(raw.morning, DEFAULT_PREFS.morning),
     evening: cleanWindow(raw.evening, DEFAULT_PREFS.evening),
@@ -374,6 +377,20 @@ function chosenFavorites() {
   const selected = favorites.find(f => String(f.route).toUpperCase() === raw);
   return selected ? [selected] : favorites;
 }
+// Snapshot 保證所呈現的文字不會變成 iOS timer 的正向計時或時鐘時間。
+// 注意：Snapshot 不是動態倒數；只會在 Widget 真正重新執行時更新。
+function formatCountdownSnapshot(eta, now = new Date()) {
+  const etaMs = new Date(eta).getTime();
+  const nowMs = new Date(now).getTime();
+  if (!Number.isFinite(etaMs) || !Number.isFinite(nowMs)) return '—';
+  const seconds = Math.ceil((etaMs - nowMs) / 1000);
+  if (seconds <= 0) return '已過時';
+  const hours = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = String(seconds % 60).padStart(2, '0');
+  return hours ? `${hours}:${String(mins).padStart(2, '0')}:${secs}`
+    : `${mins}:${secs}`;
+}
 function addCountdown(parent, eta, size, color) {
   const d = parent.addDate(new Date(eta));
   d.applyTimerStyle();
@@ -392,7 +409,14 @@ function addBusRow(w, record, position, small) {
     small ? 11 : 14, item ? UI.fg : UI.muted, !!item);
   row.addSpacer();
   if (item) {
-    addCountdown(row, item.eta, small ? 17 : 22, record.stale ? UI.yellow : color);
+    if (prefs.countdownMode === 'live') {
+      addCountdown(row, item.eta, small ? 17 : 22,
+        record.stale ? UI.yellow : color);
+    } else {
+      // 固定快照：保留原本字體和位置，但避免到站後自動變成向上數。
+      wt(row, formatCountdownSnapshot(item.eta), small ? 17 : 22,
+        record.stale ? UI.yellow : color, true);
+    }
     row.addSpacer(small ? 3 : 14);
     wt(row, hkt(item.eta), small ? 10 : 14, UI.muted);
   } else {
@@ -513,10 +537,11 @@ async function showSettings() {
       `返工日：${workdaysLabel()}`,
       `返工：${prefs.morning.start}–${prefs.morning.end}`,
       `放工：${prefs.evening.start}–${prefs.evening.end}`,
+      `倒數：${prefs.countdownMode === 'snapshot' ? '穩定（刷新時計算）' : '動態（逐秒更新）'}`,
       '恢復預設',
       '✅ 完成'
     ], '只影響此 Script 的 Widget 刷新請求，iOS 不保證準時執行。');
-    if (i < 0 || i === 5) break;
+    if (i < 0 || i === 6) break;
     if (i === 0) {
       prefs.adaptiveEnabled = !prefs.adaptiveEnabled;
       savePrefs();
@@ -524,6 +549,16 @@ async function showSettings() {
     else if (i === 2) await editWindow('morning');
     else if (i === 3) await editWindow('evening');
     else if (i === 4) {
+      const selected = await choose('倒數顯示方式', [
+        '穩定：只喺 Widget 刷新時重新計算（唔會過零倒數）',
+        '動態：逐秒倒數；ETA 過時後 iOS 會正向計時'
+      ], '穩定模式不會每秒變動；兩種模式都不能強制 iOS 刷新 ETA。');
+      if (selected >= 0) {
+        prefs.countdownMode = selected === 0 ? 'snapshot' : 'live';
+        savePrefs();
+      }
+    }
+    else if (i === 5) {
       const confirm = await choose('恢復通勤設定？', ['確定恢復預設']);
       if (confirm === 0) {
         prefs = normalizePrefs(DEFAULT_PREFS);
