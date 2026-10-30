@@ -26,4 +26,9 @@ assert.equal(mtr("(refreshPlan(new Date('2026-10-31T02:00:00Z')).next-new Date('
 assert.equal(mtr("parseHK('2026-10-30 17:34:00').toISOString()"),'2026-10-30T09:34:00.000Z');
 assert.equal(mtr("directionTitle({line:'TWL',direction:'DOWN'})"),'往中環');
 assert.equal(mtr("(pref.adaptive=false,refreshPlan(new Date('2026-10-31T02:00:00Z')).mode)"),'固定');
-console.log('PASS: syntax, weekday/commute logic, warm-up, HKT, direction and adaptive OFF');
+assert.equal(bus("normalizePrefs({}).countdownMode"),'snapshot');
+assert.equal(bus("normalizePrefs({countdownMode:'live'}).countdownMode"),'live');
+assert.equal(bus("formatCountdownSnapshot('2026-10-30T10:05:47Z',new Date('2026-10-30T10:00:00Z'))"),'5:47');
+assert.equal(bus("formatCountdownSnapshot('2026-10-30T10:00:00Z',new Date('2026-10-30T10:01:00Z'))"),'已過時');
+assert.equal(bus("formatCountdownSnapshot('invalid',new Date('2026-10-30T10:01:00Z'))"),'—');
+console.log('PASS: syntax, weekday/commute, HKT, adaptive OFF, countdown snapshot and rollover');
