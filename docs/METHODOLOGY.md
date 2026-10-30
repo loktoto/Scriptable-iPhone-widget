@@ -146,3 +146,12 @@ The two scripts use independent destinations and workday schedules; only public 
 
 ---
 **License note:** no software license has been added; please choose one deliberately before accepting external redistribution or derivative usage. API datasets have their own provider terms, which this repository does not supersede.
+
+
+## 9. Bus countdown rollover / 巴士倒數過零問題 (v2.4)
+
+**原因 / Cause:** Scriptable `WidgetDate.applyTimerStyle()` adopts iOS's live timer. For future dates it counts down, **then counts up once the ETA has passed**, even if the widget has not fetched a fresh ETA. A value that looks like an arrival time may instead be a large elapsed timer. This is expected dynamic-date behavior, not proof that the operator has changed the ETA. Apple describes this behavior in its [dynamic date documentation](https://developer.apple.com/documentation/widgetkit/displaying-dynamic-dates).
+
+**修正 / Mitigation:** The bus widget now defaults to `prefs.countdownMode = 'snapshot'`, rendered with `WidgetText` using the difference between ETA and the **last widget execution time**. This prevents the text from automatically counting upward or changing its display style, while maintaining the three-row typography and the explicit arrival time at right. ETA already past at execution is marked `已過時`. It does **not** continue decrementing while the script is inactive, so these values are snapshots and should not be treated as continuously fresh ETAs.
+
+**可選 Live mode / Optional live mode:** Choose **⚙ 通勤設定 → 倒數顯示 → 動態** to restore `applyTimerStyle()` and second-by-second countdown. On overdue ETAs it may again count up. Scriptable does not expose a bounded-stop dynamic timer via the documented WidgetDate interface. iOS controls the next execution in either mode. **Do not infer that a snapshot is fresh from the visual countdown alone.** The official data timestamp and absolute arrival time are preserved.
