@@ -89,14 +89,27 @@ async function getTrain(){
 }
 const C={bg:'#132534',panel:'#1E3648',fg:'#F7FAFC',mute:'#9FB1C4',accent:'#FF646B',blue:'#8AD8FC'};
 function t(parent,s,size,color=C.fg,bold=false){const v=parent.addText(String(s));v.font=bold?Font.boldSystemFont(size):Font.systemFont(size);v.textColor=new Color(color);v.lineLimit=1;v.minimumScaleFactor=.75;return v;}
+const DIRECTION_TERMINALS={
+ TWL:{UP:'荃灣',DOWN:'中環'}, ISL:{UP:'柴灣',DOWN:'堅尼地城'},
+ KTL:{UP:'調景嶺',DOWN:'黃埔'}, TCL:{UP:'東涌',DOWN:'香港'},
+ TKL:{UP:'寶琳／康城',DOWN:'北角'}, TML:{UP:'屯門',DOWN:'烏溪沙'},
+ EAL:{UP:'羅湖／落馬洲',DOWN:'金鐘'}, SIL:{UP:'海怡半島',DOWN:'金鐘'},
+ AEL:{UP:'機場／博覽館',DOWN:'香港'}, DRL:{UP:'迪士尼',DOWN:'欣澳'}
+};
+function directionTitle(f){
+ if(f.direction==='BOTH')return '雙方向';
+ const terminal=DIRECTION_TERMINALS[f.line]?.[f.direction];
+ return terminal?'往'+terminal:(f.direction==='UP'?'上行':'下行');
+}
 function rowTrain(w,x,i,primary){
  const r=w.addStack();r.centerAlignContent();
  if(primary){
    const left=r.addStack();left.layoutVertically();
    t(left,'下一班 · '+(x?.direction==='UP'?'上行':'下行'),11,C.accent,true);
    left.addSpacer(4);
-   t(left,x?String(Math.max(0,Math.ceil((x.arrival.getTime()-Date.now())/60000))):'—',32,C.fg,true);
-   t(left,'分鐘',14,C.fg,true);
+   const countdown=left.addStack();countdown.centerAlignContent();
+   t(countdown,x?String(Math.max(0,Math.ceil((x.arrival.getTime()-Date.now())/60000))):'—',32,C.fg,true);
+   countdown.addSpacer(4); t(countdown,'分鐘',14,C.fg,true);
    r.addSpacer();
    const right=r.addStack();right.layoutVertically();
    t(right,x?'往 '+(stationNames[x.dest]||x.dest||'—'):'未有班次',12,C.mute);
@@ -113,7 +126,7 @@ async function showWidget(){
  if(!favorite){t(w,'🚇 港鐵 ETA',20,C.fg,true);w.addSpacer(10);t(w,'開啟 Scriptable 設定車站',11,C.mute);Script.setWidget(w);Script.complete();return;}
  const line=LINE_DATA[favorite.line],station=stations[favorite.line]?.find(s=>s.code===favorite.station)?.name||favorite.station;
  const head=w.addStack();head.centerAlignContent();t(head,'🚇  '+station,22,C.fg,true);head.addSpacer();t(head,'↻',22,C.blue,true);
- const route=w.addStack();t(route,line.name,14,line.color,true);route.addSpacer(6);t(route,favorite.direction==='BOTH'?'雙方向':favorite.direction==='UP'?'上行':'下行',14,C.fg,true);
+ const route=w.addStack();t(route,line.name,14,line.color,true);route.addSpacer(6);t(route,directionTitle(favorite),14,C.fg,true);
  w.addSpacer(6);
  try{
    const record=await getTrain();
