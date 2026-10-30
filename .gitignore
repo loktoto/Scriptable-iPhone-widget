@@ -1,0 +1,17 @@
+# Generated local preferences — NEVER commit real commuting patterns
+**/favorites.json
+**/favourite.json
+**/settings.json
+**/adaptive.json
+**/kmb_stops.json
+**/city_stops.json
+
+# Credentials and local files
+.env
+.env.*
+*.pem
+*.p12
+*.p8
+.DS_Store
+Thumbs.db
+node_modules/
