@@ -15,3 +15,13 @@
 .DS_Store
 Thumbs.db
 node_modules/
+
+# Expense Tracker HK — keep real personal finance data out of public GitHub
+**/ExpenseTrackerHK/
+**/transactions.json
+**/transactions.previous.json
+**/transactions.csv
+**/backup.json
+**/fx-cache.json
+**/card-list.json
+**/cards.json
