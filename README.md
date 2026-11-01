@@ -13,6 +13,19 @@ Two standalone iPhone Home Screen widgets powered by public transport APIs, with
 
 Screenshots were cropped from a user-provided iPhone image. They illustrate the installed widgets, not a live feed. **The screenshot corresponds to the original Adaptive MTR widget (`scripts/HK_MTR_Next_Train.js`); `scripts/HK-MTR-Next-Train.js` is an independently implemented public alternative and may differ in behaviour.**
 
+## Expense Tracker HK / 消費記帳 Widget
+
+An additional standalone iPhone Scriptable expense tracker with Apple Intelligence / Shortcuts **Dictionary and resilient JSON extraction**, adaptive widgets, category charts, local backups, and reference FX conversions. It saves valid nonzero amounts only (including negative refunds). No private expense records are included.
+
+- **Script:** [scripts/HK-Expense-Tracker.js](scripts/HK-Expense-Tracker.js)
+- **Example JSON:** [standard Dictionary](examples/expense-transaction.example.json) · [nested Shortcuts amount](examples/expense-transaction.nested.example.json)
+- **JSON Schema:** [schemas/expense-transaction.schema.json](schemas/expense-transaction.schema.json)
+- **Setup, methodology and privacy (廣東話 / English):** [docs/EXPENSE_TRACKER.md](docs/EXPENSE_TRACKER.md)
+
+> Keep your real transactions.json, card details and exports local. The JSON examples in this repository are synthetic.
+
+---
+
 ## Files / 檔案
 
 | File | Description |
