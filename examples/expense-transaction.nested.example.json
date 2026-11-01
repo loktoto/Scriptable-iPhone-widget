@@ -1,0 +1,11 @@
+{
+  "merchantType": "Transport",
+  "merchantName": "Example Transit",
+  "currency": "HKD",
+  "amount": {
+    "content": "9.60",
+    "uuid": "00000000-0000-4000-8000-000000000000"
+  },
+  "card": "EXAMPLE CARD",
+  "date": "20261101_195235"
+}
