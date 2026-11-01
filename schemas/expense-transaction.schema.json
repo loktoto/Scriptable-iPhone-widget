@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/loktoto/Scriptable-iPhone-widget/blob/main/schemas/expense-transaction.schema.json",
+  "title": "Expense Tracker HK - recommended Apple Intelligence output",
+  "description": "Example output contract. Runtime parser is more forgiving. Only finite nonzero numeric amounts are actually saved.",
+  "type": "object",
+  "required": [
+    "merchantType",
+    "merchantName",
+    "currency",
+    "amount",
+    "card",
+    "date"
+  ],
+  "properties": {
+    "merchantType": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "merchantName": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "currency": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Prefer ISO 4217 uppercase e.g. HKD"
+    },
+    "amount": {
+      "description": "Must resolve to finite, nonzero number. Empty/zero/null are skipped by Scriptable.",
+      "anyOf": [
+        {
+          "type": "number",
+          "not": {
+            "const": 0
+          }
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": [
+            "content"
+          ],
+          "properties": {
+            "content": {
+              "type": [
+                "number",
+                "string",
+                "null"
+              ]
+            },
+            "uuid": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "card": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "date": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Preferred YYYYMMDD_HHMMSS; empty dates can be saved but excluded from time-based charts"
+    }
+  },
+  "additionalProperties": true
+}
