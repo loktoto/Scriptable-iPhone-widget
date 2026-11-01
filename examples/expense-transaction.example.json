@@ -1,0 +1,8 @@
+{
+  "merchantType": "Restaurants",
+  "merchantName": "Example Cafe",
+  "currency": "HKD",
+  "amount": 42.5,
+  "card": "EXAMPLE CARD",
+  "date": "20261101_124500"
+}
