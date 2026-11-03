@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.5｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.6｜記帳 Widget / Shortcuts Guide
 
 > Script: [scripts/HK-Expense-Tracker.js](../scripts/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -36,6 +36,16 @@
 
 `amount` 亦可以係 `{"content":"9.60","uuid":"00000000-0000-4000-8000-000000000000"}`。注意：上述全部係**虛構測試資料**。
 
+### Apple Intelligence / Scriptable 排錯（v3.6）
+1. 在「使用裝置端模型」撳右邊箭嘴，於 **Output** 明確選 **Dictionary**（只寫「Output a Dictionary」喺 Prompt 並不足夠）。
+2. **Run Expense** 之前加入 **Quick Look（快速查看）**，選模型的「回應」，核對真正有 `amount` 及其他欄位。
+3. **Run Expense** 之後加入 **Show Result（顯示結果）**，選 **Run Expense 的輸出**。訊息應以 `Expense Tracker HK v3.6` 開頭，顯示接收類型、解析方式、有效金額及新增／重複狀態。
+4. 確認手機 Scriptable 嘅 `Expense` 程式已貼入最新 [HK-Expense-Tracker.js](../scripts/HK-Expense-Tracker.js)；GitHub 更新唔會自動同步到手機。
+5. 若 `Quick Look` 冇非零 `amount`，先檢查 Apple Intelligence 原始輸入或 Magic Variables；若有、但 Scriptable 說未收到資料，檢查 `Run Expense with 回應` 的參數連接。
+6. **隔離測試：** 暫時以 `{"merchantName":"Example Cafe","currency":"HKD","amount":42.5,"date":"20261103_120000"}` Dictionary 替換模型輸入。若能新增一筆，代表 Scriptable 儲存正常，而模型輸出需要修正。測試會寫入真實本機資料庫，完成後請自行核對／清理。
+
+**私隱：** 排錯結果只顯示欄位名稱、數值／類型等必要摘要，不應上傳真實快捷指令回應、卡名、完整交易紀錄或 UUID 到公開 GitHub。
+
 ### 故障排除
 - **Shortcuts / Siri 顯示 Alerts are not supported in Siri**：確認使用最新版 Script；Run Script 需收到 Dictionary，Siri 模式不應彈主選單。
 - **新增 0 筆**：檢查 amount 是否空、0、非數字；亦可能係重複 transaction ID。
@@ -68,6 +78,13 @@
 3. In Shortcuts, have Apple Intelligence emit a Dictionary with `merchantType`, `merchantName`, `currency`, `amount`, `card`, and `date`.
 4. Pass that Dictionary directly into Scriptable **Run Script → Shortcut Parameter**. No conversion to JSON text is necessary.
 5. Configure a home-screen Scriptable widget to use the same script.
+
+### Troubleshooting Apple Intelligence output (v3.6)
+- Set **Use Model → Output → Dictionary** explicitly. Prompt wording alone does not enforce the output type.
+- Insert **Quick Look** before Run Expense to inspect the model Response; add **Show Result** after Run Expense and select **Run Expense's output**.
+- Confirm that the local Scriptable script selected by Run Expense was replaced with the latest code. Updating GitHub does not update the installed iPhone script.
+- v3.6 returns a diagnostic summary of input type, field keys, detected nonzero amount, parser method and saved/duplicate status. It does not print full merchant or card data.
+- Use a synthetic Dictionary with amount 42.5 to isolate model formatting from Scriptable storage. This will create a test record in the local database.
 
 ### Privacy and limitations
 This public repository contains **code and synthetic JSON examples only**. Do not commit your real transaction database, exported CSV or backups. FX rate lookups send the currency pair and date only. Widget reload timing is controlled by iOS; `refreshAfterDate` is not a guaranteed refresh interval. Live iPhone execution should be validated separately from JavaScript tests.
