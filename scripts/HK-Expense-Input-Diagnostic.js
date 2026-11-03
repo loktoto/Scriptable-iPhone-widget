@@ -80,9 +80,9 @@ try {
     if(Array.isArray(db.transactions)) {
       dbInfo='存在，共 '+db.transactions.length+' 筆';
       const matches=db.transactions.filter(t=>
-        t.date==='2026-11-03' && Number(t.amount)===227 && t.currency==='HKD'
+        detected!==null && Number(t.amount)===detected
       );
-      matchInfo=matches.length+' 筆 2026-11-03 HKD 227 的紀錄';
+      matchInfo=matches.length+' 筆同金額紀錄（未核對日期）';
     } else dbInfo='存在，但資料結構異常';
   }
 } catch(e) { dbInfo='讀取失敗：'+String(e.message||e).slice(0,180); }
@@ -94,7 +94,7 @@ const report=[
   '辨認 Amount：'+(detected===null?'找不到':String(detected)),
   '允許入帳：'+(isValid?'是':'否（0／空／無效）'),
   '本機資料庫：'+dbInfo,
-  'HK$227 紀錄：'+matchInfo,
+  '同金額紀錄：'+matchInfo,
   '環境：widget='+(config.runsInWidget===true)+' / app='+(config.runsInApp===true)+' / Siri='+(config.runsWithSiri===true),
   '未寫入或修改任何資料'
 ].join('\n');
