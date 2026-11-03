@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.5 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.6 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.5 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.6 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -17,6 +17,7 @@ async function runExpenseTrackerHK() {
 // Widget: supports small / medium / large / iPad extraLarge; previews from app menu.
 // Storage is on-device. Use Export / Backup regularly.
 // Extraction order: native Dictionary > JSON > JSON in prose > bounded key-value fallback > legacy pipe text.
+// Diagnostics report only input type, field names and amounts, never raw card or merchant text.
 
 __expensePhase = '開啟本機檔案';
 const fm = FileManager.local();
@@ -119,11 +120,13 @@ function moneyValue(x) {
   if (typeof x==='number') return Number.isFinite(x) && x!==0 ? x : null;
   let s=String(x).trim();
   if (!s || /^(null|undefined|n\/?a|none)$/i.test(s)) return null;
-  s=s.replace(/[\s,，]/g,'')
-    .replace(/^(HK\$|HKD|CNY|RMB|US\$|USD|JPY|EUR|GBP|AUD|TWD|MOP|SGD|港元|人民幣|美元|￥|¥|€|£|\$)/i,'')
+  s=s.replace(/[\s,，]/g,'');
+  const sign=/^[+-]/.test(s)?s[0]:'';
+  if(sign)s=s.slice(1);
+  s=s.replace(/^(HK\$|HKD|CNY|RMB|US\$|USD|JPY|EUR|GBP|AUD|TWD|MOP|SGD|港元|人民幣|美元|￥|¥|€|£|\$)/i,'')
     .replace(/(HK\$|HKD|CNY|RMB|US\$|USD|JPY|EUR|GBP|AUD|TWD|MOP|SGD|港元|人民幣|美元|￥|¥|€|£|\$)$/i,'');
   if (!/^[+-]?\d+(?:\.\d+)?$/.test(s)) return null;
-  const n=Number(s);
+  const n=Number(sign+s);
   return Number.isFinite(n) && n!==0 ? n : null;
 }
 function currencyFrom(v) {
@@ -285,7 +288,7 @@ function decodeLooseValue(raw){
 function looseDictionary(text){
   // Recognizes key: value, "key": value, key = value and Chinese keys.
   // Matches keys only at an object/line/pair boundary, not in merchant prose.
-  const pattern=/(^|[,{;\r\n]\s*)["'“”]?([\p{L}_][\p{L}\p{N}_ -]*)["'“”]?\s*[:：=]\s*/gimu;
+  const pattern=/(^|[,{;\r\n]\s*(?:[-*•]\s*)?)["'“”]?([\p{L}_][\p{L}\p{N}_ -]*)["'“”]?\s*[:：=]\s*/gimu;
   const hits=[];
   let m;
   while((m=pattern.exec(text))!==null){
@@ -327,8 +330,9 @@ function parseInput(input,depth=0){
     const direct=normalize(input);
     if(direct){lastParseMethod='原生 Dictionary';return [direct];}
     // Common AI/Shortcut wrappers; follow known properties only.
-    for(const k of ['transactions','records','items','result','output','payload','data','dictionary','response','content','text']){
-      if(Object.prototype.hasOwnProperty.call(input,k)){
+    const wrapperKeys=new Set(['transactions','records','items','result','output','payload','data','dictionary','response','content','text','modelresponse','structuredoutput','answer','body']);
+    for(const k of Object.keys(input)){
+      if(wrapperKeys.has(normalizedKey(k))){
         const found=parseInput(input[k],depth+1);
         if(found.length)return found;
       }
@@ -783,13 +787,39 @@ async function previewWidget(){
   if(i===3)await widget.presentExtraLarge();
 }
 async function note(title,msg){const a=new Alert();a.title=title;a.message=msg;a.addAction('確定');await a.presentAlert();}
+// Privacy-preserving diagnostics: never echo raw Shortcut model output or card/merchant values.
+function describeInput(input){
+  if(input===null || input===undefined)return '沒有收到參數';
+  if(Array.isArray(input))return '清單（'+input.length+' 個元素）';
+  if(typeof input==='object'){
+    const keys=Object.keys(input);
+    return 'Dictionary；欄位：'+(keys.length?keys.slice(0,12).join(', '):'空白')+(keys.length>12?'…':'');
+  }
+  if(typeof input==='string'){
+    const hasAmount=/(?:amount|transactionAmount|totalAmount|金額|付款金額)/i.test(input);
+    return '文字（'+input.length+' 字，'+(hasAmount?'有':'找不到')+' amount 標籤）';
+  }
+  return '非預期類型：'+typeof input;
+}
+function amountHint(input){
+  if(!input || typeof input!=='object' || Array.isArray(input))return '';
+  const original=field(input,'Amount','amount','totalAmount','transactionAmount','金額','消費金額');
+  const amount=moneyValue(original);
+  if(amount!==null)return '；頂層金額 '+amount;
+  if(original!==null)return '；頂層金額無效／為 0';
+  return '；頂層找不到 amount';
+}
 async function importData(input,ask){
   __expensePhase = '解析 Shortcuts 輸入';
+  const received=describeInput(input)+amountHint(input);
   lastParseMethod='unknown';
   const rows=parseInput(input);
   if(!rows.length){
-    Script.setShortcutOutput('未入帳：無有效非零金額（amount）；可能為空、0、無效數字或無法識別輸入格式。');
-    if(ask && config.runsInApp)await note('沒有記帳','只會略過金額空白、無效或為 0 的輸入。');
+    const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
+    const message='Expense Tracker HK v3.6\n'+reason+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n請先在「使用模型」選 Dictionary Output，並用 Quick Look 檢查回應。';
+    console.log('[ExpenseTrackerHK v3.6] '+reason+' | '+received);
+    Script.setShortcutOutput(message);
+    if(ask && config.runsInApp)await note('沒有記帳',message);
     return;
   }
   if(ask && rows.length>1){
@@ -798,12 +828,14 @@ async function importData(input,ask){
     a.addAction('匯入');a.addCancelAction('取消');
     if(await a.presentAlert()===-1)return;
   }
+  const amounts=rows.slice(0,5).map(t=>t.amount+' '+t.currency).join(', ');
   __expensePhase = '儲存交易';
-  const result=addRows(rows); // Persist first so FX failure cannot lose a transaction.
+  const result=addRows(rows);
   __expensePhase = '換算匯率';
   const fx=await updateFX();
   __expensePhase = '回傳記帳結果';
-  const message=`新增 ${result.added} 筆，重複 ${result.skipped} 筆\n解析方式：${lastParseMethod}\n外幣已換算 ${fx.converted} 筆，待換算 ${fx.pending} 筆\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const status=result.added>0?'成功新增 '+result.added+' 筆':(result.skipped>0?'交易已存在，冇新增':'冇新增交易');
+  const message=`Expense Tracker HK v3.6\n${status}；重複 ${result.skipped} 筆\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n外幣已換算 ${fx.converted} 筆，待換算 ${fx.pending} 筆\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   Script.setShortcutOutput(message);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -867,7 +899,7 @@ if (config.runsInWidget) {
     await importData(input, false);
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
-    Script.setShortcutOutput('未入帳：Shortcut Parameter 沒有傳入 Dictionary / JSON。');
+    Script.setShortcutOutput('Expense Tracker HK v3.6\n未入帳：Shortcut Parameter 沒有傳入 Dictionary / JSON。請檢查 Run Expense with 回應。');
   } else {
     __expensePhase = '顯示主選單';
     await app();
