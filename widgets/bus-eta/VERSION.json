@@ -2,7 +2,7 @@
   "widget": "bus-eta",
   "name": "HK Bus ETA",
   "version": "2.4.0",
-  "release_date": "2026-11-04",
+  "release_date": "2026-10-30",
   "main_script": "HK-Bus-ETA.js",
   "scripts": [
     "HK-Bus-ETA.js"
@@ -10,5 +10,6 @@
   "legacy_mirrors": [
     "scripts/HK-Bus-ETA.js"
   ],
-  "version_policy": "Independent SemVer; bump version and update CHANGELOG.md when script changes"
+  "version_policy": "Independent SemVer; bump version and update CHANGELOG.md when script changes",
+  "catalogued_on": "2026-11-04"
 }
