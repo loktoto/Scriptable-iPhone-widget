@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.8.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.8.1｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -147,3 +147,9 @@ Script 回傳例如：
 
 **一致性注意：** Numbers 插入係獨立嘅 Shortcuts 動作，未能同 Scriptable 本機 JSON 寫入形成原子交易。若後面 Numbers 動作失敗，本機可能已儲存，不能單純重新掃卡期待重複匯入會自動補返 Numbers；請先手動核對，避免重複或漏帳。以前保存嘅交易唔會自動同步到 Numbers，可由 Scriptable 匯出 CSV，再用 Numbers 小心導入核對。
 
+
+## v3.8.1 Shortcut 執行診斷
+1. 將最新整份程式複製去 iPhone Scriptable 裏面 Shortcuts 所選用嘅 `Expense` 腳本。
+2. 跑一次自動記帳 Shortcut，再直接喺 Scriptable 開 `Expense` → 🧪 **查看 Shortcuts 記帳紀錄**。
+3. `未有 Shortcuts 執行紀錄` = 沒有證據表明新版腳本執行；`no_input` = 冇收到 Shortcut Parameter；`skipped` = 解析唔到有效金額；`saved` = 已寫入及讀回；`error` = 執行失敗。
+4. 檔案只儲存輸入類型、執行狀態及數量，唔包括真實交易原文。

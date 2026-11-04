@@ -5,6 +5,7 @@ const source=path.join(__dirname,'..','widgets/expense-tracker/HK-Expense-Tracke
 cp.execFileSync(process.execPath,['--check',source]);
 const script=fs.readFileSync(source,'utf8');
 const dbPath='/local/ExpenseTrackerHK/transactions.json';
+const auditPath='/local/ExpenseTrackerHK/last-shortcut-run.json';
 function store(rows=[]){const m=new Map();if(rows.length)m.set(dbPath,JSON.stringify({version:1,transactions:rows}));return m;}
 async function exec(input,disk,texts=[]){
  let output=null,complete=false,requests=0;
@@ -30,16 +31,18 @@ async function exec(input,disk,texts=[]){
  ]);
  assert.equal(status,'done','Siri/Shortcuts import must never block on FX');
  assert.equal(complete,true);
- return {output,requests,rows:JSON.parse(disk.get(dbPath)||'{"transactions":[]}').transactions};
+ return {output,requests,rows:JSON.parse(disk.get(dbPath)||'{"transactions":[]}').transactions,audit:disk.has(auditPath)?JSON.parse(disk.get(auditPath)):null};
 }
 (async()=>{
  let count=0;const mark=()=>count++;
  const entry={merchantName:'Demo Restaurant',merchantType:'Restaurants',amount:57,currency:'HKD',card:'SAMPLE CARD',date:'20261104_203328'};
  let db=store(),a=await exec(entry,db);
- assert.match(a.output.receipt,/\[EXPENSE-HK-v3\.8\.0\] 已儲存 1 筆/);
+ assert.match(a.output.receipt,/\[EXPENSE-HK-v3\.8\.1\] 已儲存 1 筆/);
  assert.match(a.output.receipt,/磁碟核實：1 筆/);
  assert.equal(a.requests,0);assert.equal(a.rows[0].amount,57);
  assert.equal(a.output.shouldAppendNumbers,true);
+ assert.equal(a.audit.stage,'saved');
+ assert.equal(a.audit.version,'3.8.1');
  assert.equal(a.output.status,'saved');
  assert.equal(a.output.numbersRow.length,6);
  assert.equal(a.output.numbersRow[2],'Demo Restaurant');
@@ -48,7 +51,8 @@ async function exec(input,disk,texts=[]){
  a=await exec(entry,db);
  assert.match(a.output.receipt,/已存在 1 筆/);assert.equal(a.rows.length,1);
  assert.equal(a.output.shouldAppendNumbers,false);
- assert.equal(a.output.status,'duplicate');mark();
+ assert.equal(a.output.status,'duplicate');
+ assert.equal(a.audit.stage,'duplicate');mark();
  a=await exec(JSON.stringify(entry),store());assert.equal(a.rows.length,1);mark();
  a=await exec({response:JSON.stringify(entry)},store());assert.equal(a.rows.length,1);mark();
  a=await exec({...entry,amount:{content:'9.60',uuid:'00000000-0000-4000-8000-000000000000'}},store());
@@ -57,7 +61,8 @@ async function exec(input,disk,texts=[]){
  for(const amount of [0,'0.00','',null,'n/a','undefined']){
   a=await exec({...entry,amount},store());assert.equal(a.rows.length,0);
   assert.match(a.output.receipt,/未入帳/);
-  assert.equal(a.output.shouldAppendNumbers,false);mark();
+  assert.equal(a.output.shouldAppendNumbers,false);
+  assert.equal(a.audit.stage,'skipped');mark();
  }
  a=await exec({...entry,merchantName:'',merchantType:'null',date:'',card:''},store());
  assert.equal(a.rows[0].date,null);assert.equal(a.rows[0].category,'未分類');mark();
@@ -68,7 +73,7 @@ async function exec(input,disk,texts=[]){
  assert.match(a.output.receipt,/待換算外幣：1 筆/);mark();
  a=await exec(null,store(),[JSON.stringify(entry)]);
  assert.equal(a.rows.length,1);assert.match(a.output.receipt,/接收來源：Texts/);mark();
- a=await exec(null,store());assert.match(a.output.receipt,/未入帳/);assert.equal(a.output.shouldAppendNumbers,false);mark();
+ a=await exec(null,store());assert.match(a.output.receipt,/未入帳/);assert.equal(a.output.shouldAppendNumbers,false);assert.equal(a.audit.stage,'no_input');mark();
  a=await exec({...entry,amount:'HK$57.00'},store());assert.equal(a.rows[0].amount,57);mark();
  console.log('PASS: '+count+' Expense Tracker offline integration + Numbers bridge scenarios, zero network on import');
 })().catch(e=>{console.error(e);process.exitCode=1;});

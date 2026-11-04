@@ -1,5 +1,20 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.8.1] — 2026-11-04
+
+**Added**
+- Per-run privacy-conscious local diagnostics at `ExpenseTrackerHK/last-shortcut-run.json` with timestamps and explicit `received`, `parsed`, `saved`, `duplicate`, `skipped`, `no_input` and `error` stages.
+- In-app menu **🧪 查看 Shortcuts 記帳紀錄** showing recent local totals and latest Shortcut execution status.
+- Record fatal errors in the same audit file even when a Shortcut response cannot be returned.
+
+**Why / outcome**
+- User confirmed the only present database row was inserted manually. Auto-import therefore still has an unresolved iOS execution/parameter issue; existing successful JSON simulations did not establish that a real Shortcut invoked the installed Script.
+- No raw Apple Intelligence output, merchant names or card details are persisted in audit diagnostics. All code is kept offline.
+
+**Validation**
+- Offline integration scenarios for saved, duplicate, invalid and missing input; syntax and CI mirrored-source checks. Actual iPhone execution requires a new run of the installed script.
+- Updating the GitHub repository alone does not change the installed `Expense` script.
+
 ## [3.8.0] — 2026-11-04
 
 **Added**
