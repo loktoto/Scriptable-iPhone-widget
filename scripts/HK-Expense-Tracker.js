@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.6 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.7 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.6 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.7 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -147,7 +147,7 @@ function merchantName(x) {
   return String(x||'').trim().replace(/\s+/g,' ').replace(/^商戶名稱\s*[:：]\s*/,'');
 }
 const merchantRules = [
-  ['交通', /(KOWLOON MOTO|METRO OPERATION|MTR|KMB|CITYBUS|港鐵|巴士|的士|UBER TRIP)/i],
+  ['交通', /(KOWLOON MOTO|METRO OPERATION|MTR|KMB|CITYBUS|港鐵|鐵路|八達通|巴士|的士|UBER TRIP)/i],
   ['便利店', /(CIRCLE K|7-ELEVEN|7 ELEVEN|OK便利店)/i],
   ['超市雜貨', /(AEON|MARKET PLACE|WELLCOME|GREENPRICE|DS GROCERIES|MING FRUIT|FRESH MIST)/i],
   ['餐飲', /(TEN REN TEA|HAMA.SUSHI|FROSTY JOY|CAFE DE CORAL|SANG ROASTERY|WING WAH CAKE|YUET EAT|STARBUCKS|AROME BAKERY|CHEF DE SINGAPORE|HIKINIKU|ZOoba|CAF CAFE|GELATO|MAN FUNG DUMPLING)/i],
@@ -809,14 +809,43 @@ function amountHint(input){
   if(original!==null)return '；頂層金額無效／為 0';
   return '；頂層找不到 amount';
 }
+// A receipt is returned ONLY after local transactions.json has been re-read and checked.
+// Do not treat AI model output or a Shortcuts preview as a successful save.
+function verifyStored(rows){
+  if(!fm.fileExists(dbPath))throw new Error('未找到 transactions.json，無法確認入帳');
+  const stored=JSON.parse(fm.readString(dbPath));
+  if(!stored || !Array.isArray(stored.transactions))throw new Error('寫入後資料庫格式異常');
+  const savedById=new Map(stored.transactions.map(t=>[t.id,t]));
+  for(const t of rows){
+    const record=savedById.get(t.id);
+    if(!record || Number(record.amount)!==Number(t.amount) ||
+      String(record.currency)!==String(t.currency) ||
+      String(record.date||'')!==String(t.date||'')){
+      throw new Error('交易未能喺磁碟讀回核實，請勿當成已成功記帳');
+    }
+  }
+  return {verified:rows.length,total:stored.transactions.length};
+}
 async function importData(input,ask){
   __expensePhase = '解析 Shortcuts 輸入';
-  const received=describeInput(input)+amountHint(input);
+  let received=describeInput(input)+amountHint(input);
   lastParseMethod='unknown';
-  const rows=parseInput(input);
+  let rows=parseInput(input);
+  let source='Shortcut Parameter';
+  // Apple Shortcuts can supply a model response through the Texts field instead.
+  if(!rows.length && Array.isArray(args.plainTexts)){
+    for(const candidate of args.plainTexts){
+      const next=parseInput(candidate);
+      if(next.length){
+        rows=next;source='Texts';
+        received=describeInput(candidate)+amountHint(candidate);
+        break;
+      }
+    }
+  }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='Expense Tracker HK v3.6\n'+reason+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n請先在「使用模型」選 Dictionary Output，並用 Quick Look 檢查回應。';
+    const message='[EXPENSE-HK-v3.7] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
     console.log('[ExpenseTrackerHK v3.6] '+reason+' | '+received);
     Script.setShortcutOutput(message);
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -833,9 +862,11 @@ async function importData(input,ask){
   const result=addRows(rows);
   __expensePhase = '換算匯率';
   const fx=await updateFX();
+  __expensePhase = '讀回核實 transactions.json';
+  const check=verifyStored(rows);
   __expensePhase = '回傳記帳結果';
-  const status=result.added>0?'成功新增 '+result.added+' 筆':(result.skipped>0?'交易已存在，冇新增':'冇新增交易');
-  const message=`Expense Tracker HK v3.6\n${status}；重複 ${result.skipped} 筆\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n外幣已換算 ${fx.converted} 筆，待換算 ${fx.pending} 筆\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
+  const message=`[EXPENSE-HK-v3.7] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n外幣已換算 ${fx.converted} 筆，待換算 ${fx.pending} 筆\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   Script.setShortcutOutput(message);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -894,12 +925,13 @@ if (config.runsInWidget) {
   const input = args.shortcutParameter;
   const hasInput = input !== null && input !== undefined &&
     (typeof input === 'object' || String(input).trim() !== '');
-  if (hasInput) {
+  const hasTextFallback=Array.isArray(args.plainTexts) && args.plainTexts.some(t=>String(t||'').trim()!=='');
+  if (hasInput || hasTextFallback) {
     __expensePhase = '處理 Shortcuts 記帳';
     await importData(input, false);
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
-    Script.setShortcutOutput('Expense Tracker HK v3.6\n未入帳：Shortcut Parameter 沒有傳入 Dictionary / JSON。請檢查 Run Expense with 回應。');
+    Script.setShortcutOutput('[EXPENSE-HK-v3.7] 未入帳\nShortcut Parameter 同 Texts 都冇資料。\n請確認 Run Expense with 回應。');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -916,7 +948,7 @@ try {
   const trace = (err && err.stack) ? String(err.stack) : '';
   const report = '階段：' + __expensePhase + '\n錯誤：' + message + (trace ? '\n' + trace.slice(0, 1500) : '');
   console.error('[ExpenseTrackerHK] ' + report);
-  try { Script.setShortcutOutput('記帳失敗：' + __expensePhase + ' — ' + message); } catch (_) {}
+  try { Script.setShortcutOutput('[EXPENSE-HK-v3.7] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();
