@@ -1,5 +1,20 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.7.1] — 2026-11-04
+
+**Fixed**
+- Prevented Shortcuts/Siri transaction imports from waiting on currency-conversion API calls for unrelated old pending FX records.
+- Persist and read back each valid transaction immediately; send the marked `[EXPENSE-HK-v3.7.1]` receipt without network access.
+- Retained all foreign-currency transaction data; any missing HKD equivalents remain marked `pending` until the user selects **Retry FX / 重試外幣換算** from the Scriptable app menu.
+
+**Verified by offline regression**
+- Reproduced v3.7 hanging after saving an HKD transaction when a historical FX request never returned.
+- Confirmed v3.7.1 completes promptly, verifies the database write and makes **zero network calls** during automated import.
+- Tested native Dictionary, JSON string, nested amount, response wrapper, blank/zero values, negative refund, duplicate event and existing pending-FX records.
+- The on-device iOS Shortcut still requires an installed updated script and has **not** been directly executed in these tests.
+
+**Upgrade notes:** Replace the full existing iPhone Scriptable `Expense` code with this version. GitHub does not update installed iPhone scripts automatically. In Shortcuts, display the output of the **Run Expense** action, not the AI model `Response`.
+
 ## [3.7.0] — 2026-11-04
 **Fixed**
 - Read back and verify imported records from local `transactions.json` after saving.

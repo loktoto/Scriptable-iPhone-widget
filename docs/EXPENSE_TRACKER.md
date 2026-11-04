@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.7｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.7.1｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -39,7 +39,7 @@
 ### Apple Intelligence / Scriptable 排錯（v3.7）
 1. 在「使用裝置端模型」撳右邊箭嘴，於 **Output** 明確選 **Dictionary**（只寫「Output a Dictionary」喺 Prompt 並不足夠）。
 2. **Run Expense** 之前加入 **Quick Look（快速查看）**，選模型的「回應」，核對真正有 `amount` 及其他欄位。
-3. **Run Expense** 之後加入 **Show Result（顯示結果）**，選 **Run Expense 的輸出**。訊息應以 `[EXPENSE-HK-v3.7]` 開頭，顯示接收類型、解析方式、有效金額及新增／重複狀態。
+3. **Run Expense** 之後加入 **Show Result（顯示結果）**，選 **Run Expense 的輸出**。訊息應以 `[EXPENSE-HK-v3.7.1]` 開頭，顯示接收類型、解析方式、有效金額及新增／重複狀態。
 4. 確認手機 Scriptable 嘅 `Expense` 程式已貼入最新 [HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)；GitHub 更新唔會自動同步到手機。
 5. 若 `Quick Look` 冇非零 `amount`，先檢查 Apple Intelligence 原始輸入或 Magic Variables；若有、但 Scriptable 說未收到資料，檢查 `Run Expense with 回應` 的參數連接。
 6. **隔離測試：** 暫時以 `{"merchantName":"Example Cafe","currency":"HKD","amount":42.5,"date":"20261103_120000"}` Dictionary 替換模型輸入。若能新增一筆，代表 Scriptable 儲存正常，而模型輸出需要修正。測試會寫入真實本機資料庫，完成後請自行核對／清理。
@@ -48,13 +48,13 @@
 
 ### 重要：模型回應 ≠ Run Expense 入帳回條
 
-如果 Shortcuts 最後顯示嘅內容只係六個欄位嘅 JSON（`merchantName`, `amount`, `currency` 等），**嗰份唔係 Expense Tracker v3.7 嘅成功入帳回條**。腳本成功／失敗都會用 `[EXPENSE-HK-v3.7]` 開頭，並顯示交易儲存及 `transactions.json` 讀回核實結果。
+如果 Shortcuts 最後顯示嘅內容只係六個欄位嘅 JSON（`merchantName`, `amount`, `currency` 等），**嗰份唔係 Expense Tracker v3.7 嘅成功入帳回條**。腳本成功／失敗都會用 `[EXPENSE-HK-v3.7.1]` 開頭，並顯示交易儲存及 `transactions.json` 讀回核實結果。
 
 請喺 Shortcuts 最後加入 **「顯示結果」（Show Result）**：
 1. 點「顯示結果」入面嘅藍色 Magic Variable。
 2. **必須選 Scriptable「Run Expense」動作嘅輸出**，唔係 Apple Intelligence「回應」。
 3. 手機上名為 `Expense` 嘅 Script 必須貼入 GitHub 最新版；只係更新 GitHub 唔會改手機內已安裝 Script。
-4. 如出現 `[EXPENSE-HK-v3.7] 已儲存… 磁碟核實…` 就已核實本機寫入；若只見 JSON，代表仍然未睇到 Scriptable 真正回條。
+4. 如出現 `[EXPENSE-HK-v3.7.1] 已儲存… 磁碟核實…` 就已核實本機寫入；若只見 JSON，代表仍然未睇到 Scriptable 真正回條。
 5. 若 Scriptable 收唔到 Shortcut Parameter，v3.7 會嘗試 `args.plainTexts` 作備用來源。
 
 ### 故障排除
@@ -103,3 +103,6 @@ This public repository contains **code and synthetic JSON examples only**. Do no
 
 ## Separate widget folder & version history / 獨立版本紀錄
 The canonical version and dated changelog are in [widgets/expense-tracker](../widgets/expense-tracker/); its standalone Scriptable JS is mirrored at the previous `scripts/` URL. GitHub does not automatically synchronize the installed iPhone script.
+
+### v3.7.1 Shortcuts 快速入帳修正
+Shortcuts／Siri 記帳依家只做本機儲存同磁碟核實，唔會因為舊外幣交易嘅 FX API 未回應而卡住。新外幣交易會先以 `pending` 儲存，再喺 Scriptable App 主選單用「重試外幣換算」補返 HKD 估算。入帳回條以 `[EXPENSE-HK-v3.7.1]` 開頭。更新 GitHub 並不會更新 iPhone 已貼入嘅 Scriptable 程式。

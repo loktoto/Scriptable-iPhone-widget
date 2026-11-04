@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.7 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.7.1 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.7 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.7.1 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -845,8 +845,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.7] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.6] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.7.1] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.7.1] '+reason+' | '+received);
     Script.setShortcutOutput(message);
     if(ask && config.runsInApp)await note('沒有記帳',message);
     return;
@@ -858,15 +858,16 @@ async function importData(input,ask){
     if(await a.presentAlert()===-1)return;
   }
   const amounts=rows.slice(0,5).map(t=>t.amount+' '+t.currency).join(', ');
+  // Shortcuts must not block a HKD purchase on unrelated pending FX network calls.
+  // Record on local disk and verify FIRST; run currency conversion later from the app.
   __expensePhase = '儲存交易';
   const result=addRows(rows);
-  __expensePhase = '換算匯率';
-  const fx=await updateFX();
   __expensePhase = '讀回核實 transactions.json';
   const check=verifyStored(rows);
+  const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.7] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n外幣已換算 ${fx.converted} 筆，待換算 ${fx.pending} 筆\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.7.1] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   Script.setShortcutOutput(message);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -931,7 +932,7 @@ if (config.runsInWidget) {
     await importData(input, false);
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
-    Script.setShortcutOutput('[EXPENSE-HK-v3.7] 未入帳\nShortcut Parameter 同 Texts 都冇資料。\n請確認 Run Expense with 回應。');
+    Script.setShortcutOutput('[EXPENSE-HK-v3.7.1] 未入帳\nShortcut Parameter 同 Texts 都冇資料。\n請確認 Run Expense with 回應。');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -948,7 +949,7 @@ try {
   const trace = (err && err.stack) ? String(err.stack) : '';
   const report = '階段：' + __expensePhase + '\n錯誤：' + message + (trace ? '\n' + trace.slice(0, 1500) : '');
   console.error('[ExpenseTrackerHK] ' + report);
-  try { Script.setShortcutOutput('[EXPENSE-HK-v3.7] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message); } catch (_) {}
+  try { Script.setShortcutOutput('[EXPENSE-HK-v3.7.1] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();
