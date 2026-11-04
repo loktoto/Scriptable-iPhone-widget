@@ -1,6 +1,6 @@
 # Expense Tracker HK v3.7｜記帳 Widget / Shortcuts Guide
 
-> Script: [scripts/HK-Expense-Tracker.js](../scripts/HK-Expense-Tracker.js)  
+> Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
 
 ## 廣東話 / 繁體中文
@@ -16,7 +16,7 @@
 
 ### 安裝
 1. 安裝 iOS [Scriptable](https://apps.apple.com/app/scriptable/id1405459188)；新增一條 Script（例如 `Expense Tracker HK`）。
-2. 複製 [HK-Expense-Tracker.js](../scripts/HK-Expense-Tracker.js) **全部內容**貼入新 Script（不要追加在舊程式後）。
+2. 複製 [HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js) **全部內容**貼入新 Script（不要追加在舊程式後）。
 3. 直接由 Scriptable 開啟一次，使用主選單操作 Dashboard、預覽不同 Widget 尺寸或備份。
 4. 喺 Shortcuts 加入 Apple Intelligence 步驟，輸出以下六個鍵的 Dictionary：`merchantType`, `merchantName`, `currency`, `amount`, `card`, `date`。
 5. 加入 Scriptable **Run Script** 動作，選擇新 Script，`Shortcut Parameter` 指向該 Dictionary；**毋須轉為 JSON 字串**。
@@ -40,7 +40,7 @@
 1. 在「使用裝置端模型」撳右邊箭嘴，於 **Output** 明確選 **Dictionary**（只寫「Output a Dictionary」喺 Prompt 並不足夠）。
 2. **Run Expense** 之前加入 **Quick Look（快速查看）**，選模型的「回應」，核對真正有 `amount` 及其他欄位。
 3. **Run Expense** 之後加入 **Show Result（顯示結果）**，選 **Run Expense 的輸出**。訊息應以 `[EXPENSE-HK-v3.7]` 開頭，顯示接收類型、解析方式、有效金額及新增／重複狀態。
-4. 確認手機 Scriptable 嘅 `Expense` 程式已貼入最新 [HK-Expense-Tracker.js](../scripts/HK-Expense-Tracker.js)；GitHub 更新唔會自動同步到手機。
+4. 確認手機 Scriptable 嘅 `Expense` 程式已貼入最新 [HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)；GitHub 更新唔會自動同步到手機。
 5. 若 `Quick Look` 冇非零 `amount`，先檢查 Apple Intelligence 原始輸入或 Magic Variables；若有、但 Scriptable 說未收到資料，檢查 `Run Expense with 回應` 的參數連接。
 6. **隔離測試：** 暫時以 `{"merchantName":"Example Cafe","currency":"HKD","amount":42.5,"date":"20261103_120000"}` Dictionary 替換模型輸入。若能新增一筆，代表 Scriptable 儲存正常，而模型輸出需要修正。測試會寫入真實本機資料庫，完成後請自行核對／清理。
 
@@ -84,7 +84,7 @@
 - Dashboard, category summaries, recent transactions, FX reference conversion, CSV exports, and local JSON backups.
 
 ### Setup
-1. Install [Scriptable](https://apps.apple.com/app/scriptable/id1405459188), create a new script, and paste the entire [HK-Expense-Tracker.js](../scripts/HK-Expense-Tracker.js) file.
+1. Install [Scriptable](https://apps.apple.com/app/scriptable/id1405459188), create a new script, and paste the entire [HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js) file.
 2. Run it once in Scriptable for the menu and widget previews.
 3. In Shortcuts, have Apple Intelligence emit a Dictionary with `merchantType`, `merchantName`, `currency`, `amount`, `card`, and `date`.
 4. Pass that Dictionary directly into Scriptable **Run Script → Shortcut Parameter**. No conversion to JSON text is necessary.
@@ -99,3 +99,7 @@
 
 ### Privacy and limitations
 This public repository contains **code and synthetic JSON examples only**. Do not commit your real transaction database, exported CSV or backups. FX rate lookups send the currency pair and date only. Widget reload timing is controlled by iOS; `refreshAfterDate` is not a guaranteed refresh interval. Live iPhone execution should be validated separately from JavaScript tests.
+
+
+## Separate widget folder & version history / 獨立版本紀錄
+The canonical version and dated changelog are in [widgets/expense-tracker](../widgets/expense-tracker/); its standalone Scriptable JS is mirrored at the previous `scripts/` URL. GitHub does not automatically synchronize the installed iPhone script.

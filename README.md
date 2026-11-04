@@ -5,19 +5,33 @@ Two standalone iPhone Home Screen widgets powered by public transport APIs, with
 
 **Important:** This is an independent, unofficial project. ETA data comes from the transport operators; the project is not affiliated with MTR, KMB or Citybus. iOS controls actual Home Screen widget reloads; no setting guarantees real-time background polling.
 
+## Widget library / 獨立 Widget 目錄
+
+Each Widget has its own folder, independent version, installation guide and release history. Old `scripts/` URLs remain compatible.
+
+| Widget | Canonical folder | Version | Changelog |
+|---|---|---|---|
+| 🚌 Bus ETA | [widgets/bus-eta](widgets/bus-eta/) | 2.4.0 | [Changes](widgets/bus-eta/CHANGELOG.md) |
+| 🚇 MTR — Standard and Adaptive | [widgets/mtr-next-train](widgets/mtr-next-train/) | 1.0.0 | [Changes](widgets/mtr-next-train/CHANGELOG.md) |
+| 💳 Expense Tracker | [widgets/expense-tracker](widgets/expense-tracker/) | 3.7.0 | [Changes](widgets/expense-tracker/CHANGELOG.md) |
+
+**Future releases must bump the widget's version and list precisely what changed.** [Versioning policy / 版本管理](VERSIONING.md)
+
+---
+
 ## Screenshots / 截圖
 
 <table><tr><th>MTR 港鐵</th><th>Bus 巴士</th></tr>
 <tr><td><img src="docs/images/mtr_widget.png" width="280" alt="Cropped MTR widget screenshot showing Tai Wo Hau station, Tsuen Wan Line, train predictions and refresh indicator"></td><td><img src="docs/images/bus_widget.png" width="280" alt="Cropped bus widget screenshot showing 59M, Lung Mun stop, three ETA countdowns and official timestamp"></td></tr>
 </table>
 
-Screenshots were cropped from a user-provided iPhone image. They illustrate the installed widgets, not a live feed. **The screenshot corresponds to the original Adaptive MTR widget (`scripts/HK_MTR_Next_Train.js`); `scripts/HK-MTR-Next-Train.js` is an independently implemented public alternative and may differ in behaviour.**
+Screenshots were cropped from a user-provided iPhone image. They illustrate the installed widgets, not a live feed. **The screenshot corresponds to the original Adaptive MTR widget (`widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js`); `widgets/mtr-next-train/standard/HK-MTR-Next-Train.js` is an independently implemented public alternative and may differ in behaviour.**
 
 ## Expense Tracker HK / 消費記帳 Widget
 
 An additional standalone iPhone Scriptable expense tracker with Apple Intelligence / Shortcuts **Dictionary and resilient JSON extraction**, adaptive widgets, category charts, local backups, and reference FX conversions. It saves valid nonzero amounts only (including negative refunds). No private expense records are included.
 
-- **Script:** [scripts/HK-Expense-Tracker.js](scripts/HK-Expense-Tracker.js)
+- **Script:** [widgets/expense-tracker/HK-Expense-Tracker.js](widgets/expense-tracker/HK-Expense-Tracker.js)
 - **Example JSON:** [standard Dictionary](examples/expense-transaction.example.json) · [nested Shortcuts amount](examples/expense-transaction.nested.example.json)
 - **JSON Schema:** [schemas/expense-transaction.schema.json](schemas/expense-transaction.schema.json)
 - **Setup, methodology and privacy (廣東話 / English):** [docs/EXPENSE_TRACKER.md](docs/EXPENSE_TRACKER.md)
@@ -30,8 +44,8 @@ An additional standalone iPhone Scriptable expense tracker with Apple Intelligen
 
 | File | Description |
 |---|---|
-| [scripts/HK-Bus-ETA.js](scripts/HK-Bus-ETA.js) | KMB and Citybus ETA widget; 3 upcoming buses; stable/live countdown modes; HKT source timestamp; independent favorites; adaptive workdays |
-| [scripts/HK-MTR-Next-Train.js](scripts/HK-MTR-Next-Train.js) | New MTR Next Train implementation; line/station/UP/DOWN/BOTH; independent favorite; adaptive workdays |
+| [widgets/bus-eta/HK-Bus-ETA.js](widgets/bus-eta/HK-Bus-ETA.js) | KMB and Citybus ETA widget; 3 upcoming buses; stable/live countdown modes; HKT source timestamp; independent favorites; adaptive workdays |
+| [widgets/mtr-next-train/standard/HK-MTR-Next-Train.js](widgets/mtr-next-train/standard/HK-MTR-Next-Train.js) | New MTR Next Train implementation; line/station/UP/DOWN/BOTH; independent favorite; adaptive workdays |
 | [docs/METHODOLOGY.md](docs/METHODOLOGY.md) | Technical architecture, API freshness, scheduling, failure modes, privacy, validation / 詳細原理 |
 | [docs/images/mtr_widget.png](docs/images/mtr_widget.png) | Cropped image preview embedded in SVG |
 | [docs/images/bus_widget.png](docs/images/bus_widget.png) | Cropped image preview embedded in SVG |
@@ -46,7 +60,7 @@ iPhone、[Scriptable](https://apps.apple.com/app/scriptable/id1405459188)、網�
 
 ### 2. 安裝巴士 Widget
 
-1. 開啟 [HK-Bus-ETA.js](scripts/HK-Bus-ETA.js)，複製完整 JavaScript。
+1. 開啟 [HK-Bus-ETA.js](widgets/bus-eta/HK-Bus-ETA.js)，複製完整 JavaScript。
 2. 喺 Scriptable 按 **+**，建立一條新 Script，例如叫 `Bus Home`，貼上代碼並儲存。
 3. 按 **▶** 執行，選擇九巴／城巴、路線、方向及上車站；可再新增多個收藏。
 4. 返回主畫面，長按空白位置，加入 **Scriptable** Widget，推薦 **小型**（一條路線三班車）。
@@ -57,7 +71,7 @@ iPhone、[Scriptable](https://apps.apple.com/app/scriptable/id1405459188)、網�
 
 ### 3. 安裝港鐵 Widget
 
-1. 複製 [HK-MTR-Next-Train.js](scripts/HK-MTR-Next-Train.js)。
+1. 複製 [HK-MTR-Next-Train.js](widgets/mtr-next-train/standard/HK-MTR-Next-Train.js)。
 2. 喺 Scriptable 建立 `MTR Home` Script，貼上並執行。
 3. 選擇港鐵路線、車站、**UP / DOWN / BOTH**；例如 `TWL` 荃灣綫 → `TWH` 大窩口 → `DOWN` 往中環方向。
 4. 主畫面加入 Scriptable Widget，指向 `MTR Home`。點擊 Widget 可打開即時查詢介面。
@@ -107,7 +121,7 @@ An iPhone with **Scriptable** installed and an internet connection. No API token
 
 ### Install the bus widget
 
-1. Open [`scripts/HK-Bus-ETA.js`](scripts/HK-Bus-ETA.js) and copy the complete JavaScript source.
+1. Open [`widgets/bus-eta/HK-Bus-ETA.js`](widgets/bus-eta/HK-Bus-ETA.js) and copy the complete JavaScript source.
 2. In Scriptable, tap **+**, create `Bus Home`, paste the code and save.
 3. Run the script once. Select **KMB** or **Citybus**, route, direction and boarding stop. You can add more favorites.
 4. On the iPhone Home Screen, add a **Scriptable** widget. A small widget is suited to one route and three predictions.
@@ -118,7 +132,7 @@ An iPhone with **Scriptable** installed and an internet connection. No API token
 
 ### Install the MTR widget
 
-1. Copy [`scripts/HK-MTR-Next-Train.js`](scripts/HK-MTR-Next-Train.js) into a new Scriptable script, e.g. `MTR Home`.
+1. Copy [`widgets/mtr-next-train/standard/HK-MTR-Next-Train.js`](widgets/mtr-next-train/standard/HK-MTR-Next-Train.js) into a new Scriptable script, e.g. `MTR Home`.
 2. Run it, choose the line, station and **UP / DOWN / BOTH**. For the screenshot's Tai Wo Hau example: **TWL → TWH → DOWN** (towards Central).
 3. Add another Scriptable Home Screen widget and select that script.
 4. The repository MTR code is a **fresh implementation**, not a verified copy of the existing private MTR widget shown in the screenshot.
@@ -170,8 +184,8 @@ JavaScript source files passed static `node --check` syntax validation. **No iPh
 
 ## Original user-tested design and bilingual walkthrough / 原版 Widget 及雙語教學
 
-- **Original MTR Adaptive Low-Frequency widget (matches the user-provided setup):** [`scripts/HK_MTR_Next_Train.js`](scripts/HK_MTR_Next_Train.js). Includes the enlarged header, full-width next-train card, UP/DOWN/BOTH and per-script isolated favourites. This differs from the separately maintained `scripts/HK-MTR-Next-Train.js` implementation above.
-- **Existing Bus widget:** [`scripts/HK-Bus-ETA.js`](scripts/HK-Bus-ETA.js), including the 3 ETA predictions and per-script settings.
+- **Original MTR Adaptive Low-Frequency widget (matches the user-provided setup):** [`widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js`](widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js). Includes the enlarged header, full-width next-train card, UP/DOWN/BOTH and per-script isolated favourites. This differs from the separately maintained `widgets/mtr-next-train/standard/HK-MTR-Next-Train.js` implementation above.
+- **Existing Bus widget:** [`widgets/bus-eta/HK-Bus-ETA.js`](widgets/bus-eta/HK-Bus-ETA.js), including the 3 ETA predictions and per-script settings.
 - **廣東話完整教學：** [`docs/README_zh_HK.md`](docs/README_zh_HK.md) — 安裝、設站、工作日、自適應查詢、私隱及疑難排解。
 - **English detailed guide:** [`docs/README_en.md`](docs/README_en.md) — setup, API methodology, adaptive scheduling, cache strategy, and troubleshooting.
 - **Actual cropped screenshots:** [`docs/images/mtr_widget.png`](docs/images/mtr_widget.png), [`docs/images/bus_widget.png`](docs/images/bus_widget.png).

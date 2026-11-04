@@ -10,8 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Syntax and isolated schedule checks
+      - name: Validate syntax, commute schedule and countdown
         run: node tests/validate.js
+      - name: Enforce independent versions, changelogs and mirror parity
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: node tools/check-widget-versions.js

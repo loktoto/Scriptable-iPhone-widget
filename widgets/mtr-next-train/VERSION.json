@@ -1,0 +1,16 @@
+{
+  "widget": "mtr-next-train",
+  "name": "HK MTR Next Train",
+  "version": "1.0.0",
+  "release_date": "2026-11-04",
+  "main_script": "standard/HK-MTR-Next-Train.js",
+  "scripts": [
+    "standard/HK-MTR-Next-Train.js",
+    "adaptive/HK_MTR_Next_Train.js"
+  ],
+  "legacy_mirrors": [
+    "scripts/HK-MTR-Next-Train.js",
+    "scripts/HK_MTR_Next_Train.js"
+  ],
+  "version_policy": "Independent SemVer; bump version and update CHANGELOG.md when script changes"
+}

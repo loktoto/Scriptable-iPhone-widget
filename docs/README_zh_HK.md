@@ -16,7 +16,7 @@
 ## 2. 安裝港鐵 Widget
 
 1. iPhone 安裝 **Scriptable** App，打開後按 `+` 建立 Script。
-2. 建議命名 `MTR Home`，複製 [`scripts/HK_MTR_Next_Train.js`](../scripts/HK_MTR_Next_Train.js) **完整原始 JavaScript** 貼入；唔好貼 `{"code": ...}` JSON 包裝。
+2. 建議命名 `MTR Home`，複製 [`widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js`](../widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js) **完整原始 JavaScript** 貼入；唔好貼 `{"code": ...}` JSON 包裝。
 3. 第一次喺 Scriptable App 執行，跟住畫面揀**路線 → 車站 → 方向**（兩個方向／UP／DOWN）。
 4. 可按 `↻ 即時刷新`、`⇄ 更改方向`、`⌖ 更換路線／車站`。
 5. 返回 iPhone 主畫面，長按空白位置加入 **Scriptable Widget**，選擇 Small／Medium／Large，再長按該 Widget → 編輯 Widget → **Script: MTR Home**。Widget 參數可留空，使用已儲存嘅車站。
@@ -38,7 +38,7 @@ Widget 編輯畫面嘅 `Parameter` 可以固定路線／車站／方向，格式
 <a id="bus"></a>
 ## 3. 安裝巴士 Widget
 
-1. 新增另一份 Script，命名 `Bus Home`；複製 [`scripts/HK-Bus-ETA.js`](../scripts/HK-Bus-ETA.js) 全部內容貼入。
+1. 新增另一份 Script，命名 `Bus Home`；複製 [`widgets/bus-eta/HK-Bus-ETA.js`](../widgets/bus-eta/HK-Bus-ETA.js) 全部內容貼入。
 2. 第一次喺 Scriptable 執行：揀**九巴／城巴 → 輸入路線 → 選方向 → 選巴士站**。例如你可以搵 `59M`，揀對應方向同龍門站；實際可選站點以官方 Route-Stop API 為準。
 3. 進入列表後可新增其他常用站、移除收藏、按 `🔄 立即刷新`，或打開 `⚙ 通勤設定`。
 4. 主畫面新增 Scriptable Widget，將 **Script** 設成 `Bus Home`。若有多個收藏，可用 Widget `Parameter` 輸入**收藏序號**（如 `1`）或**路線號**（如 `59M`）挑選顯示嘅一個收藏。路線號重複時會揀第一個匹配項，想精確指定就用收藏序號。
@@ -126,7 +126,7 @@ A：檢查路線站碼、網絡、服務時間、官方 API 有冇延誤；開 S
 A：背景頻率由 iOS 管理；通勤以外降低 Widget 更新要求可減少請求機會。巴士前台每 30 秒刷新只適用於表格畫面仍然運行期間。
 
 **Q：點做最基本驗證？**
-A：喺電腦有 Node.js 嘅情況可執行 `node --check scripts/HK_MTR_Next_Train.js` 同 `node --check scripts/HK-Bus-ETA.js`。語法通過只代表 JS 可解析，唔代表已通過 iPhone Scriptable 實機 UI 或即時 API 整合測試。
+A：喺電腦有 Node.js 嘅情況可執行 `node --check widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js` 同 `node --check widgets/bus-eta/HK-Bus-ETA.js`。語法通過只代表 JS 可解析，唔代表已通過 iPhone Scriptable 實機 UI 或即時 API 整合測試。
 
 ## 8. 官方參考
 

@@ -2,7 +2,7 @@
 const fs=require('node:fs'), vm=require('node:vm'), path=require('node:path');
 const cp=require('node:child_process'), assert=require('node:assert/strict');
 function loader(filename,main){
- const filenameAbs=path.join(__dirname,'..','scripts',filename);
+ const filenameAbs=path.join(__dirname,'..',filename);
  cp.execFileSync(process.execPath,['--check',filenameAbs]);
  const raw=fs.readFileSync(filenameAbs,'utf8'), cut=raw.lastIndexOf(main);
  assert(cut>0,'entrypoint not found');
@@ -12,8 +12,8 @@ function loader(filename,main){
  vm.runInContext(raw.slice(0,cut),ctx,{timeout:1000});
  return expr=>vm.runInContext(expr,ctx,{timeout:500});
 }
-const bus=loader('HK-Bus-ETA.js','if (config.runsInWidget)');
-const mtr=loader('HK-MTR-Next-Train.js','if(config.runsInWidget)');
+const bus=loader('widgets/bus-eta/HK-Bus-ETA.js','if (config.runsInWidget)');
+const mtr=loader('widgets/mtr-next-train/standard/HK-MTR-Next-Train.js','if(config.runsInWidget)');
 assert.equal(bus("getRefreshPlan(new Date('2026-10-26T23:30:00Z')).mode"),'通勤');
 assert.equal(bus("getRefreshPlan(new Date('2026-10-26T23:20:00Z')).mode"),'通勤預備');
 assert.equal(bus("(getRefreshPlan(new Date('2026-10-27T04:00:00Z')).next-new Date('2026-10-27T04:00:00Z'))/60000"),30);

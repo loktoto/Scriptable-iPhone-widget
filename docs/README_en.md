@@ -16,7 +16,7 @@ All screenshot ETAs are historical samples—not live information.
 ## 2. MTR: step-by-step installation
 
 1. Install **Scriptable** on iPhone. Create a new script and name it e.g. `MTR Home`.
-2. Copy the **entire raw JavaScript** from [`scripts/HK_MTR_Next_Train.js`](../scripts/HK_MTR_Next_Train.js), without wrapping it in JSON or quotes.
+2. Copy the **entire raw JavaScript** from [`widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js`](../widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js), without wrapping it in JSON or quotes.
 3. Run it inside Scriptable. Select a **line → station → direction** (`UP`, `DOWN`, or `BOTH`). Reopen the app to select another station or direction or to use **↻ Refresh**.
 4. On your iPhone Home Screen, add a Scriptable widget. Edit its settings and choose `MTR Home` for the **Script** field. Choose the size you prefer (Small is shown in the screenshot).
 5. Leave the widget **Parameter** empty to use the saved favourite, or provide `LINE,STATION,DIRECTION` to override it for this particular widget.
@@ -36,7 +36,7 @@ All screenshot ETAs are historical samples—not live information.
 <a id="bus"></a>
 ## 3. Bus: step-by-step installation
 
-1. Create a second Scriptable script named e.g. `Bus Home` and paste [`scripts/HK-Bus-ETA.js`](../scripts/HK-Bus-ETA.js).
+1. Create a second Scriptable script named e.g. `Bus Home` and paste [`widgets/bus-eta/HK-Bus-ETA.js`](../widgets/bus-eta/HK-Bus-ETA.js).
 2. Run it: select **KMB or Citybus → enter route number → select direction → choose stop**. For example, find route `59M` and select the relevant stop and destination; actual stop choices come from the operator API.
 3. In the app's timetable you can add/remove favourites, press **🔄 Refresh**, or configure **⚙ Commute settings**.
 4. Add a separate Scriptable Home Screen widget and choose `Bus Home` as the script.
@@ -122,8 +122,8 @@ The value assigned to `ListWidget.refreshAfterDate` is the **earliest allowed re
 **Static JavaScript syntax checks (no iPhone needed)**:
 
 ```bash
-node --check scripts/HK_MTR_Next_Train.js
-node --check scripts/HK-Bus-ETA.js
+node --check widgets/mtr-next-train/adaptive/HK_MTR_Next_Train.js
+node --check widgets/bus-eta/HK-Bus-ETA.js
 ```
 
 These validate parsing only. Real API behaviour, iOS countdown rendering, URL interactions, and layout require Scriptable on a device. This repository does not claim a complete device-level E2E test.
