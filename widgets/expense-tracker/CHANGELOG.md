@@ -1,5 +1,23 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.8.0] — 2026-11-04
+
+**Added**
+- A Shortcuts-to-Apple-Numbers bridge. `Run Expense` now returns a Dictionary containing `shouldAppendNumbers`, `numbersRow` (six values), `status`, `receipt`, `transactionId`, `numbersRows` and `requiresBatchSync`.
+- Six-column mapping in order: Date, Card, MerchantName, MerchantType, Currency, Amount. For new imports, the existing Scriptable `transactions.json` remains the primary local ledger.
+- Only emit Numbers append requests for **newly inserted** transactions; repeat event IDs produce no extra row.
+- Native Return Dictionary also makes local save/duplicate/invalid reasons available to Shortcuts.
+
+**Changed / Upgrade**
+- The Scriptable Shortcut **output type changes from plain text to Dictionary** (a backward-compatible data addition for correctly configured Shortcuts, but existing Show Result steps should use the `receipt` key).
+- To actually write to Apple Numbers, add `If shouldAppendNumbers` → `Get Dictionary Value numbersRow` → Numbers `Add Row to Top or Bottom of Table` **after** `Run Expense`. Scriptable alone cannot append to a Numbers spreadsheet.
+- Old entries in local `transactions.json` are not backfilled automatically. Do not re-run imports blindly to backfill.
+- **Important consistency limitation:** an error in the later Numbers action after JSON was saved can leave Numbers missing a row; replaying the same transaction will not re-emit it automatically. Inspect/reconcile the table first.
+
+**Tested**
+- JS syntax and offline Shortcuts bridge scenarios (valid 57 HKD, nested Dictionary, JSON text, zero/empty, refunds, duplicate ID, no input, pending-FX), plus mirror/CI checks.
+- iPhone Numbers action and specific user workbook were not operated remotely.
+
 ## [3.7.1] — 2026-11-04
 
 **Fixed**

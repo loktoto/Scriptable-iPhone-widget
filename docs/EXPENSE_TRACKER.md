@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.7.1｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.8.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -106,3 +106,44 @@ The canonical version and dated changelog are in [widgets/expense-tracker](../wi
 
 ### v3.7.1 Shortcuts 快速入帳修正
 Shortcuts／Siri 記帳依家只做本機儲存同磁碟核實，唔會因為舊外幣交易嘅 FX API 未回應而卡住。新外幣交易會先以 `pending` 儲存，再喺 Scriptable App 主選單用「重試外幣換算」補返 HKD 估算。入帳回條以 `[EXPENSE-HK-v3.7.1]` 開頭。更新 GitHub 並不會更新 iPhone 已貼入嘅 Scriptable 程式。
+
+## Apple Numbers Data Table / Apple Numbers 表格寫入 (v3.8.0)
+
+**注意：** Scriptable 本身只會儲存到 `ExpenseTrackerHK/transactions.json`。Apple Numbers 係另一個資料庫／表格，必須喺 **Shortcuts** 加入 Numbers 動作先會同步。你之前截圖見到嘅 `Run Expense with 回應` 只負責執行 Scriptable，並唔等於已經加入 Numbers 表格。
+
+### 1. Numbers 表格準備
+喺 Numbers 建立（或者選用）一個表格，**按以下順序**設立六欄：
+
+`Date | Card | MerchantName | MerchantType | Currency | Amount`
+
+可命名為 `Transactions`。第六欄 Amount 應設成數值，第一欄可以先採用文字，以保存 `YYYY-MM-DDTHH:mm:ss` 日期及時間。你的真正檔名／Table 名稱需喺 Shortcut 明確選擇。
+
+### 2. Shortcuts 依序加入（在「Run Expense with 回應」之後）
+1. **Get Dictionary Value / 取得字典值**：由 **Run Expense 的輸出** 取得 `shouldAppendNumbers`。
+2. **If / 如果** 值係 true：
+   - **Get Dictionary Value / 取得字典值**：由同一個 **Run Expense 輸出** 取得 `numbersRow`（六元素 List）。
+   - **Numbers → Add Row to Top or Bottom of Table**：選已存在嘅 Numbers 檔案、工作表及 Table，選擇 **Bottom**，將 Values 設為上一步嘅 `numbersRow` List。若你的 Shortcuts 版本唔接受一整個 List，就將六個欄位逐一設入 Numbers 動作的 Values。
+3. **Get Dictionary Value / 取得字典值**：由 **Run Expense 輸出** 取得 `receipt`，接 **Show Result / 顯示結果**。
+4. 如果 `requiresBatchSync` = true，代表一次匯入超過一筆；應用 Repeat with Each `numbersRows`，不能只寫第一筆。
+
+### 3. 入帳判定
+Script 回傳例如：
+
+```json
+{
+  "version": "3.8.0",
+  "status": "saved",
+  "receipt": "[EXPENSE-HK-v3.8.0] 已儲存 1 筆...",
+  "shouldAppendNumbers": true,
+  "numbersRow": ["2026-11-04T20:33:28","SAMPLE CARD","Example Cafe","餐飲","HKD",57],
+  "numbersRows": [["2026-11-04T20:33:28","SAMPLE CARD","Example Cafe","餐飲","HKD",57]],
+  "requiresBatchSync": false,
+  "transactionId": "external:...",
+  "localStored": true
+}
+```
+
+*以上係虛構測試交易。* `status:duplicate`、`skipped` 或 `error` 時，`shouldAppendNumbers` 為 false，不應新增 Numbers 行。
+
+**一致性注意：** Numbers 插入係獨立嘅 Shortcuts 動作，未能同 Scriptable 本機 JSON 寫入形成原子交易。若後面 Numbers 動作失敗，本機可能已儲存，不能單純重新掃卡期待重複匯入會自動補返 Numbers；請先手動核對，避免重複或漏帳。以前保存嘅交易唔會自動同步到 Numbers，可由 Scriptable 匯出 CSV，再用 Numbers 小心導入核對。
+

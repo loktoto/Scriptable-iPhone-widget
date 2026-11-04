@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.7.1 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.8.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.7.1 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.8.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -460,12 +460,14 @@ function save() {
 function addRows(rows) {
   const existing=new Set(db.transactions.map(x=>x.id));
   let added=0, skipped=0;
+  const insertedRows=[];
   for(const t of giveIds(rows)) {
     if(existing.has(t.id)){skipped++;continue;}
     ensureFxFields(t);db.transactions.push(t);existing.add(t.id);added++;
+    insertedRows.push(t);
   }
   if(added) save();
-  return {added,skipped,missingDate:db.transactions.filter(t=>!t.date).length, unknownCurrency:db.transactions.filter(t=>t.currency==='UNKNOWN').length};
+  return {added,skipped,insertedRows,missingDate:db.transactions.filter(t=>!t.date).length, unknownCurrency:db.transactions.filter(t=>t.currency==='UNKNOWN').length};
 }
 function sum(rows){return Math.round(rows.reduce((a,t)=>a+(t.amountHKD||0),0)*100)/100;}
 function hk(rows){return rows.filter(t=>validDate(t.date)&&Number.isFinite(t.amountHKD));}
@@ -826,6 +828,28 @@ function verifyStored(rows){
   }
   return {verified:rows.length,total:stored.transactions.length};
 }
+// Scriptable saves the on-device JSON ledger; Apple Numbers is independent.
+// This output is consumed by Shortcuts > Numbers > Add Row to Table.
+// Only newly inserted rows are emitted: repeat imports do not append again.
+// Note: local insertion and the later Numbers action are not atomic.
+// If Numbers fails after local save, reconcile manually before retrying.
+function toNumbersRow(t){
+  return [t.transactionTime||t.date||'',t.card||'',t.merchant||'',t.category||'',
+    t.currency==='UNKNOWN'?'':t.currency,t.amount];
+}
+function emitShortcutReceipt(receipt,status,inserted=[]){
+  const rows=inserted.map(toNumbersRow);
+  Script.setShortcutOutput({
+    version:'3.8.0',status,receipt,
+    shouldAppendNumbers:rows.length===1,
+    requiresBatchSync:rows.length>1,
+    numbersRow:rows.length===1?rows[0]:[],
+    numbersRows:rows,
+    numbersColumns:['Date','Card','MerchantName','MerchantType','Currency','Amount'],
+    transactionId:inserted.length===1?inserted[0].id:'',
+    localStored:status==='saved'||status==='duplicate'
+  });
+}
 async function importData(input,ask){
   __expensePhase = '解析 Shortcuts 輸入';
   let received=describeInput(input)+amountHint(input);
@@ -845,9 +869,9 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.7.1] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.7.1] '+reason+' | '+received);
-    Script.setShortcutOutput(message);
+    const message='[EXPENSE-HK-v3.8.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.8.0] '+reason+' | '+received);
+    emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
     return;
   }
@@ -867,8 +891,8 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.7.1] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
-  Script.setShortcutOutput(message);
+  const message=`[EXPENSE-HK-v3.8.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
 async function addManual(){
@@ -932,7 +956,7 @@ if (config.runsInWidget) {
     await importData(input, false);
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
-    Script.setShortcutOutput('[EXPENSE-HK-v3.7.1] 未入帳\nShortcut Parameter 同 Texts 都冇資料。\n請確認 Run Expense with 回應。');
+    emitShortcutReceipt('[EXPENSE-HK-v3.8.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -949,7 +973,7 @@ try {
   const trace = (err && err.stack) ? String(err.stack) : '';
   const report = '階段：' + __expensePhase + '\n錯誤：' + message + (trace ? '\n' + trace.slice(0, 1500) : '');
   console.error('[ExpenseTrackerHK] ' + report);
-  try { Script.setShortcutOutput('[EXPENSE-HK-v3.7.1] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.8.0',status:'error',receipt:'[EXPENSE-HK-v3.8.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

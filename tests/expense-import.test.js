@@ -36,12 +36,19 @@ async function exec(input,disk,texts=[]){
  let count=0;const mark=()=>count++;
  const entry={merchantName:'Demo Restaurant',merchantType:'Restaurants',amount:57,currency:'HKD',card:'SAMPLE CARD',date:'20261104_203328'};
  let db=store(),a=await exec(entry,db);
- assert.match(a.output,/\[EXPENSE-HK-v3\.7\.1\] 已儲存 1 筆/);
- assert.match(a.output,/磁碟核實：1 筆/);
+ assert.match(a.output.receipt,/\[EXPENSE-HK-v3\.7\.1\] 已儲存 1 筆/);
+ assert.match(a.output.receipt,/磁碟核實：1 筆/);
  assert.equal(a.requests,0);assert.equal(a.rows[0].amount,57);
+ assert.equal(a.output.shouldAppendNumbers,true);
+ assert.equal(a.output.status,'saved');
+ assert.equal(a.output.numbersRow.length,6);
+ assert.equal(a.output.numbersRow[2],'Demo Restaurant');
+ assert.equal(a.output.numbersRow[5],57);
  assert.equal(a.rows[0].category,'餐飲');assert.equal(a.rows[0].date,'2026-11-04');mark();
  a=await exec(entry,db);
- assert.match(a.output,/已存在 1 筆/);assert.equal(a.rows.length,1);mark();
+ assert.match(a.output.receipt,/已存在 1 筆/);assert.equal(a.rows.length,1);
+ assert.equal(a.output.shouldAppendNumbers,false);
+ assert.equal(a.output.status,'duplicate');mark();
  a=await exec(JSON.stringify(entry),store());assert.equal(a.rows.length,1);mark();
  a=await exec({response:JSON.stringify(entry)},store());assert.equal(a.rows.length,1);mark();
  a=await exec({...entry,amount:{content:'9.60',uuid:'00000000-0000-4000-8000-000000000000'}},store());
@@ -49,17 +56,19 @@ async function exec(input,disk,texts=[]){
  a=await exec({...entry,amount:-57},store());assert.equal(a.rows[0].amount,-57);mark();
  for(const amount of [0,'0.00','',null,'n/a','undefined']){
   a=await exec({...entry,amount},store());assert.equal(a.rows.length,0);
-  assert.match(a.output,/未入帳/);mark();
+  assert.match(a.output.receipt,/未入帳/);
+  assert.equal(a.output.shouldAppendNumbers,false);mark();
  }
  a=await exec({...entry,merchantName:'',merchantType:'null',date:'',card:''},store());
  assert.equal(a.rows[0].date,null);assert.equal(a.rows[0].category,'未分類');mark();
  const past=[{id:'historical',date:'2026-11-03',amount:5,currency:'USD',fxStatus:'pending',merchant:'Demo Store'}];
  a=await exec(entry,store(past));assert.equal(a.rows.length,2);
  assert.equal(a.requests,0,'pending FX must not run during Shortcuts import');
- assert.match(a.output,/待換算外幣：1 筆/);mark();
+ assert.equal(a.output.shouldAppendNumbers,true);
+ assert.match(a.output.receipt,/待換算外幣：1 筆/);mark();
  a=await exec(null,store(),[JSON.stringify(entry)]);
- assert.equal(a.rows.length,1);assert.match(a.output,/接收來源：Texts/);mark();
- a=await exec(null,store());assert.match(a.output,/未入帳/);mark();
+ assert.equal(a.rows.length,1);assert.match(a.output.receipt,/接收來源：Texts/);mark();
+ a=await exec(null,store());assert.match(a.output.receipt,/未入帳/);assert.equal(a.output.shouldAppendNumbers,false);mark();
  a=await exec({...entry,amount:'HK$57.00'},store());assert.equal(a.rows[0].amount,57);mark();
- console.log('PASS: '+count+' Expense Tracker offline integration scenarios, zero network on import');
+ console.log('PASS: '+count+' Expense Tracker offline integration + Numbers bridge scenarios, zero network on import');
 })().catch(e=>{console.error(e);process.exitCode=1;});
