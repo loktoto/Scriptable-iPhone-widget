@@ -23,5 +23,5 @@ assert.equal(counts['www.nngroup.com'],12);
 assert.equal(counts['help.tableau.com'],3);
 assert.equal(counts['baymard.com'],1);
 assert.match(text,/100 distinct/);
-assert.match(text,/not 100 independent experiments/);
+assert.match(text,/rather than 100 independent experiments/);
 console.log('PASS: 100 unique HTTPS official UX/design/accessibility references with explicit source-category audit');
