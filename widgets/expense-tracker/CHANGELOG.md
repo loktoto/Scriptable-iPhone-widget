@@ -1,5 +1,13 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.22.1] — 2026-11-06
+
+### Medium Pie and legend alignment; clean visible headings
+- Medium `本月分類` now shows the solid pie and Top 2 + 其他 legend **side-by-side on one horizontal, vertically centered row**, with responsive 44pt/55pt Pie sizing and 6pt/8pt separation. Removes the old detached below-pie legend and reduces wasted vertical space. Category legend text is capped for narrow screens without altering actual names in the ledger.
+- Removes the `退款前` *visible suffix only* from the Medium `本月分類`, Large `分類` and Large `付款` headings. **Gross-positive purchase denominators for classification and payment shares remain unchanged**, preserving refund handling and financial integrity.
+- Adds explicit responsive layout regression checks (Pie and legend are sibling stacks) and tests no `退款前` labels render in Medium/Large. Same local JSON ledger, Tap Card, Shortcuts, manual transactions, Remark, FX safeguards, Numbers bridge and swipe-delete behavior. No schema migration.
+- This is a visual layout fix; GitHub mock tests do not replace real iPhone screenshot review.
+
 ## [3.22.0] — 2026-11-05
 
 ### Today-first Small, split Medium with solid pie, richer Large
