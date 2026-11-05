@@ -1806,7 +1806,9 @@ function buildWidget(family=config.widgetFamily||'medium'){
   if(family==='large'){
     // Four complementary views: daily net trend, category composition,
     // payment ranked meters, and previous versus current rolling 7 days.
-    const narrow=width<290,spacious=width>=330,space=narrow?7:10,col=Math.floor((width-space)/2);
+    const screen=Device.screenSize();
+    const narrow=width<290,spacious=width>=330&&screen.height>=850,
+      space=narrow?7:10,col=Math.floor((width-space)/2);
     const header=widget.addStack();header.layoutHorizontally();header.centerAlignContent();
     wText(header,'記帳分析 · '+month+'月',11,WC.ink,true);
     header.addSpacer(5);
