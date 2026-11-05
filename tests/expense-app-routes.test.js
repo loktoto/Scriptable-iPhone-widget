@@ -56,7 +56,7 @@ async function runApp(menuChoice,queryParameters={}){
  assert.equal(typeof dashboard.web.shouldAllowRequest,'function');
  const manual=await runApp(2);
  assert.equal(manual.presented,1,'Manual menu should present a WebView');
- assert.match(manual.pages[0],/手動支出記錄/);
+ assert.match(manual.pages[0],/手動記帳/);
  assert.match(manual.pages[0],/id="manualForm"/);
  assert.match(manual.pages[0],/id="manualSave"/);
  assert.match(manual.pages[0],/data-category="餐飲"/);

@@ -26,10 +26,19 @@ function fields(patch={}){
  const app=await vm.runInContext(harness,ctx);
  const nonce='1730800000000-a1234567';
  const html=app.manualFormHTML(nonce,'已儲存');
- assert.ok(html.includes('手動支出記錄'));
+ assert.ok(html.includes('手動記帳'));
  assert.ok(html.includes('https://expense-editor.invalid/manual-save'));
  assert.ok(html.includes('https://expense-editor.invalid/manual-back'));
  assert.ok(html.includes('id="manualDate"'));
+ assert.equal((html.match(/id="manualDate"/g)||[]).length,1,'Date input must only exist once');
+ assert.match(html,/<label id="datePicker"[^>]*>[\s\S]*?<input id="manualDate"/,'Date must use one native picker overlay');
+ assert.ok(html.includes('#manualDate{position:absolute;inset:0'),'Native picker should not create duplicate date row');
+ assert.ok(html.includes('padding-top:max(102px'),'Must reserve WebView toolbar safe area');
+ assert.ok(html.includes('env(safe-area-inset-top'),'Respect iOS safe area');
+ assert.ok(html.includes('grid-template-columns:minmax(0,1fr) minmax(0,1fr)'),'Time and payment layout must be two separated columns');
+ assert.ok(html.includes('min-height:54px'),'Compact Save button');
+ assert.ok(!html.includes('date.showPicker()'),'Do not rely on iOS WKWebView showPicker support');
+
  assert.ok(html.includes('id="manualAmount"'));
  assert.ok(html.includes('id="manualCurrency"'));
  assert.ok(html.includes('id="manualCard"'));
