@@ -19,6 +19,8 @@ jobs:
         run: node tests/validate.js
       - name: Exercise Expense Tracker Shortcuts import without HTTP
         run: node tests/expense-import.test.js
+      - name: Test editable Expense Dashboard transactions
+        run: node tests/expense-dashboard-edit.test.js
       - name: Enforce independent versions, changelogs and mirror parity
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
