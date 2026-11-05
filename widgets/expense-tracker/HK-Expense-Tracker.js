@@ -1502,11 +1502,6 @@ function makeBarChart(points,width,height){
   });
   return canvas.getImage();
 }
-function addChart(parent,points,width,height){
-  const image=parent.addImage(makeBarChart(points,width,height));
-  image.imageSize=new Size(width,height);image.applyFittingContentMode();
-  return image;
-}
 function createChart(w,h){
   const c=new DrawContext();c.size=new Size(w,h);
   c.respectScreenScale=true;c.opaque=false;return c;
