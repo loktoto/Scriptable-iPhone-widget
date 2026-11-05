@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.11.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.11.1 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.11.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.11.1 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.11.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.11.1',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -742,25 +742,6 @@ async function selectDashboardTransaction(){
   const chosen=await menu.presentSheet();
   if(chosen>=0&&chosen<rows.length)await showDashboardEditor(rows[chosen].index);
 }
-async function obsoleteDashboardPresenter(){
-  const web=new WebView();let busy=false;
-  web.shouldAllowRequest=(request)=>{
-    const url=String(request.url||'');
-    const action=url.match(/^https:\/\/expense-editor\.invalid\/(edit|delete)\?row=(\d+)$/);
-    if(action){
-      if(!busy){
-        busy=true;
-        const method=action[1]==='delete'?showDashboardDelete:showDashboardEditor;
-        method(Number(action[2]),web).catch(e=>console.error('Dashboard '+action[1]+': '+String(e)))
-          .finally(()=>{busy=false;});
-      }
-      return false; // Block all network traffic to this placeholder domain.
-    }
-    if(/^https?:/i.test(url))return false;
-    return true;
-  };
-  await web.loadHTML(dashboardHTML());await web.present(true);
-}
 // Manual visual entry — fully local; no card data in URLs.
 const MANUAL_CATEGORIES=[
   {
@@ -1044,6 +1025,10 @@ async function presentExpenseWeb(initial='dashboard') {
   await web.loadHTML(initial==='manual'?manualFormHTML(nonce):dashboardHTML());
   await web.present(true);
 }
+
+// Stable app entry points. Keep these names: app() and deeplink routes call them.
+async function dashboard(){return await presentExpenseWeb('dashboard');}
+async function addManual(){return await presentExpenseWeb('manual');}
 
 // --------------------------------------------------
 // Adaptive widgets — Small / Medium / Large / iPad Extra Large.
@@ -1351,7 +1336,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.11.0',status,receipt,
+    version:'3.11.1',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1381,8 +1366,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.11.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.11.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.11.1] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.11.1] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1406,16 +1391,9 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.11.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.11.1] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
-}
-async function obsoleteManualAlert(){
-  const a=new Alert();a.title='手動記帳';a.addTextField('日期 YYYY-MM-DD',today());a.addTextField('金額（退款填負數）','');a.addTextField('商戶（可留空）','');a.addTextField('類別（可留空）','');a.addTextField('貨幣 HKD / CNY / USD','HKD');a.addAction('儲存');a.addCancelAction('取消');
-  if(await a.presentAlert()===-1)return;
-  const raw={id:`manual-${Date.now()}-${Math.random()}`,date:a.textFieldValue(0),amount:a.textFieldValue(1),merchant:a.textFieldValue(2),category:a.textFieldValue(3),currency:a.textFieldValue(4)};
-  const rec=normalize(raw);if(!rec){await note('輸入無效','金額必須係有效非零數字。');return;}
-  const result=addRows([rec]);const fx=await updateFX();await note('已記帳',`${rec.merchant}\n${rec.amount} ${rec.currency}\n${result.added} 筆新增，FX 已換算 ${fx.converted} 筆`);
 }
 async function review(){
   const list=db.transactions.filter(t=>!t.date||t.currency==='UNKNOWN');
@@ -1499,7 +1477,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.11.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.11.1] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -1520,10 +1498,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.11.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.11.1',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.11.0',status:'error',receipt:'[EXPENSE-HK-v3.11.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.11.1',status:'error',receipt:'[EXPENSE-HK-v3.11.1] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();
