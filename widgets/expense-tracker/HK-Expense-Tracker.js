@@ -1468,7 +1468,8 @@ function widgetSummary(){
 function chartPoints(byDay,count){
   return Array.from({length:count},(_,i)=>{
     const date=dayBack(count-i-1);
-    return {label:date.slice(8),value:byDay[date]||0};
+    return {label:date.slice(8),value:byDay[date]||0,
+      active:Object.prototype.hasOwnProperty.call(byDay,date)};
   });
 }
 function makeBarChart(points,width,height){
@@ -1513,7 +1514,7 @@ function sevenDayHeatImage(points,width){
   const pitch=width/7,box=Math.max(10,pitch-5);
   points.forEach((p,i)=>{
     const v=p.value;
-    c.setFillColor(new Color(v<0?WC.mint:(v>0?WC.violet:WC.edge)));
+    c.setFillColor(new Color(v<0?WC.mint:(v>0?WC.violet:(p.active?WC.amber:WC.edge))));
     const fraction=Math.abs(v)/maximum;
     const fill=v===0?3:Math.max(6,box*fraction);
     const start=i*pitch+(pitch-box)/2;
@@ -1770,12 +1771,12 @@ function buildWidget(family=config.widgetFamily||'medium'){
 }
 async function previewWidget(){
   const choices=[
-    'Small — 7日圖＋重複金額自動簡化',
-    'Medium — 左右資訊卡＋14日趨勢',
-    'Large — 分層統計與雙欄分類付款'
+    'Small — 七日熱度條＋本月金額',
+    'Medium — 按交易日數顯示分類／趨勢',
+    'Large — 全寬分類、付款及最近交易'
   ];
   let isPad=false;try{isPad=Device.isPad();}catch(_){}
-  if(isPad)choices.push('Extra Large — iPad 雙欄分析');
+  if(isPad)choices.push('Extra Large — iPad 三區分析');
   const pick=new Alert();pick.title='預覽記帳 Widget';
   choices.forEach(name=>pick.addAction(name));pick.addCancelAction('取消');
   const choice=await pick.presentSheet();if(choice<0)return;
