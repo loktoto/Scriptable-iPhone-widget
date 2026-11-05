@@ -25,8 +25,8 @@ assert.ok(src.includes('grossCats:'),'Donut must use gross positive spending, no
 assert.match(src,/function makeDonutChart\(/);
 assert.match(src,/function makeStackedChart\(/);
 assert.match(src,/function makePieChart\(/);
-assert.match(src,/addPieChart\\(pieBox,s\\.grossCats/);
-assert.match(src,/addInlinePieLegend\\(legendBox,s\\.grossCats,s\\.gross,compact\\)/);
+assert.ok(src.includes('addPieChart(pieBox,s.grossCats,pieSize,3)'));
+assert.ok(src.includes('addInlinePieLegend(legendBox,s.grossCats,s.gross,compact)'));
 assert.ok(!src.includes("sectionLine(right,'本月分類','退款前')"));
 assert.ok(!src.includes("sectionLine(categories,'分類 · 退款前')"));
 assert.ok(!src.includes("sectionLine(payment,'付款 · 退款前')"));
