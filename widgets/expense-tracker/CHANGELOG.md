@@ -1,5 +1,20 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.16.0] — 2026-11-05
+
+### Corrected regression — Small Widget 7-day expenses restored
+- v3.15 incorrectly removed the Small Widget's useful seven-day daily net spending chart in the name of simplicity. **v3.16 restores it** and records the correction in `docs/EXPENSE_WIDGET_RESEARCH_100_V3_16.md`.
+- Small Widget now displays **month net HKD**, **today net HKD**, **7-day net sum**, **7 actual daily bars**, **7 native weekday labels** and **current-month transaction count** (or a pending-data warning). All Small text uses native Scriptable `WidgetText` at >=11pt with a 20pt month figure; DrawContext only draws bars, not tiny text.
+- Removed the old nested hero/card spacing, tightened Small-only padding, and provided a conservative 141pt vertical layout estimate, not a claim of on-device measured fit. Kept values compact and readable.
+- Preserved Medium 14-day daily chart, Large ranked categories/payments/transactions, and iPad Extra Large 30-day + six-month dashboards; also made the shared widget heading metadata 11pt.
+
+### Research and QA
+- Rebuilt the report from scratch with **100 unique official source URLs** across Scriptable, Apple HIG, Apple WidgetKit, WCAG 2.2, IBM Design, Tableau, Nielsen Norman Group and Google Charts. Evidence tiers clearly separate directly inspected design/API sources from supporting cross-checks and bibliography-only references; 100 URLs are not 100 independent empirical studies.
+- Compared prior v3.15 findings against vendor device dimensions (Small 141–170pt) and accessibility guidance, then constrained the restored chart to 30pt plus native weekday labels.
+- Added tests for 7-day chart restoration, 7 weekday labels, all Small text >=11pt, approximate 141pt vertical height, and 100-source provenance integrity.
+- **No data migration, new network requests, App/Shortcuts/Tap Card changes, Numbers column changes or new API keys.**
+- Real iPhone 141pt small widget rendering, iPad and StandBy appearances require on-device preview; mock checks are not pixel-perfect screenshots.
+
 ## [3.15.0] — 2026-11-05
 
 ### New — truly distinct Widget information layers

@@ -88,6 +88,22 @@ function flatten(node){
   if(x.children)for(const ch of x.children)visit(ch);
  })(node);return out;
 }
+function textNodes(node){
+ const out=[];(function visit(x){
+  if(x.type==='text')out.push(x);
+  if(x.children)for(const child of x.children)visit(child);
+ })(node);return out;
+}
+// Conservative approximate layout estimator (not a substitute for iPhone preview).
+function estimatedHeight(node){
+ if(node.type==='text')return Math.ceil((node.font?.size||11)*1.2);
+ if(node.type==='image')return Math.ceil(node.imageSize?.height||node.content?.size?.height||0);
+ if(node.type==='spacer')return Number.isFinite(node.value)?node.value:0;
+ const sizes=(node.children||[]).map(estimatedHeight);
+ const inner=node.direction==='horizontal'?Math.max(0,...sizes):sizes.reduce((a,b)=>a+b,0);
+ const pad=node.padding||[];
+ return inner+(pad[0]||0)+(pad[2]||0)+Math.max(0,sizes.length-1)*(node.spacing||0);
+}
 function graphs(node){
  const items=[];(function visit(x){
   if(x.type==='image'&&x.content.type==='drawn-image'&&x.content.size.height>10)items.push(x.content);
@@ -109,11 +125,19 @@ function graphs(node){
  assert.equal(summary.sixMonths.length,6);
  const small=app.buildWidget('small'),medium=app.buildWidget('medium'),large=app.buildWidget('large');
  const st=flatten(small).join('|'),mt=flatten(medium).join('|'),lt=flatten(large).join('|');
- assert.ok(st.includes('本月淨支出'));
- assert.ok(st.includes('今日'));
- assert.ok(st.includes('8 筆本月交易'));
- assert.equal(graphs(small).length,0,'Small must be glanceable WITHOUT a repeated chart');
- assert.ok(!st.includes('14日')&&!st.includes('分類 Top 3'),'Small should not mimic Medium/Large');
+ assert.ok(st.includes('本月開支'),'Small title must fit');
+ assert.ok(st.includes('今日'),'Small must show today expense');
+ assert.ok(st.includes('近7日'),'Small must show seven-day total');
+ assert.ok(st.includes('8筆'),'Small retains current-month transaction count');
+ assert.equal(graphs(small).length,1,'Small MUST restore a seven-day chart');
+ assert.equal(graphs(small)[0].size.height,30,'Small chart must stay compact');
+ assert.equal(app.chartPoints(summary.byDay,7).length,7,'Seven real day buckets required');
+ assert.ok(textNodes(small).every(n=>n.font?.size>=11),'All native text on Small must be >= 11pt');
+ assert.ok(estimatedHeight(small)<=141,'Approximate Small vertical layout must fit the smallest documented 141pt height');
+ assert.ok(st.includes('一')||st.includes('日'),'Native weekday glyphs must be visible');
+ const smallNativeLabels=flatten(small).filter(x=>['日','一','二','三','四','五','六'].includes(x));
+ assert.equal(smallNativeLabels.length,7,'Show all seven native-text weekday labels');
+ assert.ok(!st.includes('14日')&&!st.includes('分類 Top 3'),'Small is not a shrunken Medium/Large');
  assert.equal(graphs(medium).length,1);
  assert.ok(mt.includes('最近14日'));
  assert.ok(mt.includes('近7日'));
