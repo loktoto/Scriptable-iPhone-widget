@@ -1513,6 +1513,37 @@ function displayImage(parent,image,w,h){
   const node=parent.addImage(image);node.imageSize=new Size(w,h);
   node.applyFittingContentMode();return node;
 }
+function makeActivityTimeline(points,width,height){
+  // Activity timeline, not a money histogram. Each recorded day gets a
+  // short, equal-height mark; avoid the giant lone spike for sparse history.
+  const canvas=createChart(width,height),step=width/Math.max(1,points.length);
+  const mark=Math.min(9,Math.max(4,step*.5));
+  const y=Math.max(2,Math.floor((height-8)/2));
+  points.forEach((p,i)=>{
+    const x=i*step+(step-mark)/2;
+    canvas.setFillColor(new Color(p.active?(p.value<0?WC.mint:WC.violet):WC.edge));
+    canvas.fillRect(new Rect(x,y,mark,8));
+  });
+  return canvas.getImage();
+}
+function addContextChart(parent,points,width,height,recordedDays){
+  const sparse=recordedDays<=2;
+  const image=sparse?makeActivityTimeline(points,width,height):
+    makeBarChart(points,width,height);
+  return displayImage(parent,image,width,height);
+}
+function addWeekdayAxis(parent,width){
+  const days=['日','一','二','三','四','五','六'];
+  const row=parent.addStack();row.layoutHorizontally();
+  for(let i=0;i<7;i++){
+    const date=dayBack(6-i);
+    const parsed=new Date(+date.slice(0,4),+date.slice(5,7)-1,+date.slice(8));
+    const cell=row.addStack();cell.layoutVertically();cell.centerAlignContent();
+    cell.size=new Size(width/7,0);
+    const label=wText(cell,days[parsed.getDay()],11,i===6?WC.violet:WC.subtle,i===6);
+    if(typeof label.centerAlignText==='function')label.centerAlignText();
+  }
+}
 function makeStackedChart(items,width,height=11){
   const c=createChart(width,height),total=items.reduce((sum,x)=>sum+Math.max(0,x[1]),0);
   c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,height));
