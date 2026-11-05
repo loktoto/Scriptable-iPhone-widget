@@ -10,6 +10,8 @@ const p2=n=>String(n).padStart(2,'0');
 const d=new Date(),today=[d.getFullYear(),p2(d.getMonth()+1),p2(d.getDate())].join('-');
 const ago=n=>{const x=new Date(d);x.setHours(12,0,0,0);x.setDate(x.getDate()-n);
  return [x.getFullYear(),p2(x.getMonth()+1),p2(x.getDate())].join('-');};
+// Keep all synthetic month-fixture purchases within the current calendar month.
+const inMonthAgo=n=>ago(Math.min(n,d.getDate()-1));
 const rows=[
  {id:'demo-1',date:today,transactionTime:today+'T12:30:00',
   merchant:'Lunch Cafe',category:'食飯',card:'Payme',amount:57,amountHKD:57,currency:'HKD'},
@@ -17,17 +19,17 @@ const rows=[
   merchant:'MTR Rail',category:'交通',card:'八達通',amount:16,amountHKD:16,currency:'HKD'},
  {id:'demo-3',date:today,transactionTime:today+'T10:30:00',
   merchant:'Breakfast',category:'食飯',card:'現金',amount:12,amountHKD:12,currency:'HKD'},
- {id:'demo-4',date:ago(1),transactionTime:ago(1)+'T12:30:00',
+ {id:'demo-4',date:inMonthAgo(1),transactionTime:ago(1)+'T12:30:00',
   merchant:'Coffee',category:'飲品',card:'SOGO VISA',amount:25,amountHKD:25,currency:'HKD'},
- {id:'demo-5',date:ago(2),merchant:'Mobile Plan',category:'訂閱',
+ {id:'demo-5',date:inMonthAgo(2),merchant:'Mobile Plan',category:'訂閱',
   card:'HSBC',paymentType:'My Custom QR',amount:70,amountHKD:70,currency:'HKD'},
- {id:'demo-6',date:ago(3),merchant:'Clothes',category:'衣服',
+ {id:'demo-6',date:inMonthAgo(3),merchant:'Clothes',category:'衣服',
   card:'Payme',amount:30,amountHKD:30,currency:'HKD'},
- {id:'demo-7',date:ago(4),merchant:'Refund',category:'食物',
+ {id:'demo-7',date:inMonthAgo(4),merchant:'Refund',category:'食物',
   card:'Payme',amount:-10,amountHKD:-10,currency:'HKD'},
- {id:'demo-8',date:ago(5),merchant:'Books',category:'進修',
+ {id:'demo-8',date:inMonthAgo(5),merchant:'Books',category:'進修',
   card:'__proto__',paymentType:'__proto__',amount:18,amountHKD:18,currency:'HKD'},
- {id:'pending',date:ago(1),merchant:'USD Overseas',category:'旅行',
+ {id:'pending',date:inMonthAgo(1),merchant:'USD Overseas',category:'旅行',
   card:'Payme',amount:20,amountHKD:null,currency:'USD',fxStatus:'pending'}
 ];
 class MockStack{
