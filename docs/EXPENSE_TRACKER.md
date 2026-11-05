@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.15.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.16.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -248,3 +248,10 @@ Merchant Type 固定 12 個：**食物、飲品、娛樂、日用品、交通、
 
 ### 正確預覽
 更新手機 Scriptable `Expense.js` 全檔後，執行 Script → 選「👀 預覽 Widget 尺寸」。當 Scriptable 安裝喺 iPad，選單先會顯示 Extra Large。iOS 系統可能延遲 Widget 自動刷新，唔好將 `refreshAfterDate` 視為精準刷新時刻。
+
+## v3.16.0：Small Widget 七日圖恢復
+**已修正 v3.15 小 Widget 錯誤刪除近7日圖表嘅功能退步。** Small 現在提供月淨支出＋今日＋近7日合計＋7條每日淨支出柱＋7個原生星期文字標籤＋本月交易數（或 FX 待核對警告）；所有新 Small Widget 原生文字 11pt 或以上。
+
+研究重做：[100 個來源＋專家比較＋不確定性](EXPENSE_WIDGET_RESEARCH_100_V3_16.md)。數值全部用原有 `amountHKD`，退款保留負值，FX pending 不混入 HKD；**無資料庫遷移，Tap Card、Shortcut、Numbers 格式不變。**
+
+更新：GitHub 取最新 `widgets/expense-tracker/HK-Expense-Tracker.js` 覆蓋 Scriptable `Expense.js`，App 主選單「👀 預覽 Widget 尺寸」檢查 Small 及其他支援尺寸。確認狀態列、圖表及星期標籤冇裁切。
