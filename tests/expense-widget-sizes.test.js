@@ -126,7 +126,7 @@ function graphs(node){
    large=app.buildWidget('large');
  const st=flatten(small).join('|'),mt=flatten(medium).join('|'),lt=flatten(large).join('|');
  assert.ok(st.includes('月 · 支出'));
- assert.ok(st.includes('最多'));
+ assert.ok(st.includes('主要'),'Small must show meaningful leading category rather than repeated totals');
  assert.ok(st.includes('近7日'));
  assert.ok(st.includes('8筆'));
  assert.equal(graphs(small).length,1,'Seven-day mini heat strip is a real DrawContext image');
