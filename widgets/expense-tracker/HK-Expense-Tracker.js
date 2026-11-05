@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.19.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.20.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.19.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.20.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.19.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.20.0',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -682,7 +682,7 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
 @media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.wrap{padding-top:max(104px,calc(env(safe-area-inset-top,0px) + 60px))}}
 @media(prefers-reduced-motion:reduce){.tx-swipe-front{transition:none}}
   
-/* v3.19.0 — Research-informed, iPhone-first premium money dashboard.
+/* v3.20.0 — Research-informed, iPhone-first premium money dashboard.
    Explicitly authored after Apple HIG / NNGroup / Tableau / Carbon / WCAG review.
    No external fonts, libraries, logos, tracking or network resources. */
 :root{--bg:#0b101a;--panel:#131c2b;--panel2:#1c293b;--line:#29374b;--text:#f7f8ff;--muted:#9aa9bb;--blue:#a99bff;--green:#7ce5c0;--violet:#a897ff;--amber:#ffc688}
@@ -1433,6 +1433,10 @@ function widgetSummary(){
   const now=today(),mon=monthStart(now),s7=dayBack(6),s14=dayBack(13);
   const byDay=Object.create(null),byMonth=Object.create(null);
   const cats=Object.create(null),pays=Object.create(null),catCount=Object.create(null),payCount=Object.create(null);
+  // Gross positive charges are a valid denominator for donut/stacked shares;
+  // net monthly spending remains positive charges minus refunds.
+  const grossCat=Object.create(null),grossPay=Object.create(null);
+  let gross=0,refundValue=0;
   let month=0,todayNet=0,week=0,monthCount=0,todayCount=0,unresolved=0,refunds=0;
   for(const t of db.transactions){
     if(!validDate(t.date)||!Number.isFinite(t.amountHKD)){unresolved++;continue;}
@@ -1443,10 +1447,12 @@ function widgetSummary(){
     if(m!==mon)continue;
     month+=v;monthCount++;
     if(t.date===now)todayCount++;
-    if(v<0)refunds++;
+    if(v>0)gross+=v;
+    if(v<0){refunds++;refundValue-=v;}
     const cat=categoryForDisplay(t),pay=paymentTypeOf(t)||'未指定';
     cats[cat]=(cats[cat]||0)+v;pays[pay]=(pays[pay]||0)+v;
     catCount[cat]=(catCount[cat]||0)+1;payCount[pay]=(payCount[pay]||0)+1;
+    if(v>0){grossCat[cat]=(grossCat[cat]||0)+v;grossPay[pay]=(grossPay[pay]||0)+v;}
   }
   const ranked=(totals,counts)=>Object.entries(totals).filter(([k])=>counts[k]>0)
     .sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
@@ -1463,6 +1469,8 @@ function widgetSummary(){
     txCount:monthCount,todayCount,monthOnlyToday:monthCount>0&&todayCount===monthCount,
     sevenActive:activeIn(s7),fourteenActive:activeIn(s14),
     byDay,monthlyCats:ranked(cats,catCount),monthlyPayments:ranked(pays,payCount),
+    gross:round(gross),refundValue:round(refundValue),
+    grossCats:ranked(grossCat,catCount),grossPayments:ranked(grossPay,payCount),
     sixMonths,recent,refunds,unresolved};
 }
 function chartPoints(byDay,count){
@@ -1538,6 +1546,78 @@ function addSevenDayStrip(parent,points,width){
     cell.size=new Size(width/7,0);
     const t=wText(cell,days[date.getDay()],11,idx===6?WC.violet:WC.subtle,idx===6);
     if(typeof t.centerAlignText==='function')t.centerAlignText();
+  });
+}
+// v3.20 chart primitives (native DrawContext / Path; no WebView or external SVG).
+const WCOL=['#AE9BFA','#7CDBC1','#F6C278','#71B9EF','#E3A0CB'];
+function createChart(w,h){
+  const c=new DrawContext();c.size=new Size(w,h);
+  c.respectScreenScale=true;c.opaque=false;return c;
+}
+function displayImage(parent,image,w,h){
+  const node=parent.addImage(image);node.imageSize=new Size(w,h);
+  node.applyFittingContentMode();return node;
+}
+function makeStackedChart(items,width,height=11){
+  const c=createChart(width,height),total=items.reduce((sum,x)=>sum+Math.max(0,x[1]),0);
+  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,height));
+  if(total<=0)return c.getImage();
+  let x=0;
+  items.forEach(([name,val],i)=>{
+    const part=Math.max(0,val);if(!part)return;
+    const next=Math.min(width,x+width*part/total);
+    c.setFillColor(new Color(WCOL[i%WCOL.length]));
+    c.fillRect(new Rect(x,0,Math.max(0,next-x),height));x=next;
+  });
+  return c.getImage();
+}
+function addStackedChart(parent,items,width,height=11){
+  return displayImage(parent,makeStackedChart(items,width,height),width,height);
+}
+function donutParts(entries,max=4){
+  const positive=entries.filter(x=>x[1]>0);
+  if(positive.length<=max)return positive;
+  return [...positive.slice(0,max-1),
+    ['其他',positive.slice(max-1).reduce((a,x)=>a+x[1],0)]];
+}
+function makeDonutChart(items,size){
+  const c=createChart(size,size),parts=donutParts(items);
+  const total=parts.reduce((sum,x)=>sum+x[1],0);
+  const mid=size/2,r=size*.47,hole=size*.29;
+  c.setFillColor(new Color(WC.edge));
+  c.fillEllipse(new Rect(mid-r,mid-r,r*2,r*2));
+  if(total>0){
+    let angle=-Math.PI/2;
+    parts.forEach(([name,value],i)=>{
+      const sweep=2*Math.PI*value/total,path=new Path();
+      path.move(new Point(mid,mid));
+      const steps=Math.max(2,Math.ceil(sweep/(Math.PI*2)*100));
+      for(let j=0;j<=steps;j++){
+        const at=angle+sweep*j/steps;
+        path.addLine(new Point(mid+r*Math.cos(at),mid+r*Math.sin(at)));
+      }
+      path.closeSubpath();
+      c.setFillColor(new Color(WCOL[i%WCOL.length]));c.addPath(path);c.fillPath();
+      angle+=sweep;
+    });
+  }
+  c.setFillColor(new Color(WC.bg));
+  c.fillEllipse(new Rect(mid-hole,mid-hole,hole*2,hole*2));
+  return c.getImage();
+}
+function addDonutChart(parent,items,size){
+  return displayImage(parent,makeDonutChart(items,size),size,size);
+}
+function addDonutLegend(parent,entries,gross,count=3){
+  const parts=donutParts(entries);
+  if(!parts.length){wText(parent,'尚無消費',11,WC.subtle);return;}
+  parts.slice(0,count).forEach(([name,amount],i)=>{
+    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
+    const dot=row.addStack();dot.size=new Size(5,5);dot.cornerRadius=2;
+    dot.backgroundColor=new Color(WCOL[i%WCOL.length]);
+    row.addSpacer(4);wText(row,String(name).slice(0,7),11,WC.soft);
+    row.addSpacer(4);
+    wText(row,gross>0?Math.round(amount/gross*100)+'%':'—',11,WC.ink,true);
   });
 }
 function recentTitle(t){
@@ -1849,7 +1929,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.19.0',status,receipt,
+    version:'3.20.0',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1879,8 +1959,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.19.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.19.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.20.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.20.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1904,7 +1984,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.19.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.20.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -2013,7 +2093,7 @@ if (config.runsInWidget) {
     const source=quickFromTexts?'Texts':'Parameter';
     if (!config.runsInApp){
       recordShortcutAttempt('quick_requires_app',{inputType:'quick_manual',source});
-      emitShortcutReceipt('[EXPENSE-HK-v3.19.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
+      emitShortcutReceipt('[EXPENSE-HK-v3.20.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
     }else{
       recordShortcutAttempt('quick_opened',{inputType:'quick_manual',source});
       await addManual();
@@ -2030,7 +2110,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.19.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.20.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -2051,10 +2131,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.19.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.20.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.19.0',status:'error',receipt:'[EXPENSE-HK-v3.19.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.20.0',status:'error',receipt:'[EXPENSE-HK-v3.20.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();
