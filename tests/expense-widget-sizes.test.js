@@ -107,7 +107,8 @@ function estimatedHeight(node){
  const sizes=(node.children||[]).map(estimatedHeight);
  const inner=node.direction==='horizontal'?Math.max(0,...sizes):sizes.reduce((a,b)=>a+b,0);
  const pad=node.padding||[];
- return inner+(pad[0]||0)+(pad[2]||0)+Math.max(0,sizes.length-1)*(node.spacing||0);
+ const verticalSpacing=node.direction==='horizontal'?0:Math.max(0,sizes.length-1)*(node.spacing||0);
+ return inner+(pad[0]||0)+(pad[2]||0)+verticalSpacing;
 }
 function graphs(node){
  const items=[];(function visit(x){
@@ -145,7 +146,7 @@ function graphs(node){
  assert.ok(sm.includes('HK$85.00')&&sm.includes('本月支出')&&sm.includes('HK$218.00'));
  assert.ok(!sm.includes('最多分類')&&!sm.includes('近7日'),'Small removes category and last-7-day headers');
  assert.equal(drawImages(small).length,1);
- assert.equal(drawImages(small)[0].size.height,42,'Small gives more chart height than v3.21');
+ assert.equal(drawImages(small)[0].size.height,40,'Small month chart expands well beyond v3.21 chart');
  assert.ok(sm.includes('1日')&&sm.includes('日（今日）'),'Monthly daily axis labels actual dates');
  assert.ok(md.includes('今日支出')&&md.includes('HK$85.00'));
  assert.ok(md.includes('本月支出')&&md.includes('HK$218.00'));
