@@ -1708,10 +1708,9 @@ function buildWidget(family=config.widgetFamily||'medium'){
   const s=widgetSummary(),widget=new ListWidget();
   const quick=String(args.widgetParameter||'').trim().toLowerCase()==='quick';
   widget.backgroundColor=new Color(WC.bg);widget.spacing=0;
-  widget.setPadding(family==='small'?8:family.startsWith('accessory')?1:11,
-    family==='small'?10:family.startsWith('accessory')?2:12,
-    family==='small'?8:family.startsWith('accessory')?1:11,
-    family==='small'?10:family.startsWith('accessory')?2:12);
+  const py=family.startsWith('accessory')?1:(family==='small'||family==='medium'?8:11);
+  const px=family.startsWith('accessory')?2:family==='small'?10:12;
+  widget.setPadding(py,px,py,px);
   widget.refreshAfterDate=new Date(Date.now()+30*60*1000);
   const base=URLScheme.forRunningScript();
   widget.url=base+(base.includes('?')?'&':'?')+(quick?'view=manual':'view=dashboard');
@@ -1742,38 +1741,28 @@ function buildWidget(family=config.widgetFamily||'medium'){
     return widget;
   }
   if(family==='medium'){
-    // At one active day, a second chart is information-poor. Replace it
-    // with real category comparisons, never reprinting the same HKD three times.
-    const sparse=s.fourteenActive<=1;
-    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 支出分析');
-    widget.addSpacer(4);
-    const headline=widget.addStack();headline.layoutHorizontally();headline.centerAlignContent();
-    wText(headline,compactMoney(s.month),23,WC.ink,true);
-    headline.addSpacer(7);wText(headline,contextLine(s),11,WC.mint);
-    widget.addSpacer(5);
-    if(sparse){
-      sectionLine(widget,'分類排行',s.fourteenActive+'個交易日／14日');
-      widget.addSpacer(3);
-      const best=s.monthlyCats.slice(0,2);
-      if(best.length){
-        best.forEach(([name,value],idx)=>{
-          const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
-          wText(row,name,11,WC.soft);row.addSpacer();
-          wText(row,s.month!==0&&best.length===1&&Math.abs(value-s.month)<.005?'100%':compactMoney(value),11,idx===0?WC.violet:WC.ink,true);
-          if(idx===0)widget.addSpacer(3);
-        });
-      }else wText(widget,'目前未有分類資料',11,WC.subtle);
-    }else{
-      sectionLine(widget,'最近14日',s.fourteenActive+'日有紀錄');
-      widget.addSpacer(4);
-      addChart(widget,chartPoints(s.byDay,14),width,22);
-    }
-    widget.addSpacer(5);
-    const pay=s.monthlyPayments[0];
+    const narrow=width<280;
+    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 趨勢');
+    widget.addSpacer(3);
+    const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
+    wText(hero,compactMoney(s.month),narrow?21:23,WC.ink,true);
+    hero.addSpacer(6);
+    wText(hero,s.monthOnlyToday?'全部在今日':s.fourteenActive+'個消費日',11,WC.mint);
+    widget.addSpacer(3);
+    sectionLine(widget,'最近14日 · 每日淨額');
+    widget.addSpacer(2);
+    addChart(widget,chartPoints(s.byDay,14),width,narrow?23:32);
+    widget.addSpacer(3);
+    addStackedChart(widget,donutParts(s.grossCats),width,9);
+    widget.addSpacer(3);
     const footer=widget.addStack();footer.layoutHorizontally();footer.centerAlignContent();
-    wText(footer,'常用 '+(pay?pay[0]:'未指定'),11,WC.subtle);
-    footer.addSpacer(4);
-    if(pay)wText(footer,s.month!==0&&Math.abs(pay[1]-s.month)<.005?'100%':compactMoney(pay[1]),11,WC.mint,true);
+    const category=s.grossCats[0];
+    wText(footer,'分類',11,WC.subtle);footer.addSpacer(5);
+    wText(footer,category&&s.gross?category[0]+' '+Math.round(category[1]/s.gross*100)+'%':'暫無支出',
+      11,WC.violet,true);
+    footer.addSpacer();
+    const payment=s.grossPayments[0];
+    if(payment)wText(footer,String(payment[0]).slice(0,10),11,WC.muted);
     return widget;
   }
   if(family==='large'){
