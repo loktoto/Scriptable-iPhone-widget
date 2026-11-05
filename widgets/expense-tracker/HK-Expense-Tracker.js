@@ -537,7 +537,6 @@ function monthsBack(n){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-n
 function dayBack(n){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-n);return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;}
 function groupSum(rows,keyFn){const r=Object.create(null);for(const t of rows){const key=String(keyFn(t));r[key]=(r[key]||0)+(t.amountHKD||0);}return r;}
 function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-function fmt(n){return Number(n||0).toLocaleString('en-HK',{maximumFractionDigits:0});}
 function pieSVG(entries) {
   const colors=['#47b6ff','#9b8cff','#34d399','#fbba55','#fa7894','#5fdddc','#9ca3af'];
   const safe=entries.filter(v=>v[1]>0);
