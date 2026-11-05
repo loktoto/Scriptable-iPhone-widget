@@ -1584,13 +1584,6 @@ function nativeSevenDayLabels(parent,width){
     if(typeof glyph.centerAlignText==='function')glyph.centerAlignText();
   }
 }
-function widgetTwoMetrics(parent,leftLabel,leftAmount,rightLabel,rightAmount){
-  const row=parent.addStack();row.layoutHorizontally();row.spacing=6;
-  const a=widgetCard(row,WC.panel,9);a.size=new Size(0,0);
-  wText(a,leftLabel,11,WC.muted);wText(a,compactMoney(leftAmount),14,WC.primary,true);
-  const b=widgetCard(row,WC.panel,9);b.size=new Size(0,0);
-  wText(b,rightLabel,11,WC.muted);wText(b,compactMoney(rightAmount),14,WC.green,true);
-}
 function widgetWidth(family){
   // Conservative plot widths, not hardcoded full widget sizes; points vary by device.
   let screen=390;
