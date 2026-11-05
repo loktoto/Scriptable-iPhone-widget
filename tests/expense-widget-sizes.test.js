@@ -151,18 +151,36 @@ function graphs(node){
  assert.ok(sm.includes('1日')&&sm.includes('日（今日）'),'Monthly daily axis labels actual dates');
  assert.ok(md.includes('今日支出')&&md.includes('HK$85.00'));
  assert.ok(md.includes('本月支出')&&md.includes('HK$218.00'));
- assert.ok(md.includes('本月分類')&&md.includes('退款前'));
+ assert.ok(md.includes('本月分類')&&!md.includes('退款前'),'Medium label must omit 退款前');
 
  assert.equal(drawImages(medium).length,2,'Medium must be LEFT Small+RIGHT solid category PIE');
  const pie=drawImages(medium)[1];
  assert.ok(pie.draws.some(x=>x.type==='fill-path'),'Pie must have colored sector paths');
  assert.equal(pie.draws.filter(x=>x.type==='ellipse').length,1,
    'Pie is SOLID: background disc only, no center hole as in donut');
+ // Medium category Pie must share a horizontal row with its compact legend.
+ const hasInlinePieAndLegend=node=>{
+   if(node.direction==='horizontal'){
+     const kids=(node.children||[]).filter(x=>x.type==='stack');
+     if(kids.length===2){
+       const leftImages=graphs(kids[0]);
+       const rightLabels=flatten(kids[1]);
+       if(leftImages.some(x=>x.draws.some(y=>y.type==='fill-path'))&&
+          rightLabels.some(x=>/^\\d+%$/.test(x))&&rightLabels.length>=3) return true;
+     }
+   }
+   return (node.children||[]).some(hasInlinePieAndLegend);
+ };
+ assert.ok(hasInlinePieAndLegend(medium),'Medium must align the Pie and legend side-by-side');
+ const inlineLabels=flatten(medium);
+ assert.ok(inlineLabels.some(x=>/^\\d+%$/.test(x)),'Pie legend retains category percentages');
+
  assert.ok(!md.includes('近7日')&&!md.includes('最近14日'));
  assert.ok(lg.includes('今日3筆')&&lg.includes('本月8筆'));
  assert.ok(lg.includes('今日支出')&&lg.includes('本月支出'));
- assert.ok(lg.includes('本月每日淨支出')&&lg.includes('分類 · 退款前'));
- assert.ok(lg.includes('付款 · 退款前')&&lg.includes('最近交易'));
+ assert.ok(lg.includes('本月每日淨支出')&&lg.includes('分類'));
+ assert.ok(lg.includes('付款')&&lg.includes('最近交易')&&!lg.includes('退款前'));
+ assert.ok(!md.includes('退款前')&&!lg.includes('退款前'));
  assert.equal(drawImages(large).length,3,'Large includes monthly bars, pie and payment shares');
  const largePie=drawImages(large)[1];
  assert.ok(largePie.draws.some(x=>x.type==='fill-path'));
