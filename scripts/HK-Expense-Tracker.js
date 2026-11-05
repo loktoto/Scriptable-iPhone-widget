@@ -549,7 +549,8 @@ function dashboardHTML(flash=''){
   </div></body></html>`;
 }
 function applyDashboardEdit(rowIndex,snapshot,fields){
-  if(!Number.isInteger(rowIndex)||rowIndex<0||!snapshot)throw new Error('交易索引無效');
+  if(!Number.isInteger(rowIndex)||rowIndex<0||!snapshot||rowIndex>=db.transactions.length ||
+    JSON.stringify(db.transactions[rowIndex])!==JSON.stringify(snapshot))throw new Error('交易索引無效或已變更，請重新開啟 Dashboard');
   const inputDate=String(fields.dateTime||'').trim();
   if(inputDate&&!/^(20\d{6}_\d{6}|20\d{2}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}:\d{2})?)$/.test(inputDate))throw new Error('日期格式：YYYY-MM-DD 或 YYYYMMDD_HHMMSS');
   const date=inputDate?dateText(inputDate):null,transactionTime=inputDate?timestampText(inputDate):null;
