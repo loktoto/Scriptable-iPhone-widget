@@ -31,6 +31,8 @@ const boot='(async()=>{\n'+source.slice(0,cut)+
  assert.equal(app.paymentTypeOf(custom),'My Custom Wallet');
  assert.equal(app.normalizePaymentType('AlipayHK'),'AlipayHK');
  assert.equal(app.normalizePaymentType('Mysterious Bank QR'),'Mysterious Bank QR');
+ assert.equal(app.normalizePaymentType('My VISA Wallet'),'My VISA Wallet','Explicit custom label must not be collapsed');
+ assert.equal(app.paymentTypeOf({card:'SOGO VISA SIGNATURE CARD'}),'信用卡','Only Card fallback may infer a broad payment category');
  const received=app.normalize({Date:date,MerchantType:'食飯',Card:'Payme',
   Amount:2,Currency:'HKD'});
  assert.equal(received.category,'食物');assert.equal(received.originalCategory,'食飯');
