@@ -30,10 +30,15 @@ assert.ok(src.includes('addInlinePieLegend(legendBox,s.grossCats,s.gross,compact
 assert.ok(!src.includes("sectionLine(right,'本月分類','退款前')"));
 assert.ok(!src.includes("sectionLine(categories,'分類 · 退款前')"));
 assert.ok(!src.includes("sectionLine(payment,'付款 · 退款前')"));
-assert.match(src,/addPieChart\(pieHolder,s\.grossCats/);
+assert.ok(src.includes('addPieChart(pieRow,s.grossCats,diameter,3)'));
+assert.ok(src.includes('addPaymentMeterRows(payments,s.grossPayments'));
+assert.ok(src.includes('addWeekComparison(widget,s,width,narrow)'));
+assert.match(src,/function makeMeterBar\(/);
 assert.ok(src.includes('return makeDonutChart(items,size,true,maxParts)'),
  'Medium and Large category pies must be full solid pies, never hollow Donuts');
-assert.match(src,/addStackedChart\(right,donutParts\(s\.grossPayments/);
+assert.ok(src.includes('addPaymentMeterRows(payments,s.grossPayments'));
+assert.ok(src.includes('addStackedChart(right,donutParts(s.grossPayments)'));
+
 
 assert.match(src,/if\(family==='small'\)/);
 assert.match(src,/if\(family==='medium'\)/);
