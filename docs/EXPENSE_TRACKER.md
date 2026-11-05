@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.14.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.15.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -236,3 +236,15 @@ Merchant Type 固定 12 個：**食物、飲品、娛樂、日用品、交通、
 介面採用簡潔深色財務風格：本月主金額卡、今日/近七日副指標、前三類水平比較條、帶圖示及微型進度條的 12 分類、動態 Payment Type 卡、交易搜尋／備註／編輯／左滑刪除，以及可切換 14 日／6 個月趨勢。**參考 100 個設計、手機 UX 及無障礙來源頁面**，詳見 [100 Sources Dashboard Research](EXPENSE_DASHBOARD_RESEARCH_100.md)；其中核心設計結論和標準規格有清楚區分。
 
 沿用同一個 `Expense.js`、`ExpenseTrackerHK/transactions.json`，唔改 Tap Card Shortcut Parameter 六欄輸入、原有 Apple Numbers 六欄連動或額外開雲端。
+
+## v3.15.0 — 依尺寸逐層增加 Widget 資訊／程式碼清理
+- **Small：** 本月、今日、交易數，唔放圖，手機一眼睇清。
+- **Medium：** 多 14 日趨勢、近七日同最多消費分類。
+- **Large：** 再多前三分類、前兩付款方式同最新兩筆交易。
+- **Extra Large：** 只限 **iPad**，30日加6個月兩張圖、前五分類、前三付款方式、最近六筆交易同退款數。
+- **共用計算：** 依賴單次帳本掃描；保留負數退款、有效 HKD、外幣待換算及自訂 Payme 等付款方式。`transactions.json` 不需移轉，Tap Card 自動記帳不需更改。
+- **資料完整性：** 修正 `__proto__` 自訂名稱可能引發嘅物件 key 問題；支出／退款打平 HK$0 嘅活躍分類仍能顯示。
+- **研究：** 參考重新核實過嘅 Apple WidgetKit／HIG、Scriptable API 同 W3C，詳見 [完整 Code Audit & Research](EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md)。
+
+### 正確預覽
+更新手機 Scriptable `Expense.js` 全檔後，執行 Script → 選「👀 預覽 Widget 尺寸」。當 Scriptable 安裝喺 iPad，選單先會顯示 Extra Large。iOS 系統可能延遲 Widget 自動刷新，唔好將 `refreshAfterDate` 視為精準刷新時刻。

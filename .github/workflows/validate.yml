@@ -35,6 +35,10 @@ jobs:
         run: node tests/expense-dashboard-aesthetic.test.js
       - name: Verify 100-source Dashboard UX research map
         run: node tests/expense-dashboard-research.test.js
+      - name: Test progressively enriched Expense Widgets (Small / Medium / Large / iPad XL)
+        run: node tests/expense-widget-sizes.test.js
+      - name: Audit Expense source cleanliness and script mirrors
+        run: node tests/expense-source-cleanliness.test.js
       - name: Enforce independent versions, changelogs and mirror parity
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}

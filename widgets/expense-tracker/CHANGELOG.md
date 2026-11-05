@@ -1,5 +1,28 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.15.0] — 2026-11-05
+
+### New — truly distinct Widget information layers
+- **Small (iPhone/iPad):** streamlined month spend, today's net, valid-month record count and unresolved indicator. Removed its repeated mini chart.
+- **Medium (iPhone/iPad):** adds 14-day signed daily bars, 7-day net and leading category; uses a split KPI/plot layout, not a stretched Small.
+- **Large (iPhone/iPad):** adds 14-day daily trend, top **three** category ranking bars, top **two** actual payment labels and two latest transactions, plus unresolved FX/date status.
+- **Extra Large (iPad only):** a true two-column analytical dashboard with **30-day** daily bars, **six-month** monthly comparison, top **five** categories, top **three** dynamically discovered payment methods, **six** recent transactions, refund count and unresolved status. iPhone cannot offer this size under Apple WidgetKit.
+- Lock-screen accessory families remain compact and separate. Optional `Widget Parameter = quick` continues to open manual entry.
+
+### Audit / refactor — source cleanliness and data correctness
+- Replaced repeated Widget data scans with a **single-pass aggregation** of valid HKD transactions into month/day/six-month/category/payment/refund summaries, plus a bounded latest-six sort.
+- Hardened general `groupSum()` dictionary keys against `__proto__` and other JavaScript prototype-member collisions by using `Object.create(null)`.
+- Retain **active zero-net** categories/payment methods whose purchases and refunds cancel out rather than making them disappear.
+- Removed the unused former Dashboard `barsSVG()` renderer and `fmt()` helper left by older UI rewrites; did **not** delete intentional compatibility mirrors or data-recovery files.
+- Preserved signed refund data, pending-FX exclusions, original Card/Payme labels, canonical `食飯` category, open-text Payment Type, optional Remark, Tap Card import rules and original Numbers output.
+- No new network calls, third-party libraries or keys.
+
+### Independent research / testing
+- Added `docs/EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md`: updated evidence based on **14 checked vendor/standards documents**, source code audit, risks and retained/updated/corrected/new findings. The old 100-link design reference index is explicitly **not** treated as 100 live-verified research studies.
+- Added `tests/expense-widget-sizes.test.js`: fully simulated Scriptable widget view-tree tests for all four families, accessory-preserving code, charts, custom payments, refund, pending FX, zero records and Quick Widget routing.
+- Added `tests/expense-source-cleanliness.test.js`: dead-code, obvious credential-pattern, unsafe evaluator, mirror equality and independent-version hygiene checks.
+- The actual WidgetKit/iPad pixel layout cannot be certified by Node mocks; use Scriptable's built-in preview on real devices for final acceptance.
+
 ## [3.14.0] — 2026-11-05
 
 ### Changed — Canonical Merchant Type 食飯
