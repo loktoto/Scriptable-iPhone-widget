@@ -66,6 +66,6 @@ const testScript='(async()=>{\n'+script.slice(0,cut)+
  assert.ok(html.includes('id="txSearch"'));assert.ok(html.includes('✏️ 編輯'));
  assert.ok(html.includes('save-flash'));
  assert.ok(html.includes('href="https://expense-editor.invalid/edit?row=1"'));
- assert.ok(html.includes('已加入 Apple Numbers'));
+ assert.ok(html.includes('唔會同步 Apple Numbers'));
  console.log('PASS: dashboard editing, row links, all-record search, date, amount, FX, concurrency, no-op and persistence');
 })().catch(e=>{console.error(e);process.exitCode=1;});
