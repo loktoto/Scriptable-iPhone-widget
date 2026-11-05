@@ -1582,9 +1582,17 @@ function recentTitle(t){
   return [category&&category!=='未分類'?category:'交易',payment].filter(Boolean).join(' · ');
 }
 function widgetWidth(family){
-  let screen=390;try{screen=Device.screenSize().width||390;}catch(_){}
+  let screen=390,pad=false;
+  try{screen=Device.screenSize().width||390;pad=Device.isPad();}catch(_){}
+  if(pad){
+    const sm=screen<=768?141:screen<=810?146:screen<=834?150:170;
+    const md=screen<=768?305.5:screen<=810?320.5:screen<=834?327.5:378.5;
+    const xl=screen<=768?634.5:screen<=810?669:screen<=834?682:screen<=970?726:795;
+    if(family==='small')return sm-20;
+    if(family==='extraLarge')return Math.floor(xl-24);
+    return Math.floor(md-24);
+  }
   if(family==='small')return screen<=320?121:screen<=375?128:screen<=393?138:149;
-  if(family==='extraLarge')return Math.max(440,Math.min(605,screen-132));
   return (screen<=320?292:screen<=375?321:screen<=393?338:screen<=414?360:364)-24;
 }
 function sectionLine(parent,title,right=''){
