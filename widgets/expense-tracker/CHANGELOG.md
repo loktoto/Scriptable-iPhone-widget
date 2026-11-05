@@ -3,7 +3,7 @@
 ## [3.22.0] — 2026-11-05
 
 ### Today-first Small, split Medium with solid pie, richer Large
-- **Small:** header becomes *今日支出 + 今日有效交易筆數* instead of 11月/月交易筆數. Big amount shows **today's net HKD spend**, and the row formerly labelled 最近七日 now displays **本月支出 + current monthly net HKD**. Removed 最多分類 completely to give the monthly daily bar chart more space.
+- **Small:** header becomes *今日支出 + 今日非零交易筆數* instead of 11月/月交易筆數; pending-FX transactions count as recorded entries but do not inflate displayed HKD. Big amount shows **today's net HKD spend**, and the row formerly labelled 最近七日 now displays **本月支出 + current monthly net HKD**. Removed 最多分類 completely to give the monthly daily bar chart more space.
 - **Date integrity:** all monthly daily bars sample **calendar 1st through today's date**, not the old seven days mislabeled as monthly; axis says 1日 → 今日. Refunds remain negative signed bars, zero/unconverted amounts are not invented.
 - **Medium:** two real columns. Left reuses exactly the Small today/month/day-bars panel; right is a **solid category Pie Chart**, not a Donut nor stacked bar. The Pie and legend use Top 2 + 其他 from positive **gross purchases before refunds**.
 - **Large:** rebuilt as a daily-count header, dual 今日／本月 KPI, a larger month-to-date net daily chart, category **Pie** with legend, payment composition chart and up to three recent transactions (two narrow). Refund amounts are shown when present.
