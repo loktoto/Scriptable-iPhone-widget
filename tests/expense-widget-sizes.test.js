@@ -156,7 +156,7 @@ function graphs(node){
  assert.ok(lt.includes('Lunch Cafe'));
  assert.equal(graphs(large).length,1,'Large should use one chart plus ranked categories and transactions');
  console.log('Estimated heights 393pt screen: Small '+estimatedHeight(small)+', Medium '+estimatedHeight(medium)+', Large '+estimatedHeight(large));
- assert.ok(estimatedHeight(large)<=311,'Large must fit conservative 311pt iPhone size');
+ assert.ok(estimatedHeight(large)<=354,'393pt iPhone Large should fit 354pt real Apple HIG size');
  assert.ok(estimatedHeight(medium)<=158,'Medium must fit 158pt iPhone size');
  const wideRows=large.children.filter(x=>x?.type==='stack');
  assert.ok(wideRows.length>0,'Large must have a structured stacked layout');
