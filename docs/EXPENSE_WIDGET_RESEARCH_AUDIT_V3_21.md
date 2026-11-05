@@ -6,7 +6,7 @@
 
 本次研究**不以此前研究報告為真理**。以使用者最新上傳一頁 PDF（Small／Medium／Large 真機畫面）、GitHub `widgets/expense-tracker/HK-Expense-Tracker.js` v3.20.0、GitHub Actions 真實回歸記錄，及重新查閱的 Apple、Scriptable、USWDS、W3C、IBM、Datawrapper 官方文件為基礎。未獲使用者提供原始 transactions.json，**不能**宣稱對帳本逐筆進行驗證，亦未曾在 iOS 原生 Scriptable 取得新版本真機截圖。
 
-**總結：v3.20.0 確實有 Small 1圖、Medium 2圖、Large 3圖、iPad XL 4圖，但「圖表數量」不能取代資訊品質。** 三張實機圖顯示 Small 7日柱缺日期、Medium 14日圖只一支柱、Large 近半畫面唔夠有效利用及右欄付款名稱過長。最大根因係使用固定圖形，忽略只有1–2個活躍日嘅稀疏資料；另有原始檔「分類／付款比例=退款前正向消費」嘅語義，但 Large 畫面只寫「支出分類／付款構成」，未說明分母。
+**總結：v3.20.0 確實有 Small 1圖、Medium 2圖、Large 3圖、iPad XL 4圖，但「圖表數量」不能取代資訊品質。** 三張實機圖顯示 Small 7日柱缺日期、Medium 14日圖只一支柱、Large 存在大面積低資訊密度區域及右欄付款名稱過長。最大根因係使用固定圖形，忽略只有1–2個活躍日嘅稀疏資料；另有原始檔「分類／付款比例=退款前正向消費」嘅語義，但 Large 畫面只寫「支出分類／付款構成」，未說明分母。
 
 ## A. 原始截圖可觀察事實（高信心；非模型模擬）
 
