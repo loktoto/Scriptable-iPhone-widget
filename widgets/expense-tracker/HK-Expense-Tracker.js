@@ -1721,6 +1721,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     return widget;
   }
   // iPad Extra Large: four complementary charts with transparent denominators.
+  const compactPad=Device.screenSize().width<850;
   simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'財務分析 · '+month+'月');
   widget.addSpacer(5);
   const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
@@ -1729,36 +1730,37 @@ function buildWidget(family=config.widgetFamily||'medium'){
   wText(hero,'支出 '+compactMoney(s.gross),11,WC.soft);
   hero.addSpacer(10);
   wText(hero,'退款 '+compactMoney(s.refundValue),11,WC.mint);
-  widget.addSpacer(8);
+  widget.addSpacer(compactPad?4:8);
   const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=12;
   const leftW=Math.floor(width*.52),rightW=width-leftW-12;
   const left=panels.addStack();left.layoutVertically();left.size=new Size(leftW,0);
   sectionLine(left,'最近30日每日淨額');
-  left.addSpacer(4);addChart(left,chartPoints(s.byDay,30),leftW,60);
+  left.addSpacer(4);addChart(left,chartPoints(s.byDay,30),leftW,compactPad?47:60);
   left.addSpacer(7);
   sectionLine(left,'最近6個月淨額');
-  left.addSpacer(4);addChart(left,s.sixMonths,leftW,42);
+  left.addSpacer(4);addChart(left,s.sixMonths,leftW,compactPad?30:42);
   const right=panels.addStack();right.layoutVertically();right.size=new Size(rightW,0);
   sectionLine(right,'分類 · 正向支出');
   right.addSpacer(5);
   const cat=right.addStack();cat.layoutHorizontally();cat.centerAlignContent();
-  addDonutChart(cat,s.grossCats,84);cat.addSpacer(8);
+  addDonutChart(cat,s.grossCats,compactPad?64:84);cat.addSpacer(8);
   const legend=cat.addStack();legend.layoutVertically();legend.spacing=3;
-  addDonutLegend(legend,s.grossCats,s.gross,4);
+  addDonutLegend(legend,s.grossCats,s.gross,compactPad?3:4);
   right.addSpacer(7);
   sectionLine(right,'付款構成 · 正向支出');
   right.addSpacer(4);
   addStackedChart(right,donutParts(s.grossPayments),rightW,12);
   right.addSpacer(4);
-  addPaymentRows(right,s.grossPayments,2);
-  widget.addSpacer(8);
-  sectionLine(widget,'最近六筆交易');
+  addPaymentRows(right,s.grossPayments,compactPad?1:2);
+  widget.addSpacer(compactPad?4:8);
+  sectionLine(widget,compactPad?'最近三筆交易':'最近六筆交易');
   widget.addSpacer(4);
   const recent=widget.addStack();recent.layoutHorizontally();recent.spacing=10;
   for(let i=0;i<3;i++){
     const col=recent.addStack();col.layoutVertically();
     col.size=new Size(Math.floor((width-20)/3),0);
-    addRecentRows(col,s.recent.slice(i*2,i*2+2),2,13);
+    const step=compactPad?1:2;
+    addRecentRows(col,s.recent.slice(i*step,i*step+step),step,13);
   }
   if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
   return widget;
