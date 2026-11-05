@@ -25,8 +25,9 @@ const boot='(async()=>{\n'+source.slice(0,cut)+
  '\nreturn {normalize,categoryOf,categoryForDisplay,paymentTypeOf,normalizePaymentType,dashboardHTML,dashboardTrendSVG,manualFormHTML,saveManualForm,db};\n}\nreturn await runExpenseTrackerHK();\n})()';
 (async()=>{
  const app=await vm.runInContext(boot,ctx);
- assert.equal(app.categoryForDisplay(legacy),'食物');
- assert.equal(app.categoryOf('食飯','MTR'),'食物','explicit Food must override merchant keyword');
+ assert.equal(app.categoryForDisplay(legacy),'食飯');
+ assert.equal(app.categoryForDisplay({...legacy,category:'食物'}),'食飯');
+ assert.equal(app.categoryOf('食飯','MTR'),'食飯','explicit Food must override merchant keyword');
  assert.equal(app.paymentTypeOf(legacy),'Payme');
  assert.equal(app.paymentTypeOf(custom),'My Custom Wallet');
  assert.equal(app.normalizePaymentType('AlipayHK'),'AlipayHK');
@@ -35,7 +36,7 @@ const boot='(async()=>{\n'+source.slice(0,cut)+
  assert.equal(app.paymentTypeOf({card:'SOGO VISA SIGNATURE CARD'}),'信用卡','Only Card fallback may infer a broad payment category');
  const received=app.normalize({Date:date,MerchantType:'食飯',Card:'Payme',
   Amount:2,Currency:'HKD'});
- assert.equal(received.category,'食物');assert.equal(received.originalCategory,'食飯');
+ assert.equal(received.category,'食飯');assert.equal(received.originalCategory,'食飯');
  assert.equal(received.paymentType,'Payme');
  assert.equal(received.amountHKD,2);assert.equal(received.remark,'');
  const html=app.dashboardHTML();
@@ -46,7 +47,7 @@ const boot='(async()=>{\n'+source.slice(0,cut)+
  assert.ok(html.includes('data-payment="Payme"'),'Payme must be usable in transaction filter');
  assert.ok(html.includes('data-payment="My Custom Wallet"'));
  assert.ok(html.includes('<option value="Payme">Payme</option>'));
- assert.ok(html.includes('data-pick-category="食物"'));
+ assert.ok(html.includes('data-pick-category="食飯"'));
  assert.ok(html.includes('data-filter=')&&html.includes('食飯')&&html.includes('午餐後補返錢'));
  assert.ok(html.includes('id="txSearch"'));
  assert.ok(html.includes('id="txCategoryFilter"'));

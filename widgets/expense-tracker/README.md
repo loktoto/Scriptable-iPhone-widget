@@ -2,11 +2,11 @@
 
 **Main:** [HK-Expense-Tracker.js](HK-Expense-Tracker.js)  
 **Read-only diagnostic:** [HK-Expense-Input-Diagnostic.js](HK-Expense-Input-Diagnostic.js)  
-**Current version:** [3.13.0](VERSION.json) · [Release notes](CHANGELOG.md)
+**Current version:** [3.14.0](VERSION.json) · [Release notes](CHANGELOG.md)
 
 - Apple Intelligence / Shortcuts Dictionary, nested `amount.content`, regular JSON, constrained key-based text extraction.
 - Save valid nonzero amounts only. Negative transactions are refunds; other missing fields may still be saved.
-- After saving, re-open `transactions.json` to verify persistence and return a marked `[EXPENSE-HK-v3.13.0]` receipt.
+- After saving, re-open `transactions.json` to verify persistence and return a marked `[EXPENSE-HK-v3.14.0]` receipt.
 - Adaptive Small / Medium / Large / iPad Extra Large widgets, category charts, recent transactions, optional FX reference conversion, CSV and JSON export.
 - Local Scriptable data only. **Never publish your real transaction CSV, JSON, card information or AI text to this public repo.**
 
@@ -16,36 +16,39 @@ A GitHub update never changes an already installed iPhone Scriptable script; rei
 
 **Shortcuts reliability (v3.7.1):** Imports save and verify without waiting for historical FX requests. Pending foreign currency can be converted with **Retry FX** in the Scriptable app.
 
-**Apple Numbers bridge v3.13.0:** Run Expense returns a Dictionary. Shortcuts must then use `shouldAppendNumbers` and `numbersRow` to append one row to a chosen Numbers Table. See [Numbers setup](../../docs/EXPENSE_TRACKER.md#apple-numbers-data-table--apple-numbers-表格寫入-v380).
+**Apple Numbers bridge v3.14.0:** Run Expense returns a Dictionary. Shortcuts must then use `shouldAppendNumbers` and `numbersRow` to append one row to a chosen Numbers Table. See [Numbers setup](../../docs/EXPENSE_TRACKER.md#apple-numbers-data-table--apple-numbers-表格寫入-v380).
 
-**Execution audit (v3.13.0):** Open this installed script in Scriptable → 🧪 查看 Shortcuts 記帳紀錄. Local, private `ExpenseTrackerHK/last-shortcut-run.json` shows whether the Shortcut was invoked and how far it reached.
+**Execution audit (v3.14.0):** Open this installed script in Scriptable → 🧪 查看 Shortcuts 記帳紀錄. Local, private `ExpenseTrackerHK/last-shortcut-run.json` shows whether the Shortcut was invoked and how far it reached.
 
-## Edit Dashboard transactions (v3.13.0)
+## Edit Dashboard transactions (v3.14.0)
 Open the Dashboard and use the Edit control on any row, or choose the Scriptable app-menu Edit Transaction fallback. The editor validates amount and date, retains the transaction ID, saves back to local JSON and refreshes Dashboard. **Existing Apple Numbers rows are not updated.**
 
-### Swipe left to delete (v3.13.0)
+### Swipe left to delete (v3.14.0)
 Dashboard transaction cards support swipe-left → red Delete button → native confirmation, swipe-right to close, plus a ⋯ button and in-app deletion fallback. Local JSON is backed up and read-back verified; Apple Numbers and older backup copies are not altered.
 
-### Visual manual expense entry (v3.13.0)
+### Visual manual expense entry (v3.14.0)
 Choose **➕ 手動記帳** in Scriptable or **＋ 手動記帳** in the Dashboard to enter cash, Octopus, FPS and bank-transfer transactions using a dark 3-column icon category grid, day navigation, amount, time, payment source and currency. Saves to the existing local JSON ledger, with nonzero validation, FX pending state, duplicate prevention and disk verification. Manual entries are **not** added to Apple Numbers automatically.
 
-### v3.13.0 — App entry point hotfix
+### v3.14.0 — App entry point hotfix
 Dashboard and Manual Entry now both work through the same `presentExpenseWeb` controller. v3.11.0 was missing their required wrapper functions and could crash with `Can't find variable: dashboard`. Existing local transaction files are unaffected. Full Scriptable app-route regression tests now run in CI.
 
-### Manual form compact layout — v3.13.0
+### Manual form compact layout — v3.14.0
 The mobile manual form now reserves space for iOS native WebView chrome, shows only one date field, uses tighter category cards, reduces the sticky Save bar and keeps time/payment controls separated. No input or storage schema migration is required.
 
-### Home Screen one-tap manual entry (v3.13.0)
+### Home Screen one-tap manual entry (v3.14.0)
 Run `scriptable:///run?scriptName=Expense&view=manual` (replace `Expense` with your actual URL-encoded Scriptable script name) from a separate iPhone Shortcut **Open URL** action and **Add to Home Screen**. To avoid typing the URL, open the normal Expense Scriptable app menu and choose **🔗 複製一鍵記帳網址**. The regular Tap Card automation is unchanged. Optional: add a separate Scriptable widget using the same script with **Widget Parameter = quick**; this widget launches the form, while your original widget still opens Dashboard. The user must still enter an amount before saving.
 
-### Recommended one-tap launch (v3.13.0)
+### Recommended one-tap launch (v3.14.0)
 Create a **separate iOS Shortcut** containing just Scriptable **Run Script**, select the script **Expense**, set **Parameter** to text `EXPENSE_QUICK_MANUAL`, and turn **Run In App ON**. Add that Shortcut to the Home Screen. This opens manual entry directly and does not affect the existing Tap Card automation. If Run In App is off, the script returns `quick_requires_app` instead of trying to present a WebView. The URL route remains an alternative, but it depends on iOS URL handoff and the exact Scriptable script name.
 
-### One-tap Shortcuts Texts support (v3.13.0)
+### One-tap Shortcuts Texts support (v3.14.0)
 In a standalone Shortcuts **Scriptable → Run Script** action, select Expense, enable **Run In App**, and put the exact command `EXPENSE_QUICK_MANUAL` in **either** the main Parameter field **or** as the **only item in Texts**. Both now launch the manual form directly. This fixes the reported UI where Parameter was empty but Texts held the command. Do not alter the separate Tap Card automation: real Wallet Dictionary input remains the priority.
 
-### Merchant / payment / Remark Dashboard (v3.13.0)
+### Merchant / payment / Remark Dashboard (v3.14.0)
 A fixed 12-category Merchant Type overview (empty categories show blank values), clickable type filters, payment-method summary, and category/payment/card dropdowns now accompany free-text search across merchants, **remark**, payment types, categories and dates. The existing `card` string remains distinct from a new optional `paymentType`; the manual WebView has both inputs plus an optional Remark. Old transactions are displayed with non-destructive compatibility aliases; no bulk rewrite is performed. CSV adds payment type + remark at the end; the older six-column Apple Numbers bridge stays unchanged.
 
-### v3.13.0 — Mobile Dashboard + flexible payments
+### v3.14.0 — Mobile Dashboard + flexible payments
 The Dashboard reserves iPhone WebView top chrome, uses compact KPI cards, collapsible diagnostics/donut, 12 clickable categories, actual payment names, and transaction search/edit/delete before a compact switchable 14-day/6-month chart. Unavailable chart periods no longer leave huge blanks. The user-provided legacy `MerchantType: 食飯` displays as 食物; `Card: Payme` displays Payme, keeping source data unchanged. Payment Type is a free-text field with optional suggestions, not a fixed whitelist. Tap Card and Numbers integrations remain compatible.
+
+### v3.14.0 — 食飯 + research-led premium dashboard
+The canonical food Merchant Type is **食飯** throughout the Dashboard, manual UI and editor. Previously stored 食物/餐飲/Restaurants values remain readable and map to 食飯 for display; existing JSON rows are not rewritten. The Dashboard has a focused monthly spend hero, compact summary cards, refined accessible 12-category tiles with mini bars, top-category rankings, payment cards for dynamic wallet labels, and refined transaction rows. **100 independent guideline/reference pages** are indexed, categorized and linked in [Dashboard Research](../../docs/EXPENSE_DASHBOARD_RESEARCH_100.md) (100 sources != 100 empirical studies). No third-party assets or telemetry. Tap Card, Shortcuts, edit/delete, the original local ledger and Numbers bridge remain unchanged.
