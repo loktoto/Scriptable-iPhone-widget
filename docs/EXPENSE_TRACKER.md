@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.11.4｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.11.5｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -203,3 +203,9 @@ scriptable:///run?scriptName=Expense&view=manual
 5. 不需要 URL、Open URLs、AI 模型或 Show Result 動作。把「快速記帳」加入主畫面，一按直接開手動表單。
 
 **絕對唔好改原本 Tap Card Automation：** 仍然係「使用裝置端模型 → Run Expense with 回應」，其 Parameter 保留交易 Dictionary，Run In App 可以繼續依原設定。兩條 Shortcut 都使用相同嘅 `transactions.json`，但唔共享入口參數。
+
+## v3.11.5 — 修正快捷記帳 `Texts` 同 `Parameter` 分別
+
+你嘅 iPhone 截圖顯示，Scriptable「Run Expense with Parameter」入面 **Parameter 其實係空白**，文字 `EXPENSE_QUICK_MANUAL` 被加到展開嘅 **Texts** 一欄。呢兩個輸入分別會去 `args.shortcutParameter` 和 `args.plainTexts`。新版 v3.11.5 兩者都支援：**直接保留你截圖中 Texts 的指令、Run In App 保持 ON**，重新執行即可試進入手動表單；亦可以刪除 Texts，改為喺上面 Parameter 傳入同一文字指令。
+
+為咗保護原本 Tap Card Automation，只有 `Parameter` 冇資料而 `Texts` **恰好一項非空白文字**等於指令，先會轉成快速記帳；如 `Parameter` 已有 Wallet/AI 交易 Dictionary，仍然優先入帳。呢個功能只打開表單，輸入有效金額後先會寫入原本 JSON。
