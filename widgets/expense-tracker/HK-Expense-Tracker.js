@@ -1766,41 +1766,39 @@ function buildWidget(family=config.widgetFamily||'medium'){
     return widget;
   }
   if(family==='large'){
-    // More information, not more decorative cards: full-width ranked category,
-    // compact payment distribution and native full-width recent transactions.
-    const narrow=width<300;
-    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 消費報告');
+    const narrow=width<290,col=Math.floor((width-8)/2);
+    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'支出分析 · '+month+'月');
     widget.addSpacer(4);
     const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
-    wText(hero,compactMoney(s.month),25,WC.ink,true);
-    hero.addSpacer(5);wText(hero,contextLine(s),11,WC.mint);
+    wText(hero,compactMoney(s.month),23,WC.ink,true);
+    hero.addSpacer(7);
+    wText(hero,s.refunds?'退款 '+s.refunds+'筆':'近7日 '+s.sevenActive+'日',11,WC.mint);
     widget.addSpacer(4);
-    sectionLine(widget,'14日趨勢',s.fourteenActive+'個交易日');
-    widget.addSpacer(2);addChart(widget,chartPoints(s.byDay,14),width,narrow?13:16);
-    widget.addSpacer(4);addSeparator(widget,width);widget.addSpacer(6);
-    sectionLine(widget,'分類支出',s.monthlyCats.length+'種');
-    widget.addSpacer(5);
-    addRankRows(widget,s.monthlyCats,narrow?2:3,width,false);
-    widget.addSpacer(4);addSeparator(widget,width);widget.addSpacer(6);
-    sectionLine(widget,'付款方式');
-    widget.addSpacer(4);
-    addPaymentRows(widget,s.monthlyPayments,narrow?1:2);
-    const rem=paymentRemainder(s,narrow?1:2);
-    if(rem!==null){
-      const other=widget.addStack();other.layoutHorizontally();
-      wText(other,'其餘',11,WC.subtle);other.addSpacer();
-      wText(other,compactMoney(rem),11,WC.soft,true);
-    }
-    widget.addSpacer(6);addSeparator(widget,width);widget.addSpacer(6);
-    sectionLine(widget,'最近交易',s.recent.length+'筆');
+    sectionLine(widget,'最近14日 · 淨支出');
+    widget.addSpacer(2);
+    addChart(widget,chartPoints(s.byDay,14),width,narrow?34:44);
+    widget.addSpacer(7);
+    const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=8;
+    const left=panels.addStack();left.layoutVertically();left.size=new Size(col,0);
+    sectionLine(left,'支出分類');
+    left.addSpacer(5);
+    const ring=left.addStack();ring.layoutHorizontally();ring.centerAlignContent();
+    const size=narrow?59:75;
+    addDonutChart(ring,s.grossCats,size);
+    ring.addSpacer(4);
+    const legend=ring.addStack();legend.layoutVertically();legend.spacing=2;
+    addDonutLegend(legend,s.grossCats,s.gross,narrow?2:3);
+    const right=panels.addStack();right.layoutVertically();right.size=new Size(col,0);
+    sectionLine(right,'付款構成');
+    right.addSpacer(8);
+    addStackedChart(right,donutParts(s.grossPayments),col,12);
+    right.addSpacer(6);
+    addPaymentRows(right,s.grossPayments,narrow?2:3);
+    widget.addSpacer(7);
+    sectionLine(widget,'最近交易','最近'+Math.min(s.recent.length,narrow?1:2)+'筆');
     widget.addSpacer(3);
-    // The 393pt iPhone has only 354pt Large height. Reserve readable
-    // bottom breathing room; 430pt iPhones can expose an extra transaction.
-    const recentMax=width>=343?(s.monthlyCats.length<=2?4:3):2;
-    addRecentRows(widget,s.recent,recentMax,narrow?15:23);
-    if(s.unresolved){
-      widget.addSpacer(3);widgetPending(widget,s);
-    }
+    addRecentRows(widget,s.recent,narrow?1:2,narrow?13:21);
+    if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
     return widget;
   }
   // iPad Extra Large is an information-rich 3-zone analytics console,
