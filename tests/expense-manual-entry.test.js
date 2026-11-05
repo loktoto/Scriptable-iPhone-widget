@@ -26,7 +26,7 @@ function fields(patch={}){
  const app=await vm.runInContext(harness,ctx);
  const nonce='1730800000000-a1234567';
  const html=app.manualFormHTML(nonce,'已儲存');
- assert.ok(html.includes('手動支出記錄'));
+ assert.ok(html.includes('手動記帳'));
  assert.ok(html.includes('https://expense-editor.invalid/manual-save'));
  assert.ok(html.includes('https://expense-editor.invalid/manual-back'));
  assert.ok(html.includes('id="manualDate"'));
