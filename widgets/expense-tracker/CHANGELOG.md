@@ -1,5 +1,19 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.11.1] — 2026-11-05
+
+### Fixed — App launch regression
+- Restored the required public `dashboard()` and `addManual()` entry points after v3.11.0 renamed their previous implementations but forgot to create the new wrappers.
+- Both functions now open the shared `presentExpenseWeb()` controller in Dashboard or manual-entry mode respectively.
+- Removed the superseded dashboard presenter and manual Alert entry routines so the app uses one canonical WebView implementation.
+- Fixed the on-device error `Can't find variable: dashboard` when selecting Dashboard, the manual-entry menu, or opening the Dashboard deep link.
+
+### Tests
+- Added full-script **Scriptable app-entry integration tests** that really execute the menu's Dashboard path, Manual Entry path and direct Dashboard deep link using mocked Alert and WebView objects.
+- Prior v3.11.0 tests covered only data parsing and manual-form helpers, and therefore missed the missing function declarations. The new tests explicitly fail if either entry point is undefined or if WebView rendering fails.
+- This change does **not** migrate, clear or overwrite existing transactions.json; no storage schema changes.
+- iPhone WebView interaction itself remains unverified until installed on an actual device.
+
 ## [3.11.0] — 2026-11-05
 
 ### Added

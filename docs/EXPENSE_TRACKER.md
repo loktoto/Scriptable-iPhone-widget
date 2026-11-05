@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.11.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.11.1｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -167,3 +167,6 @@ Script 回傳例如：
 打開 Scriptable → Expense → **➕ 手動記帳**，或 Dashboard 頂部按 **＋ 手動記帳**，即可見深色手動記帳介面。左／右箭嘴選日期、點日期揀日子、輸入商戶／記錄、有效非零金額、交易時間、付款方式、貨幣，並選擇一個彩色分類圖示。按「儲存支出」會新增至同一份 `ExpenseTrackerHK/transactions.json`，再讀回核實，成功後重設表單。負數退款可以記錄、0／空白跳過；外幣先儲存原幣，之後按主選單「重試外幣換算」。
 
 表單資料只會由 Scriptable 從本機 WebView 讀取；操作用固定 URL 訊號，唔會把金額、商戶或卡名放入網址。Apple Numbers 需要獨立 Shortcut 寫入，**手動記帳唔會自動增加 Numbers Table 行**。iPhone WebView 真正按鍵體驗需實機驗證。
+
+## v3.11.1 — 修正 Scriptable 開 App 錯誤
+已修正 v3.11.0 漏咗 `dashboard()` 同 `addManual()` 函式，導致主選單報 `Can't find variable: dashboard`。新版本已實際模擬從主選單開啟 Dashboard、手動記帳頁及 Dashboard 深層連結；資料庫及 Widget 邏輯不變。請將 GitHub 最新整份程式完全覆蓋 Scriptable 內既有 `Expense.js`；唔好喺舊程式後面追加。
