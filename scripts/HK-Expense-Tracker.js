@@ -1468,7 +1468,8 @@ function widgetSummary(){
 function chartPoints(byDay,count){
   return Array.from({length:count},(_,i)=>{
     const date=dayBack(count-i-1);
-    return {label:date.slice(8),value:byDay[date]||0};
+    return {label:date.slice(8),value:byDay[date]||0,
+      active:Object.prototype.hasOwnProperty.call(byDay,date)};
   });
 }
 function makeBarChart(points,width,height){
@@ -1513,7 +1514,7 @@ function sevenDayHeatImage(points,width){
   const pitch=width/7,box=Math.max(10,pitch-5);
   points.forEach((p,i)=>{
     const v=p.value;
-    c.setFillColor(new Color(v<0?WC.mint:(v>0?WC.violet:WC.edge)));
+    c.setFillColor(new Color(v<0?WC.mint:(v>0?WC.violet:(p.active?WC.amber:WC.edge))));
     const fraction=Math.abs(v)/maximum;
     const fill=v===0?3:Math.max(6,box*fraction);
     const start=i*pitch+(pitch-box)/2;
@@ -1652,10 +1653,17 @@ function buildWidget(family=config.widgetFamily||'medium'){
     wText(widget,compactMoney(s.month),24,WC.ink,true);
     widget.addSpacer(5);
     const principal=s.monthlyCats[0];
+    const positiveCats=s.monthlyCats.reduce((total,row)=>total+Math.max(0,row[1]),0);
     const line=widget.addStack();line.layoutHorizontally();line.centerAlignContent();
-    wText(line,principal?'最多 '+principal[0]:'今日',11,WC.subtle);
+    wText(line,principal?'主要 '+String(principal[0]).slice(0,6):'暫無交易',11,WC.subtle);
     line.addSpacer(4);
-    wText(line,principal&&s.month!==0&&Math.abs(principal[1]-s.month)<.005?'100%':principal?compactMoney(principal[1]):compactMoney(s.today),11,WC.mint,true);
+    // Use a short genuine share on Small; the precise HKD amount is visible
+    // on Medium/Large. Avoid a second long amount that clips a 141pt card.
+    if(principal){
+      const share=positiveCats>0&&principal[1]>0?
+        Math.round(principal[1]/positiveCats*100)+'%':compactMoney(principal[1]);
+      wText(line,share,11,WC.mint,true);
+    }
     widget.addSpacer(4);
     sectionLine(widget,'近7日',s.sevenActive+'日有紀錄');
     widget.addSpacer(3);
@@ -1770,12 +1778,12 @@ function buildWidget(family=config.widgetFamily||'medium'){
 }
 async function previewWidget(){
   const choices=[
-    'Small — 7日圖＋重複金額自動簡化',
-    'Medium — 左右資訊卡＋14日趨勢',
-    'Large — 分層統計與雙欄分類付款'
+    'Small — 七日熱度條＋本月金額',
+    'Medium — 按交易日數顯示分類／趨勢',
+    'Large — 全寬分類、付款及最近交易'
   ];
   let isPad=false;try{isPad=Device.isPad();}catch(_){}
-  if(isPad)choices.push('Extra Large — iPad 雙欄分析');
+  if(isPad)choices.push('Extra Large — iPad 三區分析');
   const pick=new Alert();pick.title='預覽記帳 Widget';
   choices.forEach(name=>pick.addAction(name));pick.addCancelAction('取消');
   const choice=await pick.presentSheet();if(choice<0)return;
