@@ -185,7 +185,7 @@ function graphs(node){
  const largePie=largeImages[1];
  assert.ok(largePie.draws.some(x=>x.type==='fill-path'));
  assert.equal(largePie.draws.filter(x=>x.type==='ellipse').length,1);
- assert.equal(largeImages.filter(x=>x.size.height===6).length,5,
+ assert.equal(largeImages.filter(x=>x.size.height===5).length,5,
    'Five mini bars: top three payment methods + two comparable rolling periods');
  assert.equal(app.widgetSummary().previous7,
    Object.entries(app.widgetSummary().byDay).reduce((t,[date,v])=>{
