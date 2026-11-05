@@ -124,7 +124,7 @@ function graphs(node){
  assert.ok(lt.includes('Lunch Cafe'));
  assert.equal(graphs(large).length,1,'Large should use one chart plus ranked categories and transactions');
  assert.equal(small.url,'scriptable:///run?scriptName=Expense&view=dashboard');
- assert.equal(small.refreshAfterDate instanceof Date,true);
+ assert.ok(Number.isFinite(new Date(small.refreshAfterDate).getTime()),'Refresh request must contain a valid date');
  fixture.args.widgetParameter='quick';
  assert.equal(app.buildWidget('small').url,'scriptable:///run?scriptName=Expense&view=manual');
  const ipad=createTestSuite(rows,true);
