@@ -1533,7 +1533,7 @@ function addRankRows(parent,items,maxRows,barWidth=95){
     const plot=parent.addImage(makeMiniBar(barWidth,Math.abs(value)/max,
       value<0?WC.green:[WC.violet,WC.blue,WC.warn,WC.green][index%4]));
     plot.imageSize=new Size(barWidth,4);plot.applyFittingContentMode();
-    if(index<maxRows-1)parent.addSpacer(4);
+    if(index<maxRows-1)parent.addSpacer(2);
   });
   return Math.min(items.length,maxRows);
 }
@@ -1543,18 +1543,18 @@ function addPaymentRows(parent,items,maxRows){
     const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
     wText(row,name,11,WC.secondary);
     row.addSpacer(4);wText(row,compactMoney(total),11,WC.primary,true);
-    if(i<maxRows-1)parent.addSpacer(4);
+    if(i<maxRows-1)parent.addSpacer(3);
   });
   return Math.min(maxRows,items.length);
 }
-function addRecentRows(parent,items,maxRows){
+function addRecentRows(parent,items,maxRows,maxMerchant=17){
   if(!items.length){wText(parent,'暫無交易',11,WC.muted);return 0;}
   items.slice(0,maxRows).forEach((t,i)=>{
     const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
-    wText(row,(t.merchant||'未提供商戶').slice(0,17),11,WC.secondary);
+    wText(row,(t.merchant||'未提供商戶').slice(0,maxMerchant),11,WC.secondary);
     row.addSpacer(4);
     wText(row,compactCurrency(t),11,t.amount<0?WC.green:WC.primary,true);
-    if(i<maxRows-1)parent.addSpacer(4);
+    if(i<maxRows-1)parent.addSpacer(3);
   });
   return Math.min(maxRows,items.length);
 }
@@ -1667,7 +1667,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
   if(family==='medium'){
     // Two-column mini dashboard, not an enlarged Small.
     widgetHeading(widget,quick?'＋ 快速記帳':'本月開支',monthText+' · '+summary.txCount+'筆');
-    widget.addSpacer(8);
+    widget.addSpacer(width<270?6:8);
     const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
     const lw=Math.max(116,Math.min(142,width*.43));
     const info=row.addStack();info.layoutVertically();info.spacing=4;
@@ -1676,13 +1676,13 @@ function buildWidget(family=config.widgetFamily||'medium'){
     wText(info,'今日 '+compactMoney(summary.today),11,WC.green);
     wText(info,'近7日 '+compactMoney(summary.last7),11,WC.secondary);
     row.addSpacer(7);
-    const trend=row.addStack();trend.layoutVertically();trend.spacing=5;
+    const trend=row.addStack();trend.layoutVertically();trend.spacing=3;
     wText(trend,'14日支出趨勢',11,WC.secondary,true);
     const cw=Math.max(126,width-lw-12);
-    addChart(trend,chartPoints(summary.byDay,14),cw,46,false);
+    addChart(trend,chartPoints(summary.byDay,14),cw,width<270?36:46,false);
     const axis=trend.addStack();axis.layoutHorizontally();
     wText(axis,'14日前',11,WC.muted);axis.addSpacer();wText(axis,'今日',11,WC.muted);
-    widget.addSpacer(7);
+    widget.addSpacer(width<270?5:7);
     const details=widget.addStack();details.layoutHorizontally();details.centerAlignContent();
     const c=summary.monthlyCats[0],p=summary.monthlyPayments[0];
     wText(details,c?'最多 '+c[0]:'未有分類',11,WC.violet,true);
@@ -1693,8 +1693,8 @@ function buildWidget(family=config.widgetFamily||'medium'){
   if(family==='large'){
     // Vertical information hierarchy: KPI -> graph -> two-column insights -> recents.
     widgetHeading(widget,quick?'＋ 快速記帳':'開支總覽',monthText+' · '+summary.txCount+'筆');
-    widget.addSpacer(8);
-    const hero=widgetCard(widget,WC.panelAlt,11);
+    widget.addSpacer(5);
+    const hero=widgetCard(widget,WC.panelAlt,8);
     const heroRow=hero.addStack();heroRow.layoutHorizontally();heroRow.centerAlignContent();
     const left=heroRow.addStack();left.layoutVertically();left.spacing=3;
     wText(left,'本月淨支出',11,WC.secondary);
@@ -1703,70 +1703,69 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const right=heroRow.addStack();right.layoutVertically();right.spacing=4;
     wText(right,'今日 '+compactMoney(summary.today),11,WC.green,true);
     wText(right,'近7日 '+compactMoney(summary.last7),11,WC.secondary);
-    widget.addSpacer(8);
+    widget.addSpacer(5);
     widgetSection(widget,'近14日趨勢','淨支出');
     widget.addSpacer(2);
-    addChart(widget,chartPoints(summary.byDay,14),width,56,false);
-    widget.addSpacer(9);
+    addChart(widget,chartPoints(summary.byDay,14),width,46,false);
+    widget.addSpacer(5);
     const columns=widget.addStack();columns.layoutHorizontally();columns.spacing=10;
     const colWidth=Math.floor((width-10)/2);
-    const categories=widgetCard(columns,WC.panel,9);categories.size=new Size(colWidth,0);
+    const categories=widgetCard(columns,WC.panel,7);categories.size=new Size(colWidth,0);
     wText(categories,'本月分類 TOP 3',11,WC.violet,true);
-    categories.addSpacer(7);
-    addRankRows(categories,summary.monthlyCats,3,colWidth-19);
-    const other=widgetCard(columns,WC.panel,9);other.size=new Size(colWidth,0);
+    categories.addSpacer(4);
+    addRankRows(categories,summary.monthlyCats,3,colWidth-15);
+    const other=widgetCard(columns,WC.panel,7);other.size=new Size(colWidth,0);
     wText(other,'付款方式 TOP 2',11,WC.violet,true);
-    other.addSpacer(7);
+    other.addSpacer(4);
     addPaymentRows(other,summary.monthlyPayments,2);
-    other.addSpacer(10);
+    other.addSpacer(6);
     wText(other,'最近交易',11,WC.violet,true);
-    other.addSpacer(5);
-    addRecentRows(other,summary.recent,2);
+    other.addSpacer(4);
+    addRecentRows(other,summary.recent,2,10);
     widget.addSpacer();
     widgetPending(widget,summary);
     return widget;
   }
   // iPad extraLarge: two analysis panels plus six recent transactions.
   widgetHeading(widget,quick?'＋ 快速記帳':'開支分析 · iPad',monthText+' · '+summary.txCount+'筆');
-  widget.addSpacer(8);
-  const hero=widgetCard(widget,WC.panelAlt,12);
+  widget.addSpacer(6);
+  const hero=widgetCard(widget,WC.panelAlt,8);
   const metrics=hero.addStack();metrics.layoutHorizontally();metrics.centerAlignContent();
   wText(metrics,'本月 '+compactMoney(summary.month),21,WC.primary,true);
   metrics.addSpacer();
   wText(metrics,'今日 '+compactMoney(summary.today),12,WC.green,true);
-  metrics.addSpacer(12);
-  wText(metrics,'近7日 '+compactMoney(summary.last7),12,WC.secondary);
-  widget.addSpacer(10);
+  metrics.addSpacer(10);
+  wText(metrics,summary.unresolved?'⚠ '+summary.unresolved+'筆待核對':'近7日 '+compactMoney(summary.last7),11,summary.unresolved?WC.warn:WC.secondary);
+  widget.addSpacer(6);
   const split=widget.addStack();split.layoutHorizontally();split.spacing=12;
   const leftWidth=Math.floor(width*.52),rightWidth=Math.max(210,width-leftWidth-13);
-  const plots=widgetCard(split,WC.panel,10);plots.size=new Size(leftWidth,0);
+  const plots=widgetCard(split,WC.panel,7);plots.size=new Size(leftWidth,0);
   wText(plots,'最近30日 · 每日支出',11,WC.primary,true);
   plots.addSpacer(4);addChart(plots,chartPoints(summary.byDay,30),leftWidth-20,64,false);
   plots.addSpacer(8);
   wText(plots,'最近6個月 · 每月支出',11,WC.primary,true);
   plots.addSpacer(4);addChart(plots,summary.sixMonths,leftWidth-20,48,false);
-  const rankings=widgetCard(split,WC.panel,10);rankings.size=new Size(rightWidth,0);
+  const rankings=widgetCard(split,WC.panel,7);rankings.size=new Size(rightWidth,0);
   wText(rankings,'分類 TOP 5',11,WC.primary,true);
+  rankings.addSpacer(4);
+  addRankRows(rankings,summary.monthlyCats,5,rightWidth-15);
   rankings.addSpacer(5);
-  addRankRows(rankings,summary.monthlyCats,5,rightWidth-22);
-  rankings.addSpacer(8);
   wText(rankings,'付款方式 TOP 3',11,WC.primary,true);
-  rankings.addSpacer(5);
+  rankings.addSpacer(4);
   addPaymentRows(rankings,summary.monthlyPayments,3);
-  widget.addSpacer(10);
-  const recents=widgetCard(widget,WC.panel,10);
+  widget.addSpacer(6);
+  const recents=widgetCard(widget,WC.panel,7);
   const heading=recents.addStack();heading.layoutHorizontally();heading.centerAlignContent();
   wText(heading,'最近6筆交易',11,WC.primary,true);heading.addSpacer();
   wText(heading,'本月退款 '+summary.refunds+'筆',11,WC.green);
   recents.addSpacer(6);
-  const recentCols=recents.addStack();recentCols.layoutHorizontally();recentCols.spacing=14;
-  const recentL=recentCols.addStack();recentL.layoutVertically();recentL.spacing=0;
-  recentL.size=new Size(Math.floor((width-34)/2),0);
-  const recentR=recentCols.addStack();recentR.layoutVertically();recentR.spacing=0;
-  addRecentRows(recentL,summary.recent.slice(0,3),3);
-  addRecentRows(recentR,summary.recent.slice(3,6),3);
-  widget.addSpacer();
-  widgetPending(widget,summary);
+  const recentCols=recents.addStack();recentCols.layoutHorizontally();recentCols.spacing=8;
+  const colWidth=Math.floor((width-30)/3);
+  for(let i=0;i<3;i++){
+    const col=recentCols.addStack();col.layoutVertically();col.spacing=0;
+    col.size=new Size(colWidth,0);
+    addRecentRows(col,summary.recent.slice(i*2,i*2+2),2,11);
+  }
   return widget;
 }
 async function previewWidget(){
