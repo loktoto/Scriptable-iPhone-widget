@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.8.1｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.9.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -153,3 +153,8 @@ Script 回傳例如：
 2. 跑一次自動記帳 Shortcut，再直接喺 Scriptable 開 `Expense` → 🧪 **查看 Shortcuts 記帳紀錄**。
 3. `未有 Shortcuts 執行紀錄` = 沒有證據表明新版腳本執行；`no_input` = 冇收到 Shortcut Parameter；`skipped` = 解析唔到有效金額；`saved` = 已寫入及讀回；`error` = 執行失敗。
 4. 檔案只儲存輸入類型、執行狀態及數量，唔包括真實交易原文。
+
+## v3.9.0 — Dashboard 編輯交易
+喺 Scriptable 入面進入 Expense → Dashboard，按每行「✏️ 編輯」，可修改日期／時間、商戶、類別、貨幣、金額（非零，負數代表退款）同卡名；儲存後修改原本 transactions.json 同一筆記錄，再讀回驗證，更新 Dashboard 圖表。列表可搜尋全部交易。若 WebView 編輯按鈕喺某版本 iOS 不生效，可由 Scriptable 主選單選「✏️ 編輯交易」作後備入口。
+
+**注意：** 本機資料更新不會修改之前另外新增至 Apple Numbers 的行；必須另行核對。若交易期間被另一個 Shortcut 改動，會拒絕覆蓋；取消編輯及沒有改動時不會寫入。
