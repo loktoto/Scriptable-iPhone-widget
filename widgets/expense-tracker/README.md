@@ -2,7 +2,7 @@
 
 **Main:** [HK-Expense-Tracker.js](HK-Expense-Tracker.js)  
 **Read-only diagnostic:** [HK-Expense-Input-Diagnostic.js](HK-Expense-Input-Diagnostic.js)  
-**Current version:** [3.21.0](VERSION.json) · [Release notes](CHANGELOG.md)
+**Current version:** [3.22.0](VERSION.json) · [Release notes](CHANGELOG.md)
 
 - Apple Intelligence / Shortcuts Dictionary, nested `amount.content`, regular JSON, constrained key-based text extraction.
 - Save valid nonzero amounts only. Negative transactions are refunds; other missing fields may still be saved.
@@ -115,3 +115,12 @@ Small 7個原生星期字及有效記帳日熱度；Medium 兩類別名／佔比
 - 保留同一個 Expense.js、transactions.json、本地資料、Shortcut / Tap Card、進階手動記帳、12分類及 Remark，**不需資料庫遷移**。
 
 [完整第三方產品核實、圖表規則與截圖驗收報告](../../docs/EXPENSE_WIDGET_RESEARCH_AUDIT_V3_21.md)
+
+
+## v3.22.0 — 今日優先，Medium 右側 Pie Chart
+- Small：左上 **今日支出／今日筆數**（待換算外幣計入筆數但唔計入 HKD，另顯示 ⚠），大字 **今日淨支出**，再顯示 **本月淨支出**；取消「最多分類」行，下面係由每月1日至今天嘅每日淨支出柱圖（有日軸）。
+- Medium：左半完全沿用 Small 嘅今日／本月／每日柱圖，右半係真實**實心 Pie Chart**，下方分類名及退款前佔比；唔係 Donut。
+- Large：今日＋本月雙 KPI、當月每日趨勢、分類 Pie、付款比例及最近交易（最多3筆，窄屏2筆）。
+- iPad Extra Large：現有四圖完整保留。所有資料庫、快捷拍卡、手動輸入、Remark、左滑刪除、外幣待核對及 Numbers 欄位不變。
+
+[完整版面及資料語義規格](../../docs/EXPENSE_WIDGET_DESIGN_V3_22.md)

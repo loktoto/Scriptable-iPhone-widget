@@ -8,10 +8,10 @@ const canonical='widgets/expense-tracker/HK-Expense-Tracker.js';
 const src=read(canonical);
 assert.equal(src,read('scripts/HK-Expense-Tracker.js'),
  'Intentional Scriptable compatibility mirror must be EXACTLY equal to canonical source');
-assert.match(src,/v3\.21\.0/);
+assert.match(src,/v3\.22\.0/);
 const version=JSON.parse(read('widgets/expense-tracker/VERSION.json'));
-assert.equal(version.version,'3.21.0');
-assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.21\.0\]/);
+assert.equal(version.version,'3.22.0');
+assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.22\.0\]/);
 assert.match(read('docs/EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md'),/Independent Widget Research/);
 for(const removed of ['function barsSVG(', 'function fmt(']){
  assert.ok(!src.includes(removed),'Unused pre-v3.13 chart helper is still in canonical script: '+removed);
@@ -24,7 +24,11 @@ assert.match(src,/function widgetSummary\(\)/);
 assert.ok(src.includes('grossCats:'),'Donut must use gross positive spending, not signed net totals');
 assert.match(src,/function makeDonutChart\(/);
 assert.match(src,/function makeStackedChart\(/);
-assert.match(src,/addDonutChart\(ring,s\.grossCats/);
+assert.match(src,/function makePieChart\(/);
+assert.match(src,/addPieChart\(pieContainer,s\.grossCats/);
+assert.match(src,/addPieChart\(pieHolder,s\.grossCats/);
+assert.ok(src.includes('return makeDonutChart(items,size,true,maxParts)'),
+ 'Medium and Large category pies must be full solid pies, never hollow Donuts');
 assert.match(src,/addStackedChart\(right,donutParts\(s\.grossPayments/);
 
 assert.match(src,/if\(family==='small'\)/);

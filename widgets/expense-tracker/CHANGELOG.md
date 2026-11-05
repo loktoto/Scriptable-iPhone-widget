@@ -1,5 +1,20 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.22.0] — 2026-11-05
+
+### Today-first Small, split Medium with solid pie, richer Large
+- **Small:** header becomes *今日支出 + 今日非零交易筆數* instead of 11月/月交易筆數; pending-FX transactions count as recorded entries but do not inflate displayed HKD. Big amount shows **today's net HKD spend**, and the row formerly labelled 最近七日 now displays **本月支出 + current monthly net HKD**. Removed 最多分類 completely to give the monthly daily bar chart more space.
+- **Date integrity:** all monthly daily bars sample **calendar 1st through today's date**, not the old seven days mislabeled as monthly; axis says 1日 → 今日. Refunds remain negative signed bars, zero/unconverted amounts are not invented.
+- **Medium:** two real columns. Left reuses exactly the Small today/month/day-bars panel; right is a **solid category Pie Chart**, not a Donut nor stacked bar. The Pie and legend use Top 2 + 其他 from positive **gross purchases before refunds**.
+- **Large:** rebuilt as a daily-count header, dual 今日／本月 KPI, a larger month-to-date net daily chart, category **Pie** with legend, payment composition chart and up to three recent transactions (two narrow). Refund amounts are shown when present.
+- **Extra Large:** retain established iPad 30-day, 6-month, category Donut and payment composition charts to protect existing iPad behavior.
+- **Safety/compatibility:** no change to Tap Card automation, one-tap quick entry, manual add/edit/delete/Remark, flexible payment methods, local JSON, FX safeguards, refunds, Numbers six-field bridge or Scriptable script name.
+
+### QA
+- Added explicit Today-vs-Month/TodayCount assertions, month-to-date chart length and axis checks, pure solid Pie chart `Path` and no inner cutout tests, all Widget family and size checks, refunds, pending FX, and local transaction schema preservation.
+- **Device pixel inspection remains unverified until native Scriptable previews are checked.** Mock height is a guardrail only.
+- [Design contract and testing](../../docs/EXPENSE_WIDGET_DESIGN_V3_22.md).
+
 ## [3.21.0] — 2026-11-05
 
 ### Independent real-device screenshot audit and conditional chart semantics

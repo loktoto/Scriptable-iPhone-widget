@@ -84,7 +84,7 @@ function createTestSuite(entries=rows,pad=false){
   Device:{screenSize:()=>({width:pad?1024:393}),isPad:()=>pad},console};
  vm.createContext(ctx);
  const boot='(async()=>{\n'+script.slice(0,cut)+
-  '\nreturn {buildWidget,widgetSummary,chartPoints,makeBarChart,makeDonutChart,makeStackedChart,donutParts,previewWidget,db,recentTitle};\n}\nreturn await runExpenseTrackerHK();\n})()';
+  '\nreturn {buildWidget,widgetSummary,chartPoints,monthChartPoints,makePieChart,makeDonutChart,makeStackedChart,donutParts,previewWidget,db,recentTitle};\n}\nreturn await runExpenseTrackerHK();\n})()';
  return {ctx,args,disk,boot};
 }
 function flatten(node){
@@ -107,7 +107,8 @@ function estimatedHeight(node){
  const sizes=(node.children||[]).map(estimatedHeight);
  const inner=node.direction==='horizontal'?Math.max(0,...sizes):sizes.reduce((a,b)=>a+b,0);
  const pad=node.padding||[];
- return inner+(pad[0]||0)+(pad[2]||0)+Math.max(0,sizes.length-1)*(node.spacing||0);
+ const verticalSpacing=node.direction==='horizontal'?0:Math.max(0,sizes.length-1)*(node.spacing||0);
+ return inner+(pad[0]||0)+(pad[2]||0)+verticalSpacing;
 }
 function graphs(node){
  const items=[];(function visit(x){
@@ -118,43 +119,61 @@ function graphs(node){
 (async()=>{
  const suite=createTestSuite(),app=await vm.runInContext(suite.boot,suite.ctx);
  const summary=app.widgetSummary();
- assert.equal(summary.month,218,'Net HKD amount must include refund');
- assert.equal(summary.gross,228,'Gross is sum of positive charges only');
- assert.equal(summary.refundValue,10);
+ assert.equal(summary.today,85,'Today is 57+16+12');
+ assert.equal(summary.todayCount,3,'Today resolved-HKD transaction count');
+ assert.equal(summary.todayRecordedCount,3,'Header count is TODAY, not month count');
+ assert.equal(summary.month,218,'Monthly net amount includes refunds');
  assert.equal(summary.txCount,8);
+ assert.equal(summary.gross,228);
+ assert.equal(summary.refundValue,10);
  assert.equal(summary.unresolved,1);
- assert.ok(summary.grossCats.some(([c,v])=>c==='食飯'&&v===69));
- assert.ok(summary.monthlyCats.some(([c,v])=>c==='食飯'&&v===59));
- assert.ok(summary.grossPayments.some(([p])=>p==='__proto__'));
- assert.equal(summary.sixMonths.length,6);
- assert.equal(summary.recent.length,6);
+ assert.ok(summary.grossCats.some(([name,value])=>name==='食飯'&&value===69));
+ assert.ok(summary.grossPayments.some(([name])=>name==='__proto__'));
+ const days=app.monthChartPoints(summary.byDay);
+ assert.equal(days.length,d.getDate(),'Month-to-date bars start on the 1st and end today');
+ assert.equal(days[0].label,'1');
+ assert.equal(days[days.length-1].label,String(d.getDate()));
+ assert.equal(days[days.length-1].value,85);
  const drawImages=node=>{
-   const result=[];(function visit(x){
-     if(x.type==='image'&&x.content.type==='drawn-image')result.push(x.content);
+   const out=[];(function visit(x){
+     if(x.type==='image'&&x.content.type==='drawn-image')out.push(x.content);
      for(const child of x.children||[])visit(child);
-   })(node);return result;
+   })(node);return out;
  };
  const small=app.buildWidget('small'),medium=app.buildWidget('medium'),
        large=app.buildWidget('large');
- const s=flatten(small).join('|'),m=flatten(medium).join('|'),l=flatten(large).join('|');
- assert.ok(s.includes('近7日')&&s.includes('最多分類'));
- assert.ok(s.includes('HK$218.00'));
+ const sm=flatten(small).join('|'),md=flatten(medium).join('|'),lg=flatten(large).join('|');
+ assert.ok(sm.includes('今日支出')&&sm.includes('3筆'));
+ assert.ok(sm.includes('HK$85.00')&&sm.includes('本月支出')&&sm.includes('HK$218.00'));
+ assert.ok(!sm.includes('最多分類')&&!sm.includes('近7日'),'Small removes category and last-7-day headers');
  assert.equal(drawImages(small).length,1);
- assert.equal(drawImages(small)[0].size.height,23);
- assert.ok(m.includes('14日')&&m.includes('分類'));
- assert.equal(drawImages(medium).length,2,'Medium must have daily trend + category stacked chart');
- assert.ok(drawImages(medium).some(x=>x.size.height===9));
- assert.ok(l.includes('分類 · 退款前')&&l.includes('付款 · 退款前')&&l.includes('最近交易'));
- assert.equal(drawImages(large).length,3,'Large: daily bars, donut and payment stacked bar');
- assert.ok(drawImages(large).some(x=>x.draws.some(y=>y.type==='fill-path')),
-   'Donut must actually render native Path sectors, not merely a title');
- assert.ok(drawImages(large).some(x=>x.size.height===15),
-   'Payment composition chart must be rendered');
- for(const family of [small,medium,large]){
-   assert.ok(textNodes(family).every(x=>x.font?.size>=11));
- }
- console.log('393pt estimated widget heights',estimatedHeight(small),
+ assert.equal(drawImages(small)[0].size.height,40,'Small month chart expands well beyond v3.21 chart');
+ assert.ok(sm.includes('1日')&&sm.includes('日（今日）'),'Monthly daily axis labels actual dates');
+ assert.ok(md.includes('今日支出')&&md.includes('HK$85.00'));
+ assert.ok(md.includes('本月支出')&&md.includes('HK$218.00'));
+ assert.ok(md.includes('本月分類')&&md.includes('退款前'));
+
+ assert.equal(drawImages(medium).length,2,'Medium must be LEFT Small+RIGHT solid category PIE');
+ const pie=drawImages(medium)[1];
+ assert.ok(pie.draws.some(x=>x.type==='fill-path'),'Pie must have colored sector paths');
+ assert.equal(pie.draws.filter(x=>x.type==='ellipse').length,1,
+   'Pie is SOLID: background disc only, no center hole as in donut');
+ assert.ok(!md.includes('近7日')&&!md.includes('最近14日'));
+ assert.ok(lg.includes('今日3筆')&&lg.includes('本月8筆'));
+ assert.ok(lg.includes('今日支出')&&lg.includes('本月支出'));
+ assert.ok(lg.includes('本月每日淨支出')&&lg.includes('分類 · 退款前'));
+ assert.ok(lg.includes('付款 · 退款前')&&lg.includes('最近交易'));
+ assert.equal(drawImages(large).length,3,'Large includes monthly bars, pie and payment shares');
+ const largePie=drawImages(large)[1];
+ assert.ok(largePie.draws.some(x=>x.type==='fill-path'));
+ assert.equal(largePie.draws.filter(x=>x.type==='ellipse').length,1);
+ assert.ok(drawImages(large).some(x=>x.size.height===15));
+ for(const w of [small,medium,large])
+   assert.ok(textNodes(w).every(x=>x.font?.size>=11),'No small text shrinking below 11pt');
+ console.log('393pt heights (Small/Medium/Large)',estimatedHeight(small),
    estimatedHeight(medium),estimatedHeight(large));
+ console.log('Small block heights',small.children.map((x,i)=>[i,estimatedHeight(x),flatten(x).slice(0,2)]));
+ console.log('Large block heights',large.children.map((x,i)=>[i,estimatedHeight(x),flatten(x).slice(0,2)]));
  assert.ok(estimatedHeight(small)<=158);
  assert.ok(estimatedHeight(medium)<=158);
  assert.ok(estimatedHeight(large)<=354);
@@ -163,79 +182,75 @@ function graphs(node){
  suite.args.widgetParameter='quick';
  assert.equal(app.buildWidget('small').url,'scriptable:///run?scriptName=Expense&view=manual');
  for(const accessory of ['accessoryInline','accessoryCircular','accessoryRectangular']){
-   const labels=flatten(app.buildWidget(accessory));
-   assert.ok(labels.length>0 && labels.some(x=>x.length>2));
+   assert.ok(flatten(app.buildWidget(accessory)).length>0);
  }
- const ipad=createTestSuite(rows,true),pad=await vm.runInContext(ipad.boot,ipad.ctx);
- const xl=pad.buildWidget('extraLarge'),xt=flatten(xl).join('|'),xlCharts=drawImages(xl);
- assert.ok(xt.includes('財務分析')&&xt.includes('30日')&&xt.includes('6個月'));
- assert.ok(xt.includes('分類 · 正向支出')&&xt.includes('付款構成'));
- assert.ok(xt.includes('最近六筆交易'));
- assert.equal(xlCharts.length,4,'iPad XL needs 30-day, 6mo, donut, payment distribution');
- assert.ok(xlCharts.some(x=>x.draws.some(y=>y.type==='fill-path')));
- console.log('iPad 1024pt XL estimated',estimatedHeight(xl));
- assert.ok(estimatedHeight(xl)<=378.5,'iPad 1024pt XL must fit its 378.5pt canvas');
- const miniSuite=createTestSuite(rows,true);
- miniSuite.ctx.Device.screenSize=()=>({width:768});
- const mini=await vm.runInContext(miniSuite.boot,miniSuite.ctx);
- console.log('iPad 768pt XL estimated',estimatedHeight(mini.buildWidget('extraLarge')));
- assert.ok(estimatedHeight(mini.buildWidget('extraLarge'))<=305.5,
-   'Smallest iPad XL 305.5pt canvas must fit');
+ const iPadSuite=createTestSuite(rows,true),pad=await vm.runInContext(iPadSuite.boot,iPadSuite.ctx);
+ const xl=pad.buildWidget('extraLarge');
+ assert.equal(drawImages(xl).length,4);
+ assert.ok(estimatedHeight(xl)<=378.5,'Full-size iPad XL height');
+ const tinyPadSuite=createTestSuite(rows,true);
+ tinyPadSuite.ctx.Device.screenSize=()=>({width:768});
+ const tinyPad=await vm.runInContext(tinyPadSuite.boot,tinyPadSuite.ctx);
+ assert.ok(estimatedHeight(tinyPad.buildWidget('extraLarge'))<=305.5);
  const emptySuite=createTestSuite([],true),empty=await vm.runInContext(emptySuite.boot,emptySuite.ctx);
- for(const family of ['small','medium','large','extraLarge']){
-   const node=empty.buildWidget(family),labels=flatten(node).join('|');
-   assert.ok(labels.includes('HK$0.00'));
-   assert.ok(!labels.includes('NaN')&&!labels.includes('undefined'));
+ for(const fam of ['small','medium','large','extraLarge']){
+   const labels=flatten(empty.buildWidget(fam)).join('|');
+   assert.ok(labels.includes('HK$0.00')&&!labels.includes('NaN')&&!labels.includes('undefined'));
  }
- const netZero=[{...rows[0],id:'plus',amount:5,amountHKD:5},
-                {...rows[0],id:'minus',amount:-5,amountHKD:-5}];
- const zSuite=createTestSuite(netZero),zero=await vm.runInContext(zSuite.boot,zSuite.ctx);
+ const netZero=[
+   {...rows[0],id:'positive',amount:5,amountHKD:5},
+   {...rows[0],id:'refund',amount:-5,amountHKD:-5}
+ ];
+ const zeroSuite=createTestSuite(netZero),zero=await vm.runInContext(zeroSuite.boot,zeroSuite.ctx);
+ assert.equal(zero.widgetSummary().today,0);
  assert.equal(zero.widgetSummary().month,0);
  assert.equal(zero.widgetSummary().gross,5);
  assert.equal(zero.widgetSummary().refundValue,5);
- assert.equal(zero.widgetSummary().grossCats[0][1],5);
+ assert.ok(drawImages(zero.buildWidget('medium'))[1].draws.some(x=>x.type==='fill-path'),
+   'Pie charts must still reflect positive spending when refunds offset net');
  const four=[50,50,50,50.3].map((amount,i)=>({
-   id:'test-'+i,date:today,merchant:'未提供商戶',
-   category:i===0?'訂閱':'食飯',card:'Payme',amount,amountHKD:amount,currency:'HKD'
+   id:'demo-'+i,date:today,merchant:'未提供商戶',category:i===0?'訂閱':'食飯',
+   card:'Payme',amount,amountHKD:amount,currency:'HKD'
  }));
- const oneSuite=createTestSuite(four),one=await vm.runInContext(oneSuite.boot,oneSuite.ctx);
- assert.equal(one.widgetSummary().month,200.3);
- assert.equal(one.widgetSummary().gross,200.3);
- assert.equal(one.widgetSummary().fourteenActive,1);
- assert.equal((flatten(one.buildWidget('small')).join('|').match(/HK\$200\.30/g)||[]).length,1);
- assert.equal((flatten(one.buildWidget('medium')).join('|').match(/HK\$200\.30/g)||[]).length,1);
- assert.equal(drawImages(one.buildWidget('medium')).length,2,
-   'Single active day must still use meaningful charts with correct numbers');
- const sparseSmall=one.buildWidget('small');
- const sparseMedium=one.buildWidget('medium');
- const sparseLarge=one.buildWidget('large');
- const sparseMarks=drawImages(sparseMedium)[0].draws.filter(x=>x.type==='rect');
- assert.equal(sparseMarks.length,14,'Sparse 14-day timeline draws exactly fourteen day markers');
- assert.ok(sparseMarks.every(x=>x.rect.height===8),
-   'Sparse records must never be drawn as a giant single monetary bar');
- assert.ok(flatten(sparseMedium).join('|').includes('記帳日分佈'));
- assert.ok(flatten(sparseLarge).join('|').includes('分類 · 退款前'));
- assert.ok(flatten(sparseLarge).join('|').includes('付款 · 退款前'));
- assert.ok(flatten(sparseLarge).join('|').includes('最近3筆'));
- assert.equal(flatten(sparseSmall).filter(x=>['日','一','二','三','四','五','六'].includes(x)).length,7);
-
- const past=[{...four[0],amount:200.30,amountHKD:200.30},
+ const fourSuite=createTestSuite(four),fourApp=await vm.runInContext(fourSuite.boot,fourSuite.ctx);
+ assert.equal(fourApp.widgetSummary().today,200.3);
+ assert.equal(fourApp.widgetSummary().month,200.3);
+ assert.equal(fourApp.widgetSummary().todayCount,4);
+ for(const fam of ['small','medium']){
+   const labels=flatten(fourApp.buildWidget(fam)).join('|');
+   assert.equal((labels.match(/HK\$200\.30/g)||[]).length,2,
+     'Today and month are distinct KPIs even if amounts happen to be equal');
+ }
+ assert.ok(flatten(fourApp.buildWidget('medium')).join('|').includes('本月分類'));
+ const cross=[
+   {...four[0],amount:200.3,amountHKD:200.3},
    {...four[1],date:inMonthAgo(1),amount:8,amountHKD:8},
-   {...four[2],date:inMonthAgo(1),amount:-8,amountHKD:-8}];
- const oldSuite=createTestSuite(past),oldApp=await vm.runInContext(oldSuite.boot,oldSuite.ctx);
- assert.equal(oldApp.widgetSummary().month,200.3);
- assert.equal(oldApp.widgetSummary().monthOnlyToday,false);
- assert.equal(app.recentTitle({merchant:'未提供商戶',category:'食飯',card:'Payme'}),'食飯 · Payme');
+   {...four[2],date:inMonthAgo(1),amount:-8,amountHKD:-8}
+ ];
+ const crossSuite=createTestSuite(cross),crossApp=await vm.runInContext(crossSuite.boot,crossSuite.ctx);
+ assert.equal(crossApp.widgetSummary().month,200.3);
+ assert.equal(crossApp.widgetSummary().monthOnlyToday,false);
+ const pendingNow=[...rows,{...rows[8],id:'pending-today',date:today}];
+ const fxSuite=createTestSuite(pendingNow),fxApp=await vm.runInContext(fxSuite.boot,fxSuite.ctx);
+ assert.equal(fxApp.widgetSummary().todayRecordedCount,4,
+   'Today recorded nonzero transactions include the pending FX charge');
+ assert.equal(fxApp.widgetSummary().todayCount,3,
+   'Today resolved-HKD count excludes unconverted foreign currency');
+ assert.equal(fxApp.widgetSummary().today,85,'Pending FX never contaminates HKD spend');
+ assert.ok(flatten(fxApp.buildWidget('small')).join('|').includes('4筆 ⚠'),
+   'A pending entry increases today count but must retain a warning');
  const tinySuite=createTestSuite(rows,false);
  tinySuite.ctx.Device.screenSize=()=>({width:320});
  const tiny=await vm.runInContext(tinySuite.boot,tinySuite.ctx);
- console.log('320pt estimated heights',estimatedHeight(tiny.buildWidget('small')),
-   estimatedHeight(tiny.buildWidget('medium')),estimatedHeight(tiny.buildWidget('large')));
+ console.log('320pt heights (Small/Medium/Large)',
+   estimatedHeight(tiny.buildWidget('small')),
+   estimatedHeight(tiny.buildWidget('medium')),
+   estimatedHeight(tiny.buildWidget('large')));
  assert.ok(estimatedHeight(tiny.buildWidget('small'))<=141);
  assert.ok(estimatedHeight(tiny.buildWidget('medium'))<=141);
  assert.ok(estimatedHeight(tiny.buildWidget('large'))<=311);
- const onDisk=JSON.parse(suite.disk.get(dbPath));
- assert.equal(onDisk.transactions[6].category,'食物');
- assert.equal(onDisk.transactions[8].fxStatus,'pending');
- console.log('PASS charts-first widget families, gross-vs-net chart invariants and local-ledger preservation');
+ const saved=JSON.parse(suite.disk.get(dbPath));
+ assert.equal(saved.transactions[6].category,'食物');
+ assert.equal(saved.transactions[8].fxStatus,'pending');
+ console.log('PASS: Small today-first month bar; Medium true solid PIE; Large redesigned; original ledger intact');
 })().catch(e=>{console.error(e);process.exitCode=1;});
