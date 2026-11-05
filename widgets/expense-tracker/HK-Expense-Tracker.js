@@ -1735,30 +1735,31 @@ function buildWidget(family=config.widgetFamily||'medium'){
     hero.addSpacer(7);
     wText(hero,s.refunds?'退款 '+s.refunds+'筆':'近7日 '+s.sevenActive+'日',11,WC.mint);
     widget.addSpacer(4);
-    sectionLine(widget,'最近14日 · 淨支出');
+    sectionLine(widget,s.fourteenActive<=2?'14日記帳日分佈':'14日每日淨支出',
+      s.fourteenActive+'／14日');
     widget.addSpacer(2);
-    addChart(widget,chartPoints(s.byDay,14),width,narrow?34:44);
+    addContextChart(widget,chartPoints(s.byDay,14),width,narrow?30:40,s.fourteenActive);
     widget.addSpacer(7);
     const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=8;
     const left=panels.addStack();left.layoutVertically();left.size=new Size(col,0);
-    sectionLine(left,'支出分類');
+    sectionLine(left,'分類 · 退款前');
     left.addSpacer(5);
     const ring=left.addStack();ring.layoutHorizontally();ring.centerAlignContent();
     const size=narrow?59:75;
     addDonutChart(ring,s.grossCats,size);
     ring.addSpacer(4);
     const legend=ring.addStack();legend.layoutVertically();legend.spacing=2;
-    addDonutLegend(legend,s.grossCats,s.gross,narrow?2:3);
+    addDonutLegend(legend,s.grossCats,s.gross,4);
     const right=panels.addStack();right.layoutVertically();right.size=new Size(col,0);
-    sectionLine(right,'付款構成');
+    sectionLine(right,'付款 · 退款前');
     right.addSpacer(8);
-    addStackedChart(right,donutParts(s.grossPayments),col,12);
+    addStackedChart(right,donutParts(s.grossPayments),col,15);
     right.addSpacer(6);
     addPaymentRows(right,s.grossPayments,narrow?2:3);
     widget.addSpacer(7);
-    sectionLine(widget,'最近交易','最近'+Math.min(s.recent.length,narrow?1:2)+'筆');
+    sectionLine(widget,'最近交易','最近'+Math.min(s.recent.length,narrow?2:3)+'筆');
     widget.addSpacer(3);
-    addRecentRows(widget,s.recent,narrow?1:2,narrow?13:21);
+    addRecentRows(widget,s.recent,narrow?2:3,narrow?13:21);
     if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
     return widget;
   }
