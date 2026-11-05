@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.10.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.11.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.10.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.11.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.10.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.11.0',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -530,8 +530,8 @@ function dashboardHTML(flash=''){
   const fxPending=db.transactions.filter(t=>t.fxStatus==='pending').length;
   const recent=db.transactions.map((t,index)=>({t,index})).sort((a,b)=>(b.t.transactionTime||b.t.date||b.t.createdAt||'').localeCompare(a.t.transactionTime||a.t.date||a.t.createdAt||''));
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Expense Tracker</title>
-  <style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'PingFang HK',sans-serif;background:#0d1422;color:#ecf3ff;margin:0;padding:24px 16px 60px}.wrap{max-width:860px;margin:auto}h1{font-size:27px;margin:0}h2{font-size:17px;margin:0 0 16px}.muted{color:#9cacc2}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{font-size:12px;color:#6bbdff;letter-spacing:1px;font-weight:700}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#203047;border-radius:999px;padding:7px 10px;color:#b8c9e2;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{background:#172338;border:1px solid #25334c;border-radius:18px;padding:17px;margin-bottom:12px}.stat{font-size:clamp(22px,5vw,32px);font-weight:750;margin:8px 0 3px}.label{font-size:12px;color:#a9bad2}.sub{font-size:12px;color:#9cacc2}.chart{width:100%;display:block}.chart svg{width:100%;height:auto}.donutrow{display:flex;gap:25px;align-items:center}.donut{width:150px;height:150px;flex-shrink:0;border-radius:50%;display:grid;place-items:center}.hole{width:96px;height:96px;background:#172338;border-radius:50%;display:grid;place-content:center;text-align:center;font-size:12px;color:#9cacc2}.hole b{font-size:20px;color:white}.legend{flex:1;min-width:0}.legend>div{display:flex;gap:9px;align-items:center;margin:9px 0;font-size:12px}.legend span:nth-child(2){flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dot{height:10px;width:10px;border-radius:3px;display:inline-block;flex-shrink:0}.merchant{margin:12px 0}.merchanthead{display:flex;justify-content:space-between;font-size:13px;gap:12px}.merchanthead span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rail{height:7px;background:#25334c;border-radius:99px;margin-top:7px;overflow:hidden}.fill{height:100%;background:#47b6ff;border-radius:99px}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:9px 6px;border-bottom:1px solid #25334c;text-align:left}th{color:#9cacc2;font-weight:500}td:last-child{text-align:right;white-space:nowrap}.scroll{overflow-x:auto}.negative{color:#34d399}.warn{color:#ffbd66}.footer{color:#7587a5;font-size:12px;text-align:center;margin:16px 0}@media(max-width:370px){.donutrow{gap:10px}.donut{width:118px;height:118px}.hole{width:76px;height:76px}} .tx-search{display:block;width:100%;margin:8px 0 12px;padding:11px 12px;border-radius:12px;background:#0d1422;color:#ecf3ff;border:1px solid #40516d;font-size:15px}.tx-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.edit-link{display:inline-block;padding:8px 11px;border-radius:9px;background:#244b78;color:#dcedff;text-decoration:none;white-space:nowrap;font-size:12px;font-weight:650}.edit-link:active{background:#3476ba}.save-flash{background:#174d3d;border:1px solid #2e9475;color:#d1ffeb;border-radius:12px;padding:11px;margin:10px 0}.tx-row[hidden]{display:none}.tx-hint{font-size:12px;color:#9cacc2;margin:9px 0 0}.tx-list{display:grid;gap:9px}.tx-swipe-shell{position:relative;overflow:hidden;border-radius:13px;background:#18283d;isolation:isolate}.tx-swipe-shell[hidden]{display:none}.tx-swipe-action{position:absolute;inset:0 0 0 auto;width:96px;background:#d93647;display:flex;align-items:stretch;justify-content:stretch}.tx-delete{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:96px;color:#fff;text-decoration:none;font-weight:700;font-size:13px}.tx-delete:focus-visible,.tx-more:focus-visible{outline:2px solid white;outline-offset:-4px}.tx-swipe-front{display:flex;align-items:center;gap:10px;min-height:76px;padding:11px 10px 11px 13px;position:relative;z-index:1;background:#1b2b42;transform:translateX(0);transition:transform .18s ease;touch-action:pan-y}.tx-swipe-shell.is-open .tx-swipe-front{transform:translateX(-96px)}.tx-main{flex:1;min-width:0}.tx-line{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.tx-merchant{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:650}.tx-value{font-size:15px;font-weight:750;white-space:nowrap}.tx-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px;font-size:11px;color:#9cacc2}.tx-more{background:#223b58;color:#bcd2ef;border:0;border-radius:9px;min-width:27px;min-height:36px;font-size:21px;cursor:pointer}.tx-swipe-shell .edit-link{font-size:12px;padding:9px 10px}.tx-empty{padding:18px;color:#9cacc2;text-align:center}@media(max-width:370px){.tx-swipe-front{gap:6px;padding-left:9px}.tx-swipe-shell .edit-link{padding:8px 7px}.tx-value{font-size:13px}}</style></head><body><div class="wrap">
-  <div class="top"><div><div class="eyebrow">EXPENSE TRACKER · HKD</div><h1>記帳儀表板</h1></div><span class="chip">${esc(now)}</span></div>
+  <style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'PingFang HK',sans-serif;background:#0d1422;color:#ecf3ff;margin:0;padding:24px 16px 60px}.wrap{max-width:860px;margin:auto}h1{font-size:27px;margin:0}h2{font-size:17px;margin:0 0 16px}.muted{color:#9cacc2}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{font-size:12px;color:#6bbdff;letter-spacing:1px;font-weight:700}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#203047;border-radius:999px;padding:7px 10px;color:#b8c9e2;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{background:#172338;border:1px solid #25334c;border-radius:18px;padding:17px;margin-bottom:12px}.stat{font-size:clamp(22px,5vw,32px);font-weight:750;margin:8px 0 3px}.label{font-size:12px;color:#a9bad2}.sub{font-size:12px;color:#9cacc2}.chart{width:100%;display:block}.chart svg{width:100%;height:auto}.donutrow{display:flex;gap:25px;align-items:center}.donut{width:150px;height:150px;flex-shrink:0;border-radius:50%;display:grid;place-items:center}.hole{width:96px;height:96px;background:#172338;border-radius:50%;display:grid;place-content:center;text-align:center;font-size:12px;color:#9cacc2}.hole b{font-size:20px;color:white}.legend{flex:1;min-width:0}.legend>div{display:flex;gap:9px;align-items:center;margin:9px 0;font-size:12px}.legend span:nth-child(2){flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dot{height:10px;width:10px;border-radius:3px;display:inline-block;flex-shrink:0}.merchant{margin:12px 0}.merchanthead{display:flex;justify-content:space-between;font-size:13px;gap:12px}.merchanthead span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rail{height:7px;background:#25334c;border-radius:99px;margin-top:7px;overflow:hidden}.fill{height:100%;background:#47b6ff;border-radius:99px}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:9px 6px;border-bottom:1px solid #25334c;text-align:left}th{color:#9cacc2;font-weight:500}td:last-child{text-align:right;white-space:nowrap}.scroll{overflow-x:auto}.negative{color:#34d399}.warn{color:#ffbd66}.footer{color:#7587a5;font-size:12px;text-align:center;margin:16px 0}@media(max-width:370px){.donutrow{gap:10px}.donut{width:118px;height:118px}.hole{width:76px;height:76px}} .tx-search{display:block;width:100%;margin:8px 0 12px;padding:11px 12px;border-radius:12px;background:#0d1422;color:#ecf3ff;border:1px solid #40516d;font-size:15px}.tx-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.edit-link{display:inline-block;padding:8px 11px;border-radius:9px;background:#244b78;color:#dcedff;text-decoration:none;white-space:nowrap;font-size:12px;font-weight:650}.edit-link:active{background:#3476ba}.save-flash{background:#174d3d;border:1px solid #2e9475;color:#d1ffeb;border-radius:12px;padding:11px;margin:10px 0}.tx-row[hidden]{display:none}.tx-hint{font-size:12px;color:#9cacc2;margin:9px 0 0}.manual-link-row{display:flex;align-items:center;gap:8px}.manual-link{white-space:nowrap;background:#2b5d89;color:#e8f4ff;border-radius:11px;text-decoration:none;padding:10px 11px;font-weight:700;font-size:13px}.tx-list{display:grid;gap:9px}.tx-swipe-shell{position:relative;overflow:hidden;border-radius:13px;background:#18283d;isolation:isolate}.tx-swipe-shell[hidden]{display:none}.tx-swipe-action{position:absolute;inset:0 0 0 auto;width:96px;background:#d93647;display:flex;align-items:stretch;justify-content:stretch}.tx-delete{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:96px;color:#fff;text-decoration:none;font-weight:700;font-size:13px}.tx-delete:focus-visible,.tx-more:focus-visible{outline:2px solid white;outline-offset:-4px}.tx-swipe-front{display:flex;align-items:center;gap:10px;min-height:76px;padding:11px 10px 11px 13px;position:relative;z-index:1;background:#1b2b42;transform:translateX(0);transition:transform .18s ease;touch-action:pan-y}.tx-swipe-shell.is-open .tx-swipe-front{transform:translateX(-96px)}.tx-main{flex:1;min-width:0}.tx-line{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.tx-merchant{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:650}.tx-value{font-size:15px;font-weight:750;white-space:nowrap}.tx-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px;font-size:11px;color:#9cacc2}.tx-more{background:#223b58;color:#bcd2ef;border:0;border-radius:9px;min-width:27px;min-height:36px;font-size:21px;cursor:pointer}.tx-swipe-shell .edit-link{font-size:12px;padding:9px 10px}.tx-empty{padding:18px;color:#9cacc2;text-align:center}@media(max-width:370px){.tx-swipe-front{gap:6px;padding-left:9px}.tx-swipe-shell .edit-link{padding:8px 7px}.tx-value{font-size:13px}}</style></head><body><div class="wrap">
+  <div class="top"><div><div class="eyebrow">EXPENSE TRACKER · HKD</div><h1>記帳儀表板</h1></div><div class="manual-link-row"><a class="manual-link" href="https://expense-editor.invalid/manual-open">＋ 手動記帳</a><span class="chip">${esc(now)}</span></div></div>
   ${flash?'<div class="save-flash">'+esc(flash)+'</div>':''}
   <div class="chips"><span class="chip">已儲存 ${db.transactions.length} 筆</span><span class="chip">日期待核對 ${missing}</span><span class="chip">貨幣待核對 ${uncertain}</span><span class="chip">匯率待換算 ${fxPending}</span></div><div style="height:14px"></div>
   <div class="grid"><div class="card"><div class="label">本月淨支出</div><div class="stat">${toMoney(monthTotal)}</div><div class="sub">較上月 ${diff}</div></div><div class="card"><div class="label">今日淨支出</div><div class="stat">${toMoney(todayTotal)}</div><div class="sub">HKD + 已換算外幣</div></div></div>
@@ -742,7 +742,7 @@ async function selectDashboardTransaction(){
   const chosen=await menu.presentSheet();
   if(chosen>=0&&chosen<rows.length)await showDashboardEditor(rows[chosen].index);
 }
-async function dashboard(){
+async function obsoleteDashboardPresenter(){
   const web=new WebView();let busy=false;
   web.shouldAllowRequest=(request)=>{
     const url=String(request.url||'');
@@ -761,6 +761,290 @@ async function dashboard(){
   };
   await web.loadHTML(dashboardHTML());await web.present(true);
 }
+// Manual visual entry — fully local; no card data in URLs.
+const MANUAL_CATEGORIES=[
+  {
+    "id": "餐飲",
+    "label": "飲食",
+    "color": "#ff9816",
+    "icon": "utensils"
+  },
+  {
+    "id": "日用品",
+    "label": "日用品",
+    "color": "#26c970",
+    "icon": "bottle"
+  },
+  {
+    "id": "衣服",
+    "label": "衣服",
+    "color": "#426dff",
+    "icon": "shirt"
+  },
+  {
+    "id": "娛樂",
+    "label": "娛樂",
+    "color": "#f6ca20",
+    "icon": "game"
+  },
+  {
+    "id": "水電",
+    "label": "水電",
+    "color": "#12c8f4",
+    "icon": "drop"
+  },
+  {
+    "id": "交通",
+    "label": "交通",
+    "color": "#c58056",
+    "icon": "train"
+  },
+  {
+    "id": "投資",
+    "label": "投資",
+    "color": "#f5a70b",
+    "icon": "coin"
+  },
+  {
+    "id": "旅行",
+    "label": "旅行",
+    "color": "#c8f354",
+    "icon": "plane"
+  },
+  {
+    "id": "醫療",
+    "label": "醫療",
+    "color": "#51dba1",
+    "icon": "medical"
+  },
+  {
+    "id": "訂閱",
+    "label": "訂閱",
+    "color": "#15d6fa",
+    "icon": "credit"
+  },
+  {
+    "id": "進修",
+    "label": "進修",
+    "color": "#f083b7",
+    "icon": "book"
+  },
+  {
+    "id": "運動",
+    "label": "運動",
+    "color": "#f4d54e",
+    "icon": "dumbbell"
+  }
+];
+function manualIconSVG(name,color) {
+  const paths={
+    utensils:'<path d="M4 3v7m3-7v7m3-7v7M7 10v11M4 10h6M17 3v18M17 3c-6 2-5 8 0 8"/>',
+    bottle:'<path d="M10 3h4m-4 3h4M9 6h6v3l2 3v9H7v-9l2-3V6zm3 7c-2 2-2 4 0 5 2-1 2-3 0-5z"/>',
+    shirt:'<path d="M9 4c1 2 5 2 6 0l5 3 2 5-4 2-2-3v10H8V11l-2 3-4-2 2-5 5-3z"/>',
+    game:'<path d="M7 8h10c3 0 4 2 5 8l-3 2-4-4H9l-4 4-3-2c1-6 2-8 5-8zM8 10v5M5.5 12.5h5M16 11h.01M19 13h.01"/>',
+    drop:'<path d="M12 2C10 6 5 10 5 15a7 7 0 0 0 14 0c0-5-5-9-7-13zM9 16a3 3 0 0 0 3 3"/>',
+    train:'<rect x="5" y="3" width="14" height="17" rx="4"/><path d="M5 11h14M8 20l-2 2m10-2 2 2M9 15h.01M15 15h.01"/>',
+    coin:'<circle cx="12" cy="12" r="9"/><path d="M14.7 8H10a2.2 2.2 0 0 0 0 4.4h3.5a2.2 2.2 0 0 1 0 4.4H9M12 6v12"/>',
+    plane:'<path d="M22 3 9 10l-7-2 2 4 5 2 2 7 3-2-1-7 9-9z"/>',
+    medical:'<rect x="3" y="6" width="18" height="15" rx="3"/><path d="M9 6V4h6v2M12 10v7M8.5 13.5h7"/>',
+    credit:'<rect x="2" y="5" width="20" height="15" rx="3"/><path d="M2 10h20M6 16h5"/>',
+    book:'<path d="M12 7c-4-3-7-3-10-2v14c4-1 7 0 10 3 3-3 6-4 10-3V5c-3-1-6-1-10 2zM12 7v15"/>',
+    dumbbell:'<path d="M3 8v8m3-11v14m12-14v14m3-11v8M6 12h12M2 7h2v10H2m18-10h2v10h-2"/>'
+  };
+  return '<svg viewBox="0 0 24 24" width="39" height="39" aria-hidden="true" fill="none" stroke="'+color+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[name]+'</svg>';
+}
+
+function manualFormHTML(nonce,flash='') {
+  const catHTML=MANUAL_CATEGORIES.map((x,i)=>
+    '<button class="category'+(i===0?' selected':'')+'" type="button" data-category="'+x.id+'" aria-pressed="'+(i===0?'true':'false')+'">'+manualIconSVG(x.icon,x.color)+'<span>'+x.label+'</span></button>'
+  ).join('');
+  const d=today(),clock=new Date();
+  const nowTime=z(clock.getHours())+':'+z(clock.getMinutes());
+  const scriptJS=String.raw`(function(){
+    const form=document.getElementById('manualForm');
+    const date=document.getElementById('manualDate');
+    const err=document.getElementById('manualError');
+    const save=document.getElementById('manualSave');
+    const categories=Array.from(document.querySelectorAll('.category'));
+    function updateDateTitle(){
+      const d=new Date(date.value+'T12:00:00');
+      if(isNaN(d.getTime()))return;
+      document.getElementById('dateTitle').textContent=
+        new Intl.DateTimeFormat('zh-HK',{year:'numeric',month:'long',day:'numeric',weekday:'short'}).format(d);
+    }
+    function day(delta){
+      const v=new Date(date.value+'T12:00:00');
+      if(isNaN(v.getTime()))return;
+      v.setDate(v.getDate()+delta);
+      date.value=v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
+      updateDateTitle();
+    }
+    document.getElementById('dateBack').addEventListener('click',()=>day(-1));
+    document.getElementById('dateNext').addEventListener('click',()=>day(1));
+    document.getElementById('datePicker').addEventListener('click',()=>{try{date.showPicker()}catch(e){date.focus();date.click()}});
+    date.addEventListener('change',updateDateTitle);
+    updateDateTitle();
+    categories.forEach(button=>button.addEventListener('click',()=>{
+      categories.forEach(b=>{b.classList.remove('selected');b.setAttribute('aria-pressed','false')});
+      button.classList.add('selected');button.setAttribute('aria-pressed','true');
+      document.getElementById('manualCategory').value=button.getAttribute('data-category');
+      err.textContent='';
+    }));
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(save.disabled)return;
+      const raw=document.getElementById('manualAmount').value.trim().replace(/,/g,'');
+      const amount=Number(raw);
+      if(!date.value || !document.getElementById('manualCategory').value){
+        err.textContent='請選擇日期及分類';return;
+      }
+      if(!raw || !/^[+-]?\d+(?:\.\d+)?$/.test(raw) ||
+         !Number.isFinite(amount) || amount===0){
+        err.textContent='金額必須係有效非零數字，負數可作退款';return;
+      }
+      err.textContent='';save.disabled=true;save.textContent='儲存中…';
+      // All values stay in the local WebView. URL carries NO transaction details.
+      window.location.href='https://expense-editor.invalid/manual-save';
+    });
+  })();`;
+  return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>手動記帳</title>
+<style>
+*{box-sizing:border-box}html{color-scheme:dark}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang HK",sans-serif;background:#121416;color:#f8fafc;margin:0}
+.screen{max-width:620px;margin:0 auto;padding:20px 16px 125px}.header{display:flex;align-items:center;justify-content:space-between;margin:5px 0 22px}.header h1{font-size:25px;letter-spacing:.5px;margin:0}
+.nav{color:#b6bdc6;text-decoration:none;background:#25292f;padding:9px 13px;border-radius:11px;font-size:13px}
+.success{background:#153b30;border:1px solid #2e9b72;color:#baffdb;padding:13px;border-radius:13px;margin:0 0 15px;font-size:14px}
+.field-line{border-bottom:1px solid #363a40;display:flex;align-items:center;gap:14px;padding:14px 0;min-height:78px}
+.field-line label{font-weight:650;font-size:19px;min-width:64px}
+.center{flex:1;min-width:0}.date-controls{display:flex;align-items:center;gap:7px}
+.arrow{border:0;color:#e9eef7;background:transparent;font-size:30px;min-width:40px;min-height:44px}
+.date-button{flex:1;border:0;color:white;background:#2f3338;border-radius:10px;padding:14px 7px;font-size:17px;font-weight:680;min-height:55px}
+#manualDate{color:#dfe6f1;background:#20262b;border:1px solid #373d44;border-radius:9px;padding:9px;font-size:14px;max-width:100%;margin:8px 0 0}
+.sub{font-size:12px;color:#9aa4af}.line-input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:17px;min-height:48px}
+.line-input::placeholder{color:#8b919b}.moneyline{display:flex;align-items:center;gap:12px;width:100%}
+.currency{background:#2a2e33;color:#fff;border:0;border-radius:8px;padding:10px 8px;font-size:15px;max-width:92px}
+.amount{width:100%;min-width:0;border:0;outline:0;background:#2f3338;color:#fff;border-radius:12px;font-size:31px;padding:12px 15px;font-weight:700}
+.options{display:flex;gap:10px;margin:16px 0 20px}.option{flex:1;min-width:0}.option label{font-size:12px;color:#aab1bd;display:block;margin:0 0 6px}.option input{width:100%;min-height:44px;background:#292d32;color:white;border:1px solid #3c434c;border-radius:10px;padding:8px;font-size:14px}
+h2{font-size:19px;margin:22px 0 15px}.categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.category{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-width:0;min-height:105px;border:1px solid #424951;border-radius:12px;background:#16191d;color:white;font-size:16px;padding:13px 6px;cursor:pointer}
+.category.selected{border:2px solid #e6e8eb;background:#22262c;box-shadow:inset 0 0 0 1px #b0b7c0}
+.category span{line-height:1.1}.bottom{position:fixed;bottom:0;left:0;right:0;padding:13px max(16px,env(safe-area-inset-left)) calc(15px + env(safe-area-inset-bottom));background:#1e2024;border-top:1px solid #35383d;z-index:5}
+.submit{display:block;width:100%;min-height:65px;border-radius:35px;background:#777d85;color:white;border:1px solid #a1a5ab;font-size:22px;font-weight:750}.submit:disabled{opacity:.65}
+.error{color:#ff8e97;font-size:13px;min-height:18px;margin-top:10px}.hint{color:#949da8;font-size:12px;margin-top:18px;line-height:1.5}
+@media(max-width:360px){.screen{padding:14px 11px 125px}.categories{gap:6px}.category{min-height:93px}.field-line label{min-width:53px}.date-button{font-size:14px}}
+</style></head><body><main class="screen">
+<div class="header"><a class="nav" href="https://expense-editor.invalid/manual-back">‹ Dashboard</a><h1>手動支出記錄</h1><span class="sub">本機儲存</span></div>
+${flash?'<div class="success">'+esc(flash)+'</div>':''}
+<form id="manualForm" autocomplete="off">
+<div class="field-line"><label>日期</label><div class="center">
+  <div class="date-controls"><button type="button" id="dateBack" class="arrow" aria-label="前一日">‹</button>
+  <button type="button" id="datePicker" class="date-button"><span id="dateTitle">選擇日期</span></button>
+  <button type="button" id="dateNext" class="arrow" aria-label="後一日">›</button></div>
+  <input id="manualDate" type="date" value="${d}" required aria-label="交易日期"></div></div>
+<div class="field-line"><label for="manualMerchant">記錄</label><div class="center"><input class="line-input" type="text" maxlength="120" id="manualMerchant" placeholder="商戶／備註（可留空）"></div></div>
+<div class="field-line"><label for="manualAmount">支出</label><div class="moneyline">
+  <select id="manualCurrency" class="currency" aria-label="貨幣">
+  ${['HKD','USD','CNY','JPY','EUR','GBP','SGD','TWD','MOP','AUD'].map(c=>'<option value="'+c+'">'+c+'</option>').join('')}</select>
+  <input id="manualAmount" class="amount" type="text" inputmode="decimal" placeholder="0" aria-label="金額" required></div></div>
+<div class="options"><div class="option"><label for="manualTime">交易時間</label><input id="manualTime" type="time" value="${nowTime}"></div>
+<div class="option"><label for="manualCard">付款方式</label><input id="manualCard" type="text" maxlength="80" value="現金" list="manualPaymentOptions">
+<datalist id="manualPaymentOptions"><option value="現金"></option><option value="八達通"></option><option value="轉數快 FPS"></option><option value="銀行轉帳"></option><option value="信用卡（手動）"></option></datalist>
+</div></div>
+<h2>分類</h2><input type="hidden" id="manualCategory" value="餐飲">
+<div class="categories">${catHTML}</div>
+<p class="hint">只會記錄有效、非零金額；負數代表退款。外幣先以原幣儲存，之後可由主選單換算。Apple Numbers 已有資料列不會自動同步。</p>
+<p id="manualError" class="error" role="alert"></p></form>
+</main><div class="bottom"><button type="submit" form="manualForm" id="manualSave" class="submit">儲存支出</button></div>
+<script>${scriptJS}</script></body></html>`;
+}
+
+function readManualFormWeb(web) {
+  return web.evaluateJavaScript("(function(){var v=function(x){var el=document.getElementById(x);return el?String(el.value||''):'';};return {date:v('manualDate'),time:v('manualTime'),merchant:v('manualMerchant'),amount:v('manualAmount'),currency:v('manualCurrency'),card:v('manualCard'),category:v('manualCategory')};})()",false);
+}
+
+function saveManualForm(payload,nonce) {
+  if(!payload||typeof payload!=='object')throw new Error('無法讀取手動表單');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(payload.date||''))||!validDate(payload.date))throw new Error('請選擇有效日期');
+  const time=String(payload.time||'').trim();
+  if(time&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time))throw new Error('交易時間無效');
+  const amount=moneyValue(payload.amount);
+  if(amount===null)throw new Error('金額必須係有效非零數字（負數係退款）');
+  const currency=String(payload.currency||'').trim().toUpperCase();
+  if(!['HKD','USD','CNY','JPY','EUR','GBP','SGD','TWD','MOP','AUD'].includes(currency))throw new Error('不支援嘅幣種');
+  const category=String(payload.category||'');
+  if(!MANUAL_CATEGORIES.some(c=>c.id===category))throw new Error('請選擇有效分類');
+  const merchant=String(payload.merchant||'').trim().slice(0,120);
+  const card=String(payload.card||'').trim().slice(0,80);
+  if(!/^\d{13,}-[0-9a-z]+$/.test(nonce))throw new Error('無效表單識別碼');
+  const identity='manual-form:'+nonce;
+  // Database is reloaded before writing so a concurrent Shortcut append is retained.
+  let latest={version:1,transactions:[]};
+  if(fm.fileExists(dbPath)){
+    latest=JSON.parse(fm.readString(dbPath));
+    if(!latest||!Array.isArray(latest.transactions))throw new Error('資料庫格式錯誤；未有修改資料');
+  }
+  if(latest.transactions.some(t=>t.id==='external:'+identity)){
+    db=latest;return {status:'duplicate',amount,currency,merchant:merchant||'未提供商戶'};
+  }
+  const eventDate=payload.date+(time?'T'+time+':00':'');
+  const rec=normalize({id:identity,date:eventDate,amount,currency,
+    merchantName:merchant,merchantType:category,card,source:'Manual'});
+  if(!rec)throw new Error('無法轉換手動記帳資料');
+  // Explicit user-selected category wins over automatic merchant keywords.
+  rec.category=category;rec.originalCategory=category;rec.source='Manual';
+  const previous=db;db=latest;
+  try{
+    const result=addRows([rec]);
+    if(result.added!==1)throw new Error('未有新增交易');
+    const check=verifyStored(result.insertedRows);
+    if(check.verified!==1)throw new Error('磁碟核實失敗');
+  }catch(e){db=previous;throw e;}
+  return {status:'saved',amount,currency,merchant:rec.merchant};
+}
+
+async function presentExpenseWeb(initial='dashboard') {
+  const web=new WebView();
+  let busy=false,nonce=String(Date.now())+'-'+Math.random().toString(36).slice(2,12);
+  web.shouldAllowRequest=(request)=>{
+    const url=String(request.url||'');
+    const action=url.match(/^https:\/\/expense-editor\.invalid\/(edit|delete|manual-open|manual-save|manual-back)(?:\?row=(\d+))?$/);
+    if(action){
+      if(!busy){
+        busy=true;
+        (async()=>{
+          if(action[1]==='edit'||action[1]==='delete'){
+            const method=action[1]==='edit'?showDashboardEditor:showDashboardDelete;
+            await method(Number(action[2]),web);
+          }else if(action[1]==='manual-open'){
+            nonce=String(Date.now())+'-'+Math.random().toString(36).slice(2,12);
+            await web.loadHTML(manualFormHTML(nonce));
+          }else if(action[1]==='manual-back'){
+            await web.loadHTML(dashboardHTML());
+          }else if(action[1]==='manual-save'){
+            try{
+              const data=await readManualFormWeb(web);
+              const receipt=saveManualForm(data,nonce);
+              nonce=String(Date.now())+'-'+Math.random().toString(36).slice(2,12);
+              const msg=receipt.status==='duplicate'?'同一表單已記帳，冇重複新增':'✓ 已儲存 '+receipt.currency+' '+receipt.amount+' · '+receipt.merchant;
+              await web.loadHTML(manualFormHTML(nonce,msg));
+            }catch(e){
+              const message=String(e.message||e).slice(0,180);
+              await web.evaluateJavaScript("(function(){var b=document.getElementById('manualSave');if(b){b.disabled=false;b.textContent='儲存支出'};var e=document.getElementById('manualError');if(e)e.textContent="+JSON.stringify(message)+";})();",false);
+            }
+          }
+        })().catch(e=>console.error('Expense WebView action: '+String(e))).finally(()=>{busy=false;});
+      }
+      return false;
+    }
+    // No user data is ever put in URLs; all HTTP navigation is blocked.
+    if(/^https?:/i.test(url))return false;
+    return true;
+  };
+  await web.loadHTML(initial==='manual'?manualFormHTML(nonce):dashboardHTML());
+  await web.present(true);
+}
+
 // --------------------------------------------------
 // Adaptive widgets — Small / Medium / Large / iPad Extra Large.
 // DrawContext only draws charts; native text & stacks remain scalable.
@@ -1067,7 +1351,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.10.0',status,receipt,
+    version:'3.11.0',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1097,8 +1381,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.10.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.10.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.11.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.11.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1122,11 +1406,11 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.10.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.11.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
-async function addManual(){
+async function obsoleteManualAlert(){
   const a=new Alert();a.title='手動記帳';a.addTextField('日期 YYYY-MM-DD',today());a.addTextField('金額（退款填負數）','');a.addTextField('商戶（可留空）','');a.addTextField('類別（可留空）','');a.addTextField('貨幣 HKD / CNY / USD','HKD');a.addAction('儲存');a.addCancelAction('取消');
   if(await a.presentAlert()===-1)return;
   const raw={id:`manual-${Date.now()}-${Math.random()}`,date:a.textFieldValue(0),amount:a.textFieldValue(1),merchant:a.textFieldValue(2),category:a.textFieldValue(3),currency:a.textFieldValue(4)};
@@ -1215,7 +1499,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.10.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.11.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -1236,10 +1520,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.10.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.11.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.10.0',status:'error',receipt:'[EXPENSE-HK-v3.10.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.11.0',status:'error',receipt:'[EXPENSE-HK-v3.11.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.10.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.11.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -161,3 +161,9 @@ Script 回傳例如：
 
 ## v3.10.0 — 左滑刪除
 喺 Dashboard 交易卡片向左滑動，會露出紅色「刪除」；點擊再經原生確認才會真正刪除。向右滑可收起；如無法滑動，按「⋯」或者主選單「🗑️ 刪除交易」。刪除只更新本機 transactions.json，會先檢查有冇較新改動，寫入 previous 備份並讀回核對。Apple Numbers 既有行及之前嘅備份唔會自動刪除。
+
+## v3.11.0 — 手動輸入（非 Tap Card 交易）
+
+打開 Scriptable → Expense → **➕ 手動記帳**，或 Dashboard 頂部按 **＋ 手動記帳**，即可見深色手動記帳介面。左／右箭嘴選日期、點日期揀日子、輸入商戶／記錄、有效非零金額、交易時間、付款方式、貨幣，並選擇一個彩色分類圖示。按「儲存支出」會新增至同一份 `ExpenseTrackerHK/transactions.json`，再讀回核實，成功後重設表單。負數退款可以記錄、0／空白跳過；外幣先儲存原幣，之後按主選單「重試外幣換算」。
+
+表單資料只會由 Scriptable 從本機 WebView 讀取；操作用固定 URL 訊號，唔會把金額、商戶或卡名放入網址。Apple Numbers 需要獨立 Shortcut 寫入，**手動記帳唔會自動增加 Numbers Table 行**。iPhone WebView 真正按鍵體驗需實機驗證。
