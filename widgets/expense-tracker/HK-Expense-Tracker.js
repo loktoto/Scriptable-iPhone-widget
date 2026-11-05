@@ -1483,6 +1483,22 @@ function chartPoints(byDay,count){
       active:Object.prototype.hasOwnProperty.call(byDay,date)};
   });
 }
+function monthChartPoints(byDay){
+  // Month-to-date only: do not call a seven-day chart "monthly spending".
+  const date=today(),prefix=date.slice(0,7);
+  const dayCount=Number(date.slice(8,10));
+  return Array.from({length:dayCount},(_,i)=>{
+    const key=prefix+'-'+String(i+1).padStart(2,'0');
+    return {label:String(i+1),value:byDay[key]||0,
+      active:Object.prototype.hasOwnProperty.call(byDay,key)};
+  });
+}
+function addMonthAxis(parent){
+  const dates=monthChartPoints(Object.create(null)),count=dates.length;
+  const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
+  wText(row,'1日',11,WC.subtle);row.addSpacer();
+  wText(row,count+'日（今日）',11,WC.subtle);
+}
 function makeBarChart(points,width,height){
   // Signed axis: refunds are drawn below zero; missing days never imply purchases.
   const canvas=new DrawContext();canvas.size=new Size(width,height);
@@ -1563,7 +1579,7 @@ function donutParts(entries,max=4){
   return [...positive.slice(0,max-1),
     ['其他',positive.slice(max-1).reduce((a,x)=>a+x[1],0)]];
 }
-function makeDonutChart(items,size){
+function makeDonutChart(items,size,solid=false){
   const c=createChart(size,size),parts=donutParts(items);
   const total=parts.reduce((sum,x)=>sum+x[1],0);
   const mid=size/2,r=size*.47,hole=size*.29;
@@ -1584,12 +1600,20 @@ function makeDonutChart(items,size){
       angle+=sweep;
     });
   }
-  c.setFillColor(new Color(WC.bg));
-  c.fillEllipse(new Rect(mid-hole,mid-hole,hole*2,hole*2));
+  if(!solid){
+    c.setFillColor(new Color(WC.bg));
+    c.fillEllipse(new Rect(mid-hole,mid-hole,hole*2,hole*2));
+  }
   return c.getImage();
 }
 function addDonutChart(parent,items,size){
   return displayImage(parent,makeDonutChart(items,size),size,size);
+}
+function makePieChart(items,size){
+  return makeDonutChart(items,size,true);
+}
+function addPieChart(parent,items,size){
+  return displayImage(parent,makePieChart(items,size),size,size);
 }
 function addDonutLegend(parent,entries,gross,count=3){
   const parts=donutParts(entries);
