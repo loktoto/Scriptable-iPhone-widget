@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.11.2｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.11.3｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -174,3 +174,21 @@ Script 回傳例如：
 ## v3.11.2 — 手動記帳 UI 修正
 
 手動記帳頁頂部依家預留 iPhone 狀態列／Scriptable WebView 工具列空間；日期只保留一個可點選欄位，點按會直接開原生日期選擇器。支出金額／幣種、時間／付款方式重新排版，十二個分類縮細以增加顯示範圍，底部儲存按鈕亦調整為較緊湊尺寸。**原有記帳資料及自動記帳流程不受影響。**
+
+## v3.11.3 — 主畫面一鍵開手動記帳（不改 Tap Card 自動化）
+
+**用法 A — iPhone 主畫面圖示（建議）：**
+1. 更新手機 Scriptable 內的 `Expense.js` 至 v3.11.3。
+2. 打開 Scriptable 執行 `Expense`，喺主選單揀 **🔗 複製一鍵記帳網址**；會自動使用手機上正確腳本名稱。
+3. 開 iPhone「捷徑」App，新建捷徑命名 **快速記帳**：加入 **URL** 動作並貼上已複製連結，再加入 **開啟 URL / Open URLs** 動作，輸入選前一步 URL。
+4. 喺捷徑詳細資料選 **加入主畫面 / Add to Home Screen**。之後撳一下新圖示就會直接打開手動記帳表單，唔使經主選單或者 Dashboard。
+
+直接網址例子（腳本喺 Scriptable 名為 `Expense`）：
+
+```text
+scriptable:///run?scriptName=Expense&view=manual
+```
+
+**用法 B — 另一個 Scriptable Widget：** 喺主畫面加多一個 Scriptable Widget，選同一個 `Expense` Script，於 Widget Parameter 輸入 `quick`。新 Widget 一撳就開手動表單；舊 Widget 冇填 Parameter 仍然開 Dashboard。
+
+**兩條流程互不影響：** Apple Wallet Tap Card Automation 保持原本「使用裝置端模型 → Run Expense with 回應」設定，毋須修改。自動傳入有效 Dictionary 仍然優先執行自動入帳；URL `view=manual` 只用於冇傳交易輸入嘅互動開啟。兩者都存入本機 `ExpenseTrackerHK/transactions.json`。一鍵係開啟表單，並非唔輸入金額就能自動記帳。
