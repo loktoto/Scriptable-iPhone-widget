@@ -1684,6 +1684,9 @@ function widgetPending(widget,s){
   if(s.unresolved)wText(widget,'⚠ '+s.unresolved+'筆日期／匯率待核對',11,WC.amber);
 }
 
+function addChart(parent,points,width,height){
+  return displayImage(parent,makeBarChart(points,width,height),width,height);
+}
 function addTodayMonthPanel(parent,s,width,chartH,heroSize=22,axis=true){
   // One reusable information model for Small + Medium-left.
   // Top count is the number of TODAY'S successfully HKD-resolved transactions.
