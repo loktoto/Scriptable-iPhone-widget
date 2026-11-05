@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.18.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.19.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.18.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.19.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -682,7 +682,7 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
 @media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.wrap{padding-top:max(104px,calc(env(safe-area-inset-top,0px) + 60px))}}
 @media(prefers-reduced-motion:reduce){.tx-swipe-front{transition:none}}
   
-/* v3.18.0 — Research-informed, iPhone-first premium money dashboard.
+/* v3.19.0 — Research-informed, iPhone-first premium money dashboard.
    Explicitly authored after Apple HIG / NNGroup / Tableau / Carbon / WCAG review.
    No external fonts, libraries, logos, tracking or network resources. */
 :root{--bg:#0b101a;--panel:#131c2b;--panel2:#1c293b;--line:#29374b;--text:#f7f8ff;--muted:#9aa9bb;--blue:#a99bff;--green:#7ce5c0;--violet:#a897ff;--amber:#ffc688}
@@ -1402,57 +1402,53 @@ async function addManual(){return await presentExpenseWeb('manual');}
 // Chart drawing is native DrawContext; text and stacks remain scalable.
 // Ref: docs/EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md.
 // Expense Widget visual tokens shared by all system families (v3.17).
+// v3.19 — clean-sheet native Scriptable Widget renderer.
+// All widgets use one audited data model; only the presentational language
+// changes by family. No WebView, network calls, remote fonts, asset dependencies.
 const WC={
-  bg:'#0e1524',panel:'#1b2941',panelAlt:'#202c48',
-  primary:'#f6f7fd',secondary:'#c2ccdc',muted:'#97a9c1',
-  blue:'#a3b1ff',green:'#70e4c5',violet:'#c0aaff',
-  track:'#34415b',warn:'#ffc584'
+ bg:'#0C1220',surface:'#152039',surface2:'#1B2944',
+ edge:'#263653',ink:'#F6F8FF',soft:'#BBC8DB',subtle:'#8F9DB5',
+ violet:'#AE9BFA',mint:'#7CDBC1',amber:'#F6C278',negative:'#72DBB5'
 };
-function wText(parent,value,size=11,color=WC.secondary,bold=false){
+function wText(parent,value,size=11,color=WC.soft,bold=false){
   const t=parent.addText(String(value));
   t.font=bold?Font.semiboldSystemFont(size):Font.systemFont(size);
-  t.textColor=new Color(color);t.lineLimit=1;t.minimumScaleFactor=0.78;
+  t.textColor=new Color(color);
+  t.lineLimit=1;
+  // Do not silently scale ordinary text below the 11pt accessibility target.
+  t.minimumScaleFactor=size>18?0.75:1;
   return t;
 }
 function compactMoney(n){
-  const v=Number(n)||0,a=Math.abs(v),sign=v<0?'-':'';
-  if(a>=1000000)return sign+'HK$'+(a/1000000).toFixed(a>=10000000?1:2)+'m';
-  if(a>=10000)return sign+'HK$'+(a/1000).toFixed(1)+'k';
-  return sign+'HK$'+a.toLocaleString('en-HK',{maximumFractionDigits:2,minimumFractionDigits:2});
+  const value=Number(n)||0,abs=Math.abs(value),sign=value<0?'-':'';
+  if(abs>=1000000)return sign+'HK$'+(abs/1000000).toFixed(1)+'m';
+  if(abs>=10000)return sign+'HK$'+(abs/1000).toFixed(1)+'k';
+  return sign+'HK$'+abs.toLocaleString('en-HK',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function compactCurrency(t){
   if(Number.isFinite(t.amountHKD))return compactMoney(t.amountHKD);
-  return (t.currency==='UNKNOWN'?'?':t.currency)+' '+Number(t.amount).toFixed(2);
+  return (t.currency||'?')+' '+(Number.isFinite(Number(t.amount))?Number(t.amount).toFixed(2):'?');
 }
 function widgetSummary(){
-  // Single aggregation pass for all sizes. Never mutates original transaction rows.
-  const now=today(),monthKey=monthStart(now),since7=dayBack(6),since30=dayBack(29);
+  const now=today(),mon=monthStart(now),s7=dayBack(6),s14=dayBack(13);
   const byDay=Object.create(null),byMonth=Object.create(null);
-  const cats=Object.create(null),pays=Object.create(null);
-  const catCounts=Object.create(null),payCounts=Object.create(null);
-  let month=0,todayValue=0,last7=0,last30=0,txCount=0,todayCount=0,unresolved=0,refunds=0;
+  const cats=Object.create(null),pays=Object.create(null),catCount=Object.create(null),payCount=Object.create(null);
+  let month=0,todayNet=0,week=0,monthCount=0,todayCount=0,unresolved=0,refunds=0;
   for(const t of db.transactions){
     if(!validDate(t.date)||!Number.isFinite(t.amountHKD)){unresolved++;continue;}
     const v=t.amountHKD,m=t.date.slice(0,7);
-    byDay[t.date]=(byDay[t.date]||0)+v;
-    byMonth[m]=(byMonth[m]||0)+v;
-    if(t.date>=since30&&t.date<=now)last30+=v;
-    if(t.date>=since7&&t.date<=now)last7+=v;
-    if(t.date===now)todayValue+=v;
-    if(m!==monthKey)continue;
-    month+=v;txCount++;
+    byDay[t.date]=(byDay[t.date]||0)+v;byMonth[m]=(byMonth[m]||0)+v;
+    if(t.date>=s7&&t.date<=now)week+=v;
+    if(t.date===now)todayNet+=v;
+    if(m!==mon)continue;
+    month+=v;monthCount++;
     if(t.date===now)todayCount++;
     if(v<0)refunds++;
-    const category=categoryForDisplay(t);
-    const payment=paymentTypeOf(t)||'未指定';
-    cats[category]=(cats[category]||0)+v;
-    pays[payment]=(pays[payment]||0)+v;
-    catCounts[category]=(catCounts[category]||0)+1;
-    payCounts[payment]=(payCounts[payment]||0)+1;
+    const cat=categoryForDisplay(t),pay=paymentTypeOf(t)||'未指定';
+    cats[cat]=(cats[cat]||0)+v;pays[pay]=(pays[pay]||0)+v;
+    catCount[cat]=(catCount[cat]||0)+1;payCount[pay]=(payCount[pay]||0)+1;
   }
-  // A category with a purchase and a matching refund is ACTIVE, net HK$0:
-  // don't mislabel it as "no data" merely because its signed sum cancels out.
-  const sortEntries=(dict,counts)=>Object.entries(dict).filter(([name])=>counts[name]>0)
+  const ranked=(totals,counts)=>Object.entries(totals).filter(([k])=>counts[k]>0)
     .sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
   const recent=db.transactions.slice()
     .sort((a,b)=>String(b.transactionTime||b.date||b.createdAt||'')
@@ -1461,367 +1457,315 @@ function widgetSummary(){
     const key=monthsBack(5-i);
     return {label:key.slice(5)+'月',value:byMonth[key]||0};
   });
-  const sevenActive=Object.keys(byDay).filter(x=>x>=since7&&x<=now).length;
-  const from14=dayBack(13);
-  const fourteenActive=Object.keys(byDay).filter(x=>x>=from14&&x<=now).length;
-  // Date-based proof, not (today HKD === month HKD): offsetting refunds can
-  // make the amounts equal even when earlier transactions do exist.
-  const monthOnlyToday=txCount>0&&todayCount===txCount;
-  const round=n=>Math.round(n*100)/100;
-  return {
-    month:round(month),today:round(todayValue),last7:round(last7),last30:round(last30),
-    txCount,todayCount,sevenActive,fourteenActive,monthOnlyToday,unresolved,refunds,byDay,monthlyCats:sortEntries(cats,catCounts),
-    monthlyPayments:sortEntries(pays,payCounts),recent,sixMonths
-  };
+  const activeIn=from=>Object.keys(byDay).filter(k=>k>=from&&k<=now).length;
+  const round=v=>Math.round(v*100)/100;
+  return {month:round(month),today:round(todayNet),last7:round(week),
+    txCount:monthCount,todayCount,monthOnlyToday:monthCount>0&&todayCount===monthCount,
+    sevenActive:activeIn(s7),fourteenActive:activeIn(s14),
+    byDay,monthlyCats:ranked(cats,catCount),monthlyPayments:ranked(pays,payCount),
+    sixMonths,recent,refunds,unresolved};
 }
 function chartPoints(byDay,count){
   return Array.from({length:count},(_,i)=>{
-    const day=dayBack(count-1-i);
-    return {label:day.slice(8),value:byDay[day]||0};
+    const date=dayBack(count-i-1);
+    return {label:date.slice(8),value:byDay[date]||0};
   });
 }
-function makeBarChart(points,width,height,showLabels=false){
-  // Seven visible daily buckets even when only one day has recorded spending.
-  // DrawContext paints geometry only: avoid tiny rasterized chart captions.
-  const ctx=new DrawContext();
-  ctx.size=new Size(width,height);ctx.respectScreenScale=true;ctx.opaque=false;
-  const values=points.map(p=>Number(p.value)||0);
-  const maxP=Math.max(0,...values),maxN=Math.max(0,...values.map(v=>-v));
-  const top=2,bottom=showLabels?14:3,plotH=Math.max(8,height-top-bottom);
-  const total=Math.max(1,maxP+maxN);
-  const zeroY=maxN?top+plotH*maxP/total:top+plotH;
-  ctx.setFillColor(new Color(WC.track));
-  ctx.fillRect(new Rect(0,zeroY,width,1));
-  const cell=width/Math.max(1,points.length);
-  const bar=Math.max(3,Math.min(points.length<=7?12:9,cell*.57));
+function makeBarChart(points,width,height){
+  // Signed axis: refunds are drawn below zero; missing days never imply purchases.
+  const canvas=new DrawContext();canvas.size=new Size(width,height);
+  canvas.respectScreenScale=true;canvas.opaque=false;
+  const values=points.map(x=>Number(x.value)||0);
+  const positive=Math.max(0,...values),negative=Math.max(0,...values.map(x=>-x));
+  const h=height-3,zero=negative>0?2+h*positive/Math.max(1,positive+negative):2+h;
+  canvas.setFillColor(new Color(WC.edge));canvas.fillRect(new Rect(0,zero,width,1));
+  const pitch=width/Math.max(1,points.length),bar=Math.min(11,Math.max(3,pitch*.56));
   values.forEach((v,i)=>{
-    const x=i*cell+(cell-bar)/2;
-    if(v===0){
-      // No fake expense bar: a subtle 2pt marker keeps every day legible.
-      ctx.setFillColor(new Color(WC.track));
-      ctx.fillRect(new Rect(x,zeroY-1,bar,2));
-    }else{
-      const extent=v>0?(v/Math.max(1,maxP))*(zeroY-top)
-        :(-v/Math.max(1,maxN))*(top+plotH-zeroY);
-      const y=v>=0?zeroY-extent:zeroY;
-      ctx.setFillColor(new Color(v<0?WC.green:(i===values.length-1?WC.violet:WC.blue)));
-      ctx.fillRect(new Rect(x,y,bar,Math.max(2,extent)));
-    }
-    if(showLabels&&(points.length<=7||i%4===0||i===points.length-1)){
-      ctx.setFont(Font.mediumSystemFont(9));
-      ctx.setTextColor(new Color(WC.secondary));ctx.setTextAlignedCenter();
-      ctx.drawTextInRect(String(points[i].label),new Rect(i*cell-1,height-12,cell+2,11));
-    }
+    if(!v)return;
+    const rise=v>0?(v/Math.max(1,positive))*Math.max(0,zero-2)
+      :(-v/Math.max(1,negative))*Math.max(0,2+h-zero);
+    const x=i*pitch+(pitch-bar)/2;
+    canvas.setFillColor(new Color(v<0?WC.negative:WC.violet));
+    canvas.fillRect(new Rect(x,v>0?zero-rise:zero,bar,Math.max(1,rise)));
   });
-  return ctx.getImage();
+  return canvas.getImage();
 }
-function makeMiniBar(width,ratio,color=WC.blue){
-  const ctx=new DrawContext();ctx.size=new Size(width,5);
-  ctx.respectScreenScale=true;ctx.opaque=false;
-  ctx.setFillColor(new Color(WC.track));ctx.fillRect(new Rect(0,0,width,5));
+function makeMiniBar(width,ratio,color=WC.violet){
+  const c=new DrawContext();c.size=new Size(width,3);
+  c.respectScreenScale=true;c.opaque=false;
+  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,3));
   if(ratio>0){
-    ctx.setFillColor(new Color(color));
-    ctx.fillRect(new Rect(0,0,Math.max(1,width*Math.min(1,ratio)),5));
+    c.setFillColor(new Color(color));
+    c.fillRect(new Rect(0,0,Math.max(1,Math.min(width,width*ratio)),3));
   }
-  return ctx.getImage();
+  return c.getImage();
 }
-function addChart(parent,points,width,height,showLabels=true){
-  const img=parent.addImage(makeBarChart(points,width,height,showLabels));
-  img.imageSize=new Size(width,height);img.applyFittingContentMode();
-  return img;
+function addChart(parent,points,width,height){
+  const image=parent.addImage(makeBarChart(points,width,height));
+  image.imageSize=new Size(width,height);image.applyFittingContentMode();
+  return image;
 }
-function addRankRows(parent,items,maxRows,barWidth=95){
-  if(!items.length){wText(parent,'本月暫無分類',11,WC.muted);return 0;}
-  const max=Math.max(1,...items.map(x=>Math.abs(x[1])));
-  items.slice(0,maxRows).forEach(([name,value],index)=>{
-    const line=parent.addStack();line.layoutHorizontally();line.centerAlignContent();
-    wText(line,name,11,WC.primary,true);line.addSpacer(4);
-    wText(line,compactMoney(value),11,WC.secondary);
-    const plot=parent.addImage(makeMiniBar(barWidth,Math.abs(value)/max,
-      value<0?WC.green:[WC.violet,WC.blue,WC.warn,WC.green][index%4]));
-    plot.imageSize=new Size(barWidth,4);plot.applyFittingContentMode();
-    if(index<maxRows-1)parent.addSpacer(2);
+function sevenDayHeatImage(points,width){
+  // Seven equal-width cells — NO misleading giant single-day spike.
+  const c=new DrawContext();c.size=new Size(width,12);
+  c.respectScreenScale=true;c.opaque=false;
+  const maximum=Math.max(.01,...points.map(p=>Math.abs(p.value)));
+  const pitch=width/7,box=Math.max(10,pitch-5);
+  points.forEach((p,i)=>{
+    const v=p.value;
+    c.setFillColor(new Color(v<0?WC.mint:(v>0?WC.violet:WC.edge)));
+    const fraction=Math.abs(v)/maximum;
+    const fill=v===0?3:Math.max(6,box*fraction);
+    const start=i*pitch+(pitch-box)/2;
+    c.fillRect(new Rect(start,2,box,8));
+    if(v!==0&&fill<box){
+      c.setFillColor(new Color(WC.bg));
+      c.fillRect(new Rect(start+fill,2,box-fill,8));
+    }
   });
-  return Math.min(items.length,maxRows);
+  return c.getImage();
 }
-function addPaymentRows(parent,items,maxRows){
-  if(!items.length){wText(parent,'付款資料未分類',11,WC.muted);return 0;}
-  items.slice(0,maxRows).forEach(([name,total],i)=>{
-    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
-    wText(row,name,11,WC.secondary);
-    row.addSpacer(4);wText(row,compactMoney(total),11,WC.primary,true);
-    if(i<maxRows-1)parent.addSpacer(3);
+function addSevenDayStrip(parent,points,width){
+  const i=parent.addImage(sevenDayHeatImage(points,width));
+  i.imageSize=new Size(width,12);i.applyFittingContentMode();
+  parent.addSpacer(2);
+  const days=['日','一','二','三','四','五','六'];
+  const row=parent.addStack();row.layoutHorizontally();
+  points.forEach((p,idx)=>{
+    const dt=dayBack(6-idx),date=new Date(+dt.slice(0,4),+dt.slice(5,7)-1,+dt.slice(8,10));
+    const cell=row.addStack();cell.layoutVertically();cell.centerAlignContent();
+    cell.size=new Size(width/7,0);
+    const t=wText(cell,days[date.getDay()],11,idx===6?WC.violet:WC.subtle,idx===6);
+    if(typeof t.centerAlignText==='function')t.centerAlignText();
   });
-  return Math.min(maxRows,items.length);
 }
 function recentTitle(t){
-  const name=String(t.merchant||'').trim();
-  if(name&&name!=='未提供商戶'&&!/^(unknown|null)$/i.test(name))return name;
-  const category=categoryForDisplay(t);
-  const payment=paymentTypeOf(t);
-  // Display-only fallback; never overwrite the user's stored merchant.
+  const merchant=String(t.merchant||'').trim();
+  if(merchant&&!/^(未提供商戶|unknown|null)$/i.test(merchant))return merchant;
+  const category=categoryForDisplay(t),payment=paymentTypeOf(t);
   return [category&&category!=='未分類'?category:'交易',payment].filter(Boolean).join(' · ');
 }
-function addRecentRows(parent,items,maxRows,maxMerchant=25,rowGap=4){
-  if(!items.length){wText(parent,'本月暫無交易',11,WC.muted);return 0;}
-  items.slice(0,maxRows).forEach((t,i)=>{
-    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
-    const text=recentTitle(t);
-    wText(row,text.slice(0,maxMerchant),11,WC.secondary);
-    row.addSpacer(4);
-    wText(row,compactCurrency(t),11,t.amount<0?WC.green:WC.primary,true);
-    if(i<Math.min(items.length,maxRows)-1)parent.addSpacer(rowGap);
-  });
-  return Math.min(maxRows,items.length);
-}
-function conciseToday(summary){
-  return summary.monthOnlyToday?'全部交易均在今日':('今日 '+compactMoney(summary.today));
-}
-function conciseWeek(summary){
-  // Tell users about the active window instead of restating the very same amount.
-  if(summary.sevenActive<=1&&summary.monthOnlyToday)return '近7日 '+summary.sevenActive+'日有紀錄';
-  if(summary.monthOnlyToday)return '近7日 '+summary.sevenActive+'日有紀錄';
-  return '近7日 '+compactMoney(summary.last7);
-}
-function paymentRemainder(summary,limit=2){
-  const top=summary.monthlyPayments.slice(0,limit).reduce((a,x)=>a+x[1],0);
-  const remaining=Math.round((summary.month-top)*100)/100;
-  return summary.monthlyPayments.length>limit&&Math.abs(remaining)>.005?remaining:null;
-}
-function addCompactPaymentBreakdown(parent,summary,maxRows=2,maxLabel=11){
-  if(!summary.monthlyPayments.length){
-    wText(parent,'未設定付款方式',11,WC.muted);return;
-  }
-  // Each item has one readable 11pt row. Use a visual ellipsis for long dynamic
-  // names only inside the Widget; stored PaymentType and Dashboard remain uncut.
-  summary.monthlyPayments.slice(0,maxRows).forEach(([name,total],i)=>{
-    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
-    const label=String(name);
-    wText(row,label.length>maxLabel?label.slice(0,maxLabel-1)+'…':label,11,WC.secondary);
-    row.addSpacer(3);
-    wText(row,compactMoney(total),11,WC.primary,true);
-    if(i<maxRows-1)parent.addSpacer(4);
-  });
-  const remainder=paymentRemainder(summary,maxRows);
-  if(remainder!==null){
-    parent.addSpacer(4);
-    const other=parent.addStack();other.layoutHorizontally();other.centerAlignContent();
-    wText(other,'其餘',11,WC.muted);other.addSpacer(3);
-    wText(other,compactMoney(remainder),11,WC.secondary,true);
-  }
-}
-function widgetCard(parent,color=WC.panel,padding=10){
-  const card=parent.addStack();
-  card.layoutVertically();card.spacing=0;
-  card.backgroundColor=new Color(color);card.cornerRadius=14;
-  card.setPadding(padding,padding,padding,padding);
-  return card;
-}
-function widgetSection(parent,label,meta=''){
-  const line=parent.addStack();line.layoutHorizontally();line.centerAlignContent();
-  wText(line,label,11,WC.primary,true);line.addSpacer();
-  if(meta)wText(line,meta,11,WC.muted);
-  return line;
-}
-function nativeSevenDayLabels(parent,width){
-  const weekdays=['日','一','二','三','四','五','六'];
-  const row=parent.addStack();row.layoutHorizontally();row.spacing=0;
-  for(let i=0;i<7;i++){
-    const day=dayBack(6-i),d=new Date(Number(day.slice(0,4)),
-      Number(day.slice(5,7))-1,Number(day.slice(8,10)));
-    const cell=row.addStack();cell.layoutVertically();
-    cell.size=new Size(width/7,0);
-    const glyph=wText(cell,weekdays[d.getDay()],11,
-      i===6?WC.violet:WC.muted,i===6);
-    if(typeof glyph.centerAlignText==='function')glyph.centerAlignText();
-  }
+function paymentRemainder(s,n=2){
+  if(s.monthlyPayments.length<=n)return null;
+  const remain=Math.round((s.month-s.monthlyPayments.slice(0,n).reduce((a,p)=>a+p[1],0))*100)/100;
+  return Math.abs(remain)>=.005?remain:null;
 }
 function widgetWidth(family){
-  // Conservative plot widths, not hardcoded full widget sizes; points vary by device.
-  let screen=390;
-  try{screen=Device.screenSize().width||390;}catch(_){}
-  if(family==='small')return Math.max(103,Math.min(130,(screen-130)/2));
-  if(family==='extraLarge')return Math.max(430,Math.min(665,screen-135));
-  return Math.max(245,Math.min(355,screen-78));
+  let screen=390;try{screen=Device.screenSize().width||390;}catch(_){}
+  if(family==='small')return Math.max(103,Math.min(139,(screen-125)/2));
+  if(family==='extraLarge')return Math.max(440,Math.min(680,screen-130));
+  return Math.max(245,Math.min(348,screen-76));
 }
-function widgetHeading(widget,title,detail=''){
-  const line=widget.addStack();line.layoutHorizontally();line.centerAlignContent();
-  const accent=line.addStack();accent.backgroundColor=new Color(WC.violet);
-  accent.cornerRadius=3;accent.size=new Size(4,13);
-  line.addSpacer(6);
-  wText(line,title,11,WC.primary,true);
-  line.addSpacer();
-  if(detail)wText(line,detail,11,WC.muted);
+function sectionLine(parent,title,right=''){
+  const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
+  wText(row,title,11,WC.ink,true);
+  row.addSpacer(4);
+  if(right)wText(row,right,11,WC.subtle);
 }
-function widgetPending(widget,summary){
-  wText(widget,summary.unresolved
-    ?'⚠ '+summary.unresolved+' 筆日期／匯率待核對'
-    :'HKD 已換算 · 點按查看詳情',11,summary.unresolved?WC.warn:WC.muted);
+function widgetCard(parent,pad=7){
+  const c=parent.addStack();c.layoutVertically();
+  c.backgroundColor=new Color(WC.surface);c.cornerRadius=11;
+  c.setPadding(pad,pad,pad,pad);
+  return c;
+}
+function addSeparator(parent,width){
+  const rule=parent.addStack();rule.size=new Size(width,1);
+  rule.backgroundColor=new Color(WC.edge);
+}
+function addRankRows(parent,rows,count,width=120,showBars=true){
+  const max=Math.max(1,...rows.map(r=>Math.abs(r[1])));
+  if(!rows.length){wText(parent,'本月未有分類支出',11,WC.subtle);return 0;}
+  rows.slice(0,count).forEach(([name,value],idx)=>{
+    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
+    wText(row,name.length>9?name.slice(0,8)+'…':name,11,WC.soft);
+    row.addSpacer(4);wText(row,compactMoney(value),11,WC.ink,true);
+    if(showBars){
+      parent.addSpacer(2);
+      const img=parent.addImage(makeMiniBar(width,Math.abs(value)/max,idx===0?WC.violet:WC.mint));
+      img.imageSize=new Size(width,3);img.applyFittingContentMode();
+    }
+    if(idx<Math.min(count,rows.length)-1)parent.addSpacer(showBars?4:3);
+  });
+  return Math.min(count,rows.length);
+}
+function addPaymentRows(parent,rows,count){
+  if(!rows.length){wText(parent,'未有付款方式',11,WC.subtle);return 0;}
+  rows.slice(0,count).forEach(([name,amt],idx)=>{
+    const item=parent.addStack();item.layoutHorizontally();item.centerAlignContent();
+    const shown=String(name);wText(item,shown.length>13?shown.slice(0,12)+'…':shown,11,WC.soft);
+    item.addSpacer(3);wText(item,compactMoney(amt),11,WC.ink,true);
+    if(idx<count-1)parent.addSpacer(3);
+  });
+  return Math.min(count,rows.length);
+}
+function addRecentRows(parent,rows,count,labelMax=25){
+  if(!rows.length){wText(parent,'暫無交易',11,WC.subtle);return 0;}
+  rows.slice(0,count).forEach((t,idx)=>{
+    const line=parent.addStack();line.layoutHorizontally();line.centerAlignContent();
+    const label=recentTitle(t);
+    wText(line,label.length>labelMax?label.slice(0,labelMax-1)+'…':label,11,WC.soft);
+    line.addSpacer(4);wText(line,compactCurrency(t),11,t.amount<0?WC.mint:WC.ink,true);
+    if(idx<count-1)parent.addSpacer(3);
+  });
+  return Math.min(count,rows.length);
+}
+function contextLine(s){
+  if(s.monthOnlyToday)return s.todayCount+'筆交易均在今日';
+  if(s.sevenActive>0)return '近7日 '+s.sevenActive+'個消費日';
+  return '近7日未有交易';
+}
+function simpleHeader(widget,month,transactions,label){
+  const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
+  wText(row,label||month+'月 · 消費',11,WC.soft,true);
+  row.addSpacer(4);
+  wText(row,transactions+'筆',11,WC.subtle);
+}
+function widgetPending(widget,s){
+  if(s.unresolved)wText(widget,'⚠ '+s.unresolved+'筆日期／匯率待核對',11,WC.amber);
 }
 function buildWidget(family=config.widgetFamily||'medium'){
-  const summary=widgetSummary(),widget=new ListWidget(),quick=
-    String(args.widgetParameter||'').trim().toLowerCase()==='quick';
-  widget.backgroundColor=new Color(WC.bg);
-  widget.spacing=0;
-  if(typeof LinearGradient==='function'){
-    const fade=new LinearGradient();
-    fade.colors=[new Color('#151a32'),new Color(WC.bg)];
-    fade.locations=[0,1];widget.backgroundGradient=fade;
-  }
-  const accessory=family.startsWith('accessory');
-  widget.setPadding(accessory?1:family==='small'?8:12,
-    accessory?2:family==='small'?10:14,
-    accessory?1:family==='small'?8:12,
-    accessory?2:family==='small'?10:14);
+  const s=widgetSummary(),widget=new ListWidget();
+  const quick=String(args.widgetParameter||'').trim().toLowerCase()==='quick';
+  widget.backgroundColor=new Color(WC.bg);widget.spacing=0;
+  widget.setPadding(family==='small'?8:family.startsWith('accessory')?1:11,
+    family==='small'?10:family.startsWith('accessory')?2:12,
+    family==='small'?8:family.startsWith('accessory')?1:11,
+    family==='small'?10:family.startsWith('accessory')?2:12);
   widget.refreshAfterDate=new Date(Date.now()+30*60*1000);
   const base=URLScheme.forRunningScript();
   widget.url=base+(base.includes('?')?'&':'?')+(quick?'view=manual':'view=dashboard');
-  if(accessory){
-    if(family==='accessoryInline'){
-      wText(widget,'本月 '+compactMoney(summary.month),11,WC.primary,true);
-    }else if(family==='accessoryCircular'){
-      wText(widget,compactMoney(summary.month).replace('HK$','$'),12,WC.primary,true);
-    }else{
-      wText(widget,'本月 '+compactMoney(summary.month),12,WC.primary,true);
-      wText(widget,'今日 '+compactMoney(summary.today),11,WC.secondary);
+  if(family.startsWith('accessory')){
+    if(family==='accessoryInline')wText(widget,'本月 '+compactMoney(s.month),11,WC.ink,true);
+    else if(family==='accessoryCircular')wText(widget,compactMoney(s.month).replace('HK$','$'),12,WC.ink,true);
+    else{
+      wText(widget,'本月 '+compactMoney(s.month),12,WC.ink,true);
+      wText(widget,'今日 '+compactMoney(s.today),11,WC.soft);
     }
     return widget;
   }
-  const width=widgetWidth(family),day7=chartPoints(summary.byDay,7);
-  const monthText=(new Date()).getMonth()+1+'月';
+  const width=widgetWidth(family),month=Number(today().slice(5,7));
   if(family==='small'){
-    // Data-dense, readable 141pt target; last 7 days remain visible.
-    // Avoid triple repetition when today, rolling week and month are identical.
-    widgetHeading(widget,quick?'＋ 快速記帳':monthText+'開支',
-      summary.txCount+'筆'+(summary.unresolved?' ⚠'+summary.unresolved:''));
+    // 100% clean-sheet composition; 7-day heatstrip preserves real daily buckets
+    // without the screen-grabbing single purple column in the user's screenshot.
+    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 支出');
     widget.addSpacer(4);
-    const amount=wText(widget,compactMoney(summary.month),22,WC.primary,true);
-    amount.minimumScaleFactor=.78;
+    wText(widget,compactMoney(s.month),24,WC.ink,true);
+    widget.addSpacer(5);
+    const principal=s.monthlyCats[0];
+    const line=widget.addStack();line.layoutHorizontally();line.centerAlignContent();
+    wText(line,principal?'最多 '+principal[0]:'今日',11,WC.subtle);
+    line.addSpacer(4);
+    wText(line,principal?compactMoney(principal[1]):compactMoney(s.today),11,WC.mint,true);
+    widget.addSpacer(4);
+    sectionLine(widget,'近7日',s.sevenActive+'日有紀錄');
     widget.addSpacer(3);
-    const todayRow=widget.addStack();todayRow.layoutHorizontally();todayRow.centerAlignContent();
-    wText(todayRow,'今日',11,WC.secondary);
-    todayRow.addSpacer(5);
-    wText(todayRow,summary.monthOnlyToday?'全部在今日':compactMoney(summary.today),11,WC.green,true);
-    widget.addSpacer(3);
-    const active=day7.filter((p,i)=>Object.prototype.hasOwnProperty.call(summary.byDay,
-      dayBack(6-i))).length;
-    const weekRow=widget.addStack();weekRow.layoutHorizontally();weekRow.centerAlignContent();
-    wText(weekRow,'近7日',11,WC.muted,true);weekRow.addSpacer(4);
-    wText(weekRow,summary.monthOnlyToday?active+'日有紀錄':compactMoney(summary.last7),11,WC.secondary);
-    widget.addSpacer(2);
-    addChart(widget,day7,width,29,false);
-    nativeSevenDayLabels(widget,width);
+    addSevenDayStrip(widget,chartPoints(s.byDay,7),width);
     return widget;
   }
   if(family==='medium'){
-    // The screenshot's equal amounts were redundant. Preserve amounts in storage,
-    // show evidence-based relationships and two different types of breakdown.
-    widgetHeading(widget,quick?'＋ 快速記帳':'本月支出',monthText+' · '+summary.txCount+'筆');
+    // At one active day, a second chart is information-poor. Replace it
+    // with real category comparisons, never reprinting the same HKD three times.
+    const sparse=s.fourteenActive<=1;
+    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 支出分析');
     widget.addSpacer(4);
-    const layout=widget.addStack();layout.layoutHorizontally();layout.centerAlignContent();
-    const narrow=width<270,leftW=Math.max(111,Math.min(142,width*.42));
-    const left=layout.addStack();left.layoutVertically();left.spacing=3;left.size=new Size(leftW,0);
-    wText(left,compactMoney(summary.month),21,WC.primary,true);
-    wText(left,conciseToday(summary),11,WC.green);
-    wText(left,conciseWeek(summary),11,WC.secondary);
-    layout.addSpacer(7);
-    const right=layout.addStack();right.layoutVertically();right.spacing=2;
-    wText(right,'近14日 · '+summary.fourteenActive+'日有紀錄',11,WC.secondary,true);
-    const widthChart=Math.max(115,width-leftW-12);
-    addChart(right,chartPoints(summary.byDay,14),widthChart,narrow?32:40,false);
-    const axis=right.addStack();axis.layoutHorizontally();
-    wText(axis,'14日前',11,WC.muted);axis.addSpacer();
-    wText(axis,'今日',11,WC.muted);
-    widget.addSpacer(narrow?3:6);
-    const best=summary.monthlyCats[0],payment=summary.monthlyPayments[0];
-    const catRow=widget.addStack();catRow.layoutHorizontally();catRow.centerAlignContent();
-    wText(catRow,'主要分類',11,WC.muted);catRow.addSpacer(5);
-    wText(catRow,best?best[0]+' '+compactMoney(best[1]):'未有分類',11,WC.primary,true);
-    const payRow=widget.addStack();payRow.layoutHorizontally();payRow.centerAlignContent();
-    wText(payRow,'主要付款',11,WC.muted);payRow.addSpacer(5);
-    wText(payRow,payment?payment[0]+' '+compactMoney(payment[1]):'未有付款方式',11,WC.violet,true);
+    const headline=widget.addStack();headline.layoutHorizontally();headline.centerAlignContent();
+    wText(headline,compactMoney(s.month),23,WC.ink,true);
+    headline.addSpacer(7);wText(headline,contextLine(s),11,WC.mint);
+    widget.addSpacer(5);
+    if(sparse){
+      sectionLine(widget,'分類排行',s.fourteenActive+'個交易日／14日');
+      widget.addSpacer(3);
+      const best=s.monthlyCats.slice(0,2);
+      if(best.length){
+        best.forEach(([name,value],idx)=>{
+          const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
+          wText(row,name,11,WC.soft);row.addSpacer();
+          wText(row,compactMoney(value),11,idx===0?WC.violet:WC.ink,true);
+          if(idx===0)widget.addSpacer(3);
+        });
+      }else wText(widget,'目前未有分類資料',11,WC.subtle);
+    }else{
+      sectionLine(widget,'最近14日',s.fourteenActive+'日有紀錄');
+      widget.addSpacer(4);
+      addChart(widget,chartPoints(s.byDay,14),width,22);
+    }
+    widget.addSpacer(5);
+    const pay=s.monthlyPayments[0];
+    const footer=widget.addStack();footer.layoutHorizontally();footer.centerAlignContent();
+    wText(footer,'常用 '+(pay?pay[0]:'未指定'),11,WC.subtle);
+    footer.addSpacer(4);
+    if(pay)wText(footer,compactMoney(pay[1]),11,WC.mint,true);
     return widget;
   }
   if(family==='large'){
+    // More information, not more decorative cards: full-width ranked category,
+    // compact payment distribution and native full-width recent transactions.
     const narrow=width<300;
-    const chartH=narrow?21:(summary.fourteenActive<=1?23:28);
-    widgetHeading(widget,quick?'＋ 快速記帳':'開支總覽',monthText+' · '+summary.txCount+'筆');
+    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 消費報告');
     widget.addSpacer(4);
-    const hero=widgetCard(widget,WC.panelAlt,6);
-    const heroRow=hero.addStack();heroRow.layoutHorizontally();heroRow.centerAlignContent();
-    const amount=heroRow.addStack();amount.layoutVertically();amount.spacing=2;
-    wText(amount,'本月淨支出',11,WC.secondary);
-    wText(amount,compactMoney(summary.month),narrow?21:23,WC.primary,true);
-    heroRow.addSpacer(7);
-    const state=heroRow.addStack();state.layoutVertically();state.spacing=3;
-    wText(state,conciseToday(summary),11,WC.green,true);
-    wText(state,conciseWeek(summary),11,WC.secondary);
-    widget.addSpacer(4);
-    widgetSection(widget,'最近14日 · 每日淨額',summary.fourteenActive+'日有紀錄');
-    widget.addSpacer(2);
-    addChart(widget,chartPoints(summary.byDay,14),width,chartH,false);
+    const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
+    wText(hero,compactMoney(s.month),25,WC.ink,true);
+    hero.addSpacer(5);wText(hero,contextLine(s),11,WC.mint);
+    widget.addSpacer(7);
+    sectionLine(widget,'14日趨勢',s.fourteenActive+'個交易日');
+    widget.addSpacer(2);addChart(widget,chartPoints(s.byDay,14),width,narrow?13:16);
+    widget.addSpacer(7);addSeparator(widget,width);widget.addSpacer(6);
+    sectionLine(widget,'分類支出',s.monthlyCats.length+'種');
     widget.addSpacer(5);
-    const cols=widget.addStack();cols.layoutHorizontally();cols.spacing=8;
-    const colWidth=Math.floor((width-8)/2);
-    const cats=widgetCard(cols,WC.panel,narrow?6:7);cats.size=new Size(colWidth,0);
-    wText(cats,'本月分類 · TOP '+(narrow?2:3),11,WC.violet,true);
-    cats.addSpacer(4);
-    addRankRows(cats,summary.monthlyCats,narrow?2:3,colWidth-15);
-    const methods=widgetCard(cols,WC.panel,narrow?6:7);
-    methods.size=new Size(colWidth,0);
-    wText(methods,'付款方式 · TOP '+(narrow?1:2),11,WC.violet,true);
-    methods.addSpacer(4);
-    addCompactPaymentBreakdown(methods,summary,narrow?1:2,narrow?7:11);
-    widget.addSpacer(5);
-    const maxRecent=narrow?2:4;
-    widgetSection(widget,'最近交易',summary.recent.length?'最新'+Math.min(summary.recent.length,maxRecent)+'筆':'');
+    addRankRows(widget,s.monthlyCats,narrow?2:3,width,false);
+    widget.addSpacer(7);addSeparator(widget,width);widget.addSpacer(6);
+    sectionLine(widget,'付款方式');
     widget.addSpacer(4);
-    addRecentRows(widget,summary.recent,maxRecent,narrow?15:26,2);
-    if(summary.unresolved){
-      widget.addSpacer(4);widgetPending(widget,summary);
+    addPaymentRows(widget,s.monthlyPayments,narrow?1:2);
+    const rem=paymentRemainder(s,narrow?1:2);
+    if(rem!==null){
+      const other=widget.addStack();other.layoutHorizontally();
+      wText(other,'其餘',11,WC.subtle);other.addSpacer();
+      wText(other,compactMoney(rem),11,WC.soft,true);
+    }
+    widget.addSpacer(6);addSeparator(widget,width);widget.addSpacer(6);
+    sectionLine(widget,'最近交易',s.recent.length+'筆');
+    widget.addSpacer(3);
+    addRecentRows(widget,s.recent,narrow?2:(s.monthlyCats.length<=2?4:3),narrow?15:23);
+    if(s.unresolved){
+      widget.addSpacer(3);widgetPending(widget,s);
     }
     return widget;
   }
-  // iPad extraLarge: two analysis panels plus six recent transactions.
-  widgetHeading(widget,quick?'＋ 快速記帳':'開支分析 · iPad',monthText+' · '+summary.txCount+'筆');
-  widget.addSpacer(6);
-  const hero=widgetCard(widget,WC.panelAlt,8);
-  const metrics=hero.addStack();metrics.layoutHorizontally();metrics.centerAlignContent();
-  wText(metrics,'本月 '+compactMoney(summary.month),21,WC.primary,true);
-  metrics.addSpacer();
-  wText(metrics,conciseToday(summary),12,WC.green,true);
-  metrics.addSpacer(10);
-  wText(metrics,summary.unresolved?'⚠ '+summary.unresolved+'筆待核對':conciseWeek(summary),11,summary.unresolved?WC.warn:WC.secondary);
-  widget.addSpacer(6);
-  const split=widget.addStack();split.layoutHorizontally();split.spacing=12;
-  const leftWidth=Math.floor(width*.52),rightWidth=Math.max(210,width-leftWidth-13);
-  const plots=widgetCard(split,WC.panel,7);plots.size=new Size(leftWidth,0);
-  wText(plots,'最近30日 · 每日支出（'+summary.fourteenActive+'日近14日有紀錄）',11,WC.primary,true);
-  plots.addSpacer(4);addChart(plots,chartPoints(summary.byDay,30),leftWidth-20,64,false);
-  plots.addSpacer(8);
-  wText(plots,'最近6個月 · 每月支出',11,WC.primary,true);
-  plots.addSpacer(4);addChart(plots,summary.sixMonths,leftWidth-20,48,false);
-  const rankings=widgetCard(split,WC.panel,7);rankings.size=new Size(rightWidth,0);
-  wText(rankings,'分類 TOP 5',11,WC.primary,true);
-  rankings.addSpacer(4);
-  addRankRows(rankings,summary.monthlyCats,5,rightWidth-15);
-  rankings.addSpacer(5);
-  wText(rankings,'付款方式 TOP 3',11,WC.primary,true);
-  rankings.addSpacer(4);
-  addPaymentRows(rankings,summary.monthlyPayments,3);
-  widget.addSpacer(6);
-  const recents=widgetCard(widget,WC.panel,7);
-  const heading=recents.addStack();heading.layoutHorizontally();heading.centerAlignContent();
-  wText(heading,'最近6筆交易',11,WC.primary,true);heading.addSpacer();
-  wText(heading,'本月退款 '+summary.refunds+'筆',11,WC.green);
-  recents.addSpacer(6);
-  const recentCols=recents.addStack();recentCols.layoutHorizontally();recentCols.spacing=8;
-  const colWidth=Math.floor((width-30)/3);
+  // iPad Extra Large is an information-rich 3-zone analytics console,
+  // never an enlarged phone widget. All rows use native 11pt text.
+  simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'財務總覽 · '+month+'月');
+  widget.addSpacer(7);
+  const summary=widget.addStack();summary.layoutHorizontally();summary.centerAlignContent();
+  wText(summary,compactMoney(s.month),28,WC.ink,true);
+  summary.addSpacer(14);
+  wText(summary,contextLine(s),12,WC.mint);
+  summary.addSpacer();
+  wText(summary,'退款 '+s.refunds+'筆',11,WC.soft);
+  widget.addSpacer(10);
+  const cols=widget.addStack();cols.layoutHorizontally();cols.spacing=10;
+  const colWidth=Math.floor((width-20)/3);
+  const a=widgetCard(cols,9);a.size=new Size(colWidth,0);
+  wText(a,'最近30日',11,WC.ink,true);a.addSpacer(6);
+  addChart(a,chartPoints(s.byDay,30),colWidth-18,58);
+  a.addSpacer(9);
+  wText(a,'最近6個月',11,WC.ink,true);a.addSpacer(6);
+  addChart(a,s.sixMonths,colWidth-18,43);
+  const b=widgetCard(cols,9);b.size=new Size(colWidth,0);
+  wText(b,'本月分類 Top 5',11,WC.ink,true);b.addSpacer(8);
+  addRankRows(b,s.monthlyCats,5,colWidth-18);
+  const c=widgetCard(cols,9);c.size=new Size(colWidth,0);
+  wText(c,'付款方式 Top 4',11,WC.ink,true);c.addSpacer(8);
+  addPaymentRows(c,s.monthlyPayments,4);
+  widget.addSpacer(10);
+  sectionLine(widget,'最近六筆交易');
+  widget.addSpacer(5);
+  const trans=widget.addStack();trans.layoutHorizontally();trans.spacing=10;
   for(let i=0;i<3;i++){
-    const col=recentCols.addStack();col.layoutVertically();col.spacing=0;
-    col.size=new Size(colWidth,0);
-    addRecentRows(col,summary.recent.slice(i*2,i*2+2),2,11);
+    const col=trans.addStack();col.layoutVertically();col.size=new Size(colWidth,0);
+    addRecentRows(col,s.recent.slice(i*2,i*2+2),2,13);
   }
+  if(s.unresolved){widget.addSpacer(6);widgetPending(widget,s);}
   return widget;
 }
 async function previewWidget(){
@@ -1924,8 +1868,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.18.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.18.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.19.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.19.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1949,7 +1893,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.18.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.19.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -2058,7 +2002,7 @@ if (config.runsInWidget) {
     const source=quickFromTexts?'Texts':'Parameter';
     if (!config.runsInApp){
       recordShortcutAttempt('quick_requires_app',{inputType:'quick_manual',source});
-      emitShortcutReceipt('[EXPENSE-HK-v3.18.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
+      emitShortcutReceipt('[EXPENSE-HK-v3.19.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
     }else{
       recordShortcutAttempt('quick_opened',{inputType:'quick_manual',source});
       await addManual();
@@ -2075,7 +2019,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.18.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.19.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -2099,7 +2043,7 @@ try {
       JSON.stringify({version:'3.18.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.18.0',status:'error',receipt:'[EXPENSE-HK-v3.18.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.18.0',status:'error',receipt:'[EXPENSE-HK-v3.19.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

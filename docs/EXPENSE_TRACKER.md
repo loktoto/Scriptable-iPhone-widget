@@ -269,3 +269,5 @@ Merchant Type 固定 12 個：**食物、飲品、娛樂、日用品、交通、
 新版以真實 iPhone 小／中／大 Widget 三張畫面為驗收起點，主要改正 Large 空間浪費、Medium 金額重複及 Small 「等額就代表全部在今日」的錯誤推論。Large 把最近交易移到全寬，重點顯示最多 4 筆、分類比較、付款分布與「其餘金額」；Medium 顯示 14 日活躍日數和最重要分類／付款；Small 保留七日圖和星期標籤。iPad XL 亦用更精準的日期描述，不假稱已完成 iPad 實機測試。
 
 已加 regression cases：HK$200.30 單日四筆、跨日退款令月／今日同額、付款 Top 2 其餘 HK$15.30、商戶名稱為 null 顯示類別／付款而不覆蓋舊資料。**104 個新增設計索引及根因報告**：[read here](EXPENSE_WIDGET_SCREENSHOT_RESEARCH_104_V3_18.md)。
+## v3.19.0 — 從零重建四種 Widget 介面
+Small 改為有數據含意嘅七日熱度條；Medium 根據一個／多個有交易日自動切換「分類／趨勢」；Large 改成全寬大字資訊而非窄卡；Extra Large 係真正三欄分析控制台。請避免使用舊版 Widget 的分支 patch，更新完整主 Script；詳情：[v3.19 設計研究](EXPENSE_WIDGET_RESEARCH_V3_19.md)。

@@ -85,3 +85,13 @@ Small：22pt 主金額＋7日柱圖＋7個原生星期字；同額（例如本�
 先檢查使用者提交之 PDF 三張 Widget 實際畫面：Large 下方長空白、兩張窄卡文字難讀；Medium 同一 HK$200.30 出現 3 次；Small 七日圖需兼顧清晰與空間。今次 Large 提供**全寬最多四筆最近交易**，Medium 加入**14 日活躍日數＋最重要分類／付款方式**，而 Small 依據**實際交易日期**判斷是否「全部在今日」；另有 Ipad XL 改善。版面按稀疏／非稀疏資料自動縮放；付款方式 Top 2 之外會顯示「其餘」真正金額。全部沿用同一交易資料庫同 Shortcut。
 
 [104 新來源＋實機截圖根因及驗收清單](../../docs/EXPENSE_WIDGET_SCREENSHOT_RESEARCH_104_V3_18.md)（索引不是 104 項獨立實驗）。
+### v3.19.0 — Widget 全尺寸由零重建
+
+- **Small：** 本月淨支出＋最高支出類別＋真正七日每日消費熱度條（七個原生星期字），唔再出現孤零零一條過高紫柱。
+- **Medium：** 近十四日只有一個有交易日，改顯示真實兩大分類及常用付款方式；若有多個活躍日，自動切換成 14 日趨勢。
+- **Large：** 全寬分類、付款及最近交易，精簡 14 日淨額圖。細機減少列數，唔靠硬縮細文字。
+- **Extra Large（iPad）：** 真正三欄報表、30日及六個月圖、五大分類／四付款方式／六筆交易。
+- **Data：** 沿用同一個 `ExpenseTrackerHK/transactions.json`、負數退款、Payme、自訂付款名稱、食飯、Remark、Tap Card、Shortcut、原本 Numbers 六欄。
+- **Debug / Preview：** Scriptable → `Expense.js` → 「👀 預覽 Widget 尺寸」，逐一比較各個尺寸。本版本改動設計及視圖邏輯，無需資料庫遷移。
+
+研究及可驗收標準見 [Clean-sheet Widget Design](../../docs/EXPENSE_WIDGET_RESEARCH_V3_19.md)。
