@@ -1410,6 +1410,7 @@ const WC={
  edge:'#263653',ink:'#F6F8FF',soft:'#BBC8DB',subtle:'#8F9DB5',
  violet:'#AE9BFA',mint:'#7CDBC1',amber:'#F6C278',negative:'#72DBB5'
 };
+const WCOL=['#AE9BFA','#7CDBC1','#F6C278','#71B9EF','#E3A0CB'];
 function wText(parent,value,size=11,color=WC.soft,bold=false){
   const t=parent.addText(String(value));
   t.font=bold?Font.semiboldSystemFont(size):Font.systemFont(size);
