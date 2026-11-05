@@ -1588,20 +1588,25 @@ function paymentRemainder(summary,limit=2){
   const remaining=Math.round((summary.month-top)*100)/100;
   return summary.monthlyPayments.length>limit&&Math.abs(remaining)>.005?remaining:null;
 }
-function addCompactPaymentBreakdown(parent,summary,maxRows=2){
+function addCompactPaymentBreakdown(parent,summary,maxRows=2,maxLabel=11){
   if(!summary.monthlyPayments.length){
     wText(parent,'未設定付款方式',11,WC.muted);return;
   }
+  // Each item has one readable 11pt row. Use a visual ellipsis for long dynamic
+  // names only inside the Widget; stored PaymentType and Dashboard remain uncut.
   summary.monthlyPayments.slice(0,maxRows).forEach(([name,total],i)=>{
-    wText(parent,String(name),11,WC.secondary);
-    wText(parent,compactMoney(total),11,WC.primary,true);
-    if(i<maxRows-1)parent.addSpacer(2);
+    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
+    const label=String(name);
+    wText(row,label.length>maxLabel?label.slice(0,maxLabel-1)+'…':label,11,WC.secondary);
+    row.addSpacer(3);
+    wText(row,compactMoney(total),11,WC.primary,true);
+    if(i<maxRows-1)parent.addSpacer(4);
   });
   const remainder=paymentRemainder(summary,maxRows);
   if(remainder!==null){
-    parent.addSpacer(3);
+    parent.addSpacer(4);
     const other=parent.addStack();other.layoutHorizontally();other.centerAlignContent();
-    wText(other,'其餘',11,WC.muted);other.addSpacer(4);
+    wText(other,'其餘',11,WC.muted);other.addSpacer(3);
     wText(other,compactMoney(remainder),11,WC.secondary,true);
   }
 }
@@ -1739,7 +1744,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
   }
   if(family==='large'){
     const narrow=width<300;
-    const chartH=narrow?26:(summary.fourteenActive<=1?27:35);
+    const chartH=narrow?23:(summary.fourteenActive<=1?25:31);
     widgetHeading(widget,quick?'＋ 快速記帳':'開支總覽',monthText+' · '+summary.txCount+'筆');
     widget.addSpacer(4);
     const hero=widgetCard(widget,WC.panelAlt,narrow?6:8);
@@ -1766,7 +1771,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     methods.size=new Size(colWidth,0);
     wText(methods,'付款方式 · TOP '+(narrow?1:2),11,WC.violet,true);
     methods.addSpacer(4);
-    addCompactPaymentBreakdown(methods,summary,narrow?1:2);
+    addCompactPaymentBreakdown(methods,summary,narrow?1:2,narrow?7:11);
     widget.addSpacer(5);
     const maxRecent=narrow?2:4;
     widgetSection(widget,'最近交易',summary.recent.length?'最新'+Math.min(summary.recent.length,maxRecent)+'筆':'');
