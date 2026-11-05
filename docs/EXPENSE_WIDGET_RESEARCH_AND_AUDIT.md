@@ -88,7 +88,7 @@ At the audited main commit, GitHub's recursive repository tree contained **48 tr
 - The Expense runtime's external FX request is to Frankfurter for currency pair/date; Bus and MTR use published transport endpoints. No new network calls were introduced into the Widget branch.
 - Bus and MTR app logic was not refactored as part of the Expense Widget redesign. Avoid cross-product churn without proven bugs.
 
-**What was intentionally NOT deleted:** Compatibility mirrors, existing Apple Numbers six-column output, FX retry code, `transaction.previous.json` backups, the Shortcuts diagnostic tool and its provenance, and prior version history. These are maintenance and recovery features, not junk.
+**What was intentionally NOT deleted:** Compatibility mirrors, existing Apple Numbers six-column output, FX retry code, `transactions.previous.json` backups, the Shortcuts diagnostic tool and its provenance, and prior version history. These are maintenance and recovery features, not junk.
 
 ## E. Risks and validation gaps
 
