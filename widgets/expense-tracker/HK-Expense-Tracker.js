@@ -1726,28 +1726,19 @@ function buildWidget(family=config.widgetFamily||'medium'){
   }
   const width=widgetWidth(family),month=Number(today().slice(5,7));
   if(family==='small'){
-    // 100% clean-sheet composition; 7-day heatstrip preserves real daily buckets
-    // without the screen-grabbing single purple column in the user's screenshot.
     simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 支出');
     widget.addSpacer(4);
-    wText(widget,compactMoney(s.month),24,WC.ink,true);
-    widget.addSpacer(5);
-    const principal=s.monthlyCats[0];
-    const positiveCats=s.monthlyCats.reduce((total,row)=>total+Math.max(0,row[1]),0);
-    const line=widget.addStack();line.layoutHorizontally();line.centerAlignContent();
-    wText(line,principal?'主要 '+String(principal[0]).slice(0,6):'暫無交易',11,WC.subtle);
-    line.addSpacer(4);
-    // Use a short genuine share on Small; the precise HKD amount is visible
-    // on Medium/Large. Avoid a second long amount that clips a 141pt card.
-    if(principal){
-      const share=positiveCats>0&&principal[1]>0?
-        Math.round(principal[1]/positiveCats*100)+'%':compactMoney(principal[1]);
-      wText(line,share,11,WC.mint,true);
-    }
+    wText(widget,compactMoney(s.month),23,WC.ink,true);
     widget.addSpacer(4);
-    sectionLine(widget,'近7日',s.sevenActive+'日有紀錄');
-    widget.addSpacer(3);
-    addSevenDayStrip(widget,chartPoints(s.byDay,7),width);
+    sectionLine(widget,'最近7日',s.sevenActive+'日有紀錄');
+    widget.addSpacer(2);
+    addChart(widget,chartPoints(s.byDay,7),width,26);
+    widget.addSpacer(4);
+    const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
+    wText(row,'最多分類',11,WC.subtle);row.addSpacer(4);
+    const best=s.grossCats[0];
+    wText(row,best&&s.gross>0?best[0]+' '+Math.round(best[1]/s.gross*100)+'%':'暫無支出',
+      11,WC.mint,true);
     return widget;
   }
   if(family==='medium'){
