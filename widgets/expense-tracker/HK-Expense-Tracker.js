@@ -1692,7 +1692,7 @@ function addTodayMonthPanel(parent,s,width,chartH,heroSize=22,axis=true){
   // Top count is the number of TODAY'S successfully HKD-resolved transactions.
   const header=parent.addStack();header.layoutHorizontally();header.centerAlignContent();
   wText(header,'今日支出',11,WC.soft,true);header.addSpacer(3);
-  wText(header,s.todayCount+'筆',11,WC.subtle);
+  wText(header,s.todayCount+'筆'+(s.unresolved?' ⚠':''),11,WC.subtle);
   parent.addSpacer(4);
   wText(parent,compactMoney(s.today),heroSize,WC.ink,true);
   parent.addSpacer(5);
@@ -1726,8 +1726,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
   if(family==='small'){
     // Today first, month-to-date second. The former "largest category" row is gone.
     const short=width<=121;
-    addTodayMonthPanel(widget,s,width,short?31:42,short?21:24,true);
-    if(s.unresolved){widget.addSpacer(2);widgetPending(widget,s);}
+    addTodayMonthPanel(widget,s,width,short?32:40,short?21:24,true);
     return widget;
   }
   if(family==='medium'){
@@ -1754,7 +1753,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     // Two separate money KPIs, monthly trend, real pie, payment mix, transaction detail.
     const narrow=width<290,space=9,col=Math.floor((width-space)/2);
     const header=widget.addStack();header.layoutHorizontally();header.centerAlignContent();
-    wText(header,'記帳總覽 · '+month+'月',11,WC.ink,true);
+    wText(header,'記帳總覽 · '+month+'月'+(s.unresolved?' ⚠':''),11,WC.ink,true);
     header.addSpacer(4);
     wText(header,'今日'+s.todayCount+'筆 · 本月'+s.txCount+'筆',11,WC.muted);
     widget.addSpacer(5);
@@ -1767,11 +1766,11 @@ function buildWidget(family=config.widgetFamily||'medium'){
     monthKpi.size=new Size(col,0);
     wText(monthKpi,'本月支出',11,WC.soft);
     wText(monthKpi,compactMoney(s.month),narrow?19:22,WC.mint,true);
-    widget.addSpacer(6);
+    widget.addSpacer(4);
     sectionLine(widget,'本月每日淨支出',Number(today().slice(8))+'日');
     widget.addSpacer(3);
-    addChart(widget,monthChartPoints(s.byDay),width,narrow?36:48);
-    widget.addSpacer(7);
+    addChart(widget,monthChartPoints(s.byDay),width,narrow?34:40);
+    widget.addSpacer(5);
     const analysis=widget.addStack();analysis.layoutHorizontally();analysis.spacing=space;
     const categories=analysis.addStack();categories.layoutVertically();categories.spacing=0;
     categories.size=new Size(col,0);
@@ -1794,11 +1793,10 @@ function buildWidget(family=config.widgetFamily||'medium'){
       payment.addSpacer(3);
       wText(payment,'本月退款 '+compactMoney(s.refundValue),11,WC.mint);
     }
-    widget.addSpacer(6);
+    widget.addSpacer(4);
     sectionLine(widget,'最近交易','最近'+Math.min(s.recent.length,narrow?2:3)+'筆');
     widget.addSpacer(3);
     addRecentRows(widget,s.recent,narrow?2:3,narrow?14:24);
-    if(s.unresolved){widget.addSpacer(3);widgetPending(widget,s);}
     return widget;
   }
   // iPad Extra Large: four complementary charts with transparent denominators.
