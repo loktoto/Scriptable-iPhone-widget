@@ -60,7 +60,7 @@ const boot='(async()=>{\n'+source.slice(0,cut)+
  assert.ok(html.includes('id="trendMonths" hidden'));
  assert.ok(html.includes('aria-label="顯示刪除操作"'));
  assert.ok(html.includes('touch-action:pan-y'));
- assert.ok(!html.includes('src=x onerror=alert(1)'),'Remark must be HTML-escaped');
+ assert.ok(!html.includes('<img src=x onerror=alert(1)>'),'Raw HTML tag must not be rendered');
  assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'));
  const scripts=/<script>([\s\S]*?)<\/script>/.exec(html);
  assert.ok(scripts,'Interactive dashboard script must exist');
