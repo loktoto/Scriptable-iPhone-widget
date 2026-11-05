@@ -18,13 +18,13 @@ for(const removed of ['function barsSVG(', 'function fmt(']){
 }
 assert.ok(src.includes('const r=Object.create(null);'),'Dictionary aggregation must avoid inherited keys');
 assert.ok(src.includes('const byDay=Object.create(null),byMonth=Object.create(null);'));
-assert.ok(src.includes('catCounts[category]=(catCounts[category]||0)+1;'),
+assert.ok(src.includes('catCount[cat]=(catCount[cat]||0)+1;'),
  'Canceling spend and refund must still count as activity');
 assert.match(src,/function widgetSummary\(\)/);
 assert.match(src,/if\(family==='small'\)/);
 assert.match(src,/if\(family==='medium'\)/);
 assert.match(src,/if\(family==='large'\)/);
-assert.match(src,/iPad extraLarge/);
+assert.match(src,/iPad Extra Large/);
 assert.match(src,/async function previewWidget\(\)/);
 assert.match(src,/if\(isPad\)choices\.push\('Extra Large/);
 assert.match(src,/function manualFormHTML\(/);
