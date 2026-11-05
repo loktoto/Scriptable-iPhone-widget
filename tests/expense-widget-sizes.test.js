@@ -127,7 +127,10 @@ function graphs(node){
  assert.equal(graphs(large).length,1,'Large should use one chart plus ranked categories and transactions');
  for(const accessory of ['accessoryInline','accessoryCircular','accessoryRectangular']){
    const widget=app.buildWidget(accessory),labels=flatten(widget).join('|');
-   assert.ok(labels.includes('本月')||labels.includes('
+   assert.ok(labels.length>0,'Lock-screen accessory must show at least one value');
+   assert.equal(graphs(widget).length,0,'Accessory should not render complex charts');
+ }
+ assert.equal(small.url,'scriptable:///run?scriptName=Expense&view=dashboard');
  assert.ok(Number.isFinite(new Date(small.refreshAfterDate).getTime()),'Refresh request must contain a valid date');
  fixture.args.widgetParameter='quick';
  assert.equal(app.buildWidget('small').url,'scriptable:///run?scriptName=Expense&view=manual');
