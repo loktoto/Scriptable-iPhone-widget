@@ -73,3 +73,13 @@ HK$200.30             [實心Pie Chart]
 - **Updated**：Small 今日優先、當月每日柱圖；Medium 左右分區；Large 更豐富 KPI+分類+付款+交易。
 - **Corrected**：今日筆數不再用本月筆數；Medium 不再用 Donut／堆疊條代替要求的實心 Pie；月份標籤與圖表時間跨度一致。
 - **New**：共用 Small/Medium-left 模組、實心 `makePieChart`、本月每日日期取樣函式、今日／本月數據回歸測試。
+
+
+## v3.22.1 UI 修正補充（2026-11-06）
+
+**證據：** 使用者提交 Medium 真機截圖，右邊 Pie 與圖例上下分離、分組鬆散；使用者明確要求取消 Medium／Large 標題「退款前」顯示。
+
+- **Medium:** `本月分類` 標題下，使用原生 `contentRow`；Pie 左，`legendBox` 右，兩者垂直置中，不再圖例獨占下半部。Pie 尺寸分別是 44pt（窄）與55pt（標準），間隔 6pt／8pt。分類多於3個時維持 Top 2 + 其他，字串只在 Widget 顯示層截短。
+- **Large:** 分類與付款標題改成「分類」「付款」；不改兩者圖形、總額或交易列表。
+- **重要數據語義：** 只從 Widget UI 隱藏「退款前」文字，並未改比例圖分母：分類與付款比例仍使用正向消費，而本月總額仍使用已換算 HKD 的扣退款淨支出。README／本規格保留完整解釋。
+- **驗收：** 純 Scriptable Mock 回歸檢查 Pie/legend 真正左右並排、字體至少 11pt、320pt／393pt 寬度測試、Large 標籤改動與資料庫保存不變。**實機 iOS Pixel QA 仍未執行。**

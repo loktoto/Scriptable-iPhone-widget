@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.22.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.22.1 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.22.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.22.1 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.22.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.22.1',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -682,7 +682,7 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
 @media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.wrap{padding-top:max(104px,calc(env(safe-area-inset-top,0px) + 60px))}}
 @media(prefers-reduced-motion:reduce){.tx-swipe-front{transition:none}}
   
-/* v3.22.0 — Research-informed, iPhone-first premium money dashboard.
+/* v3.22.1 — Research-informed, iPhone-first premium money dashboard.
    Explicitly authored after Apple HIG / NNGroup / Tableau / Carbon / WCAG review.
    No external fonts, libraries, logos, tracking or network resources. */
 :root{--bg:#0b101a;--panel:#131c2b;--panel2:#1c293b;--line:#29374b;--text:#f7f8ff;--muted:#9aa9bb;--blue:#a99bff;--green:#7ce5c0;--violet:#a897ff;--amber:#ffc688}
@@ -1619,6 +1619,26 @@ function addDonutLegend(parent,entries,gross,count=3,maxParts=4){
     wText(row,gross>0?Math.round(amount/gross*100)+'%':'—',11,WC.ink,true);
   });
 }
+// Compact Medium-only legend kept beside its Pie instead of below it.
+// Share denominator remains gross-positive spend; this is a display-only change.
+function addInlinePieLegend(parent,entries,gross,compact){
+  const parts=donutParts(entries,3);
+  if(!parts.length){wText(parent,'暫無分類',11,WC.subtle);return;}
+  const maxLabel=compact?2:3;
+  parts.forEach(([name,amount],i)=>{
+    const item=parent.addStack();item.layoutHorizontally();item.centerAlignContent();
+    const dot=item.addStack();dot.size=new Size(5,5);dot.cornerRadius=2;
+    dot.backgroundColor=new Color(WCOL[i%WCOL.length]);
+    item.addSpacer(3);
+    const category=String(name);
+    const shortName=category.length>maxLabel?
+      category.slice(0,maxLabel)+'…':category;
+    wText(item,shortName,11,WC.soft);
+    item.addSpacer(3);
+    wText(item,gross>0?Math.round(amount/gross*100)+'%':'—',11,WC.ink,true);
+    if(i<parts.length-1)parent.addSpacer(compact?3:5);
+  });
+}
 function recentTitle(t){
   const merchant=String(t.merchant||'').trim();
   if(merchant&&!/^(未提供商戶|unknown|null)$/i.test(merchant))return merchant;
@@ -1730,15 +1750,17 @@ function buildWidget(family=config.widgetFamily||'medium'){
     addTodayMonthPanel(left,s,half,compact?29:35,compact?19:21,true);
     const right=layout.addStack();right.layoutVertically();right.spacing=0;
     right.size=new Size(width-half-space,0);
-    sectionLine(right,'本月分類','退款前');
-    right.addSpacer(3);
-    const diameter=compact?53:65;
-    const pieContainer=right.addStack();pieContainer.layoutHorizontally();
-    pieContainer.addSpacer();
-    addPieChart(pieContainer,s.grossCats,diameter,3);
-    pieContainer.addSpacer();
-    right.addSpacer(5);
-    addDonutLegend(right,s.grossCats,s.gross,3,3);
+    sectionLine(right,'本月分類');
+    // Center Pie and categories as one visual group, not stacked far apart.
+    right.addSpacer(compact?12:15);
+    const contentRow=right.addStack();
+    contentRow.layoutHorizontally();contentRow.centerAlignContent();
+    const pieSize=compact?44:55;
+    const pieBox=contentRow.addStack();pieBox.layoutVertically();
+    addPieChart(pieBox,s.grossCats,pieSize,3);
+    contentRow.addSpacer(compact?6:8);
+    const legendBox=contentRow.addStack();legendBox.layoutVertically();legendBox.spacing=0;
+    addInlinePieLegend(legendBox,s.grossCats,s.gross,compact);
     return widget;
   }
   if(family==='large'){
@@ -1766,7 +1788,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const analysis=widget.addStack();analysis.layoutHorizontally();analysis.spacing=space;
     const categories=analysis.addStack();categories.layoutVertically();categories.spacing=0;
     categories.size=new Size(col,0);
-    sectionLine(categories,'分類 · 退款前');
+    sectionLine(categories,'分類');
     categories.addSpacer(4);
     const pieHolder=categories.addStack();pieHolder.layoutHorizontally();
     pieHolder.addSpacer();
@@ -1776,7 +1798,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     addDonutLegend(categories,s.grossCats,s.gross,narrow?2:3,4);
     const payment=analysis.addStack();payment.layoutVertically();payment.spacing=0;
     payment.size=new Size(col,0);
-    sectionLine(payment,'付款 · 退款前');
+    sectionLine(payment,'付款');
     payment.addSpacer(7);
     addStackedChart(payment,donutParts(s.grossPayments),col,15);
     payment.addSpacer(7);
@@ -1911,7 +1933,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.22.0',status,receipt,
+    version:'3.22.1',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1941,8 +1963,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.22.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.22.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.22.1] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.22.1] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1966,7 +1988,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.22.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.22.1] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -2075,7 +2097,7 @@ if (config.runsInWidget) {
     const source=quickFromTexts?'Texts':'Parameter';
     if (!config.runsInApp){
       recordShortcutAttempt('quick_requires_app',{inputType:'quick_manual',source});
-      emitShortcutReceipt('[EXPENSE-HK-v3.22.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
+      emitShortcutReceipt('[EXPENSE-HK-v3.22.1] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
     }else{
       recordShortcutAttempt('quick_opened',{inputType:'quick_manual',source});
       await addManual();
@@ -2092,7 +2114,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.22.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.22.1] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -2113,10 +2135,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.22.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.22.1',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.22.0',status:'error',receipt:'[EXPENSE-HK-v3.22.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.22.1',status:'error',receipt:'[EXPENSE-HK-v3.22.1] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

@@ -124,3 +124,9 @@ Small 7個原生星期字及有效記帳日熱度；Medium 兩類別名／佔比
 - iPad Extra Large：現有四圖完整保留。所有資料庫、快捷拍卡、手動輸入、Remark、左滑刪除、外幣待核對及 Numbers 欄位不變。
 
 [完整版面及資料語義規格](../../docs/EXPENSE_WIDGET_DESIGN_V3_22.md)
+
+
+## v3.22.1 — Medium Pie 間距／清爽標題
+- Medium 右側「本月分類」：**Pie Chart 放左、分類圖例放右**，圖形與比例行中線對齊；窄螢幕 Pie 44pt、一般 55pt，避免標籤被逼到最底。
+- Medium 及 Large 移除 UI 內的「退款前」字眼，**只改標題顯示**，分類／付款比例仍然以正向消費 gross 計算（退款會在淨額扣除）。
+- Tap Card、Shortcut、自訂付款名稱、交易資料庫、外幣、Remark、左滑刪除及 Numbers 維持原狀。
