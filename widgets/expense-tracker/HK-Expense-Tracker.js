@@ -1499,57 +1499,11 @@ function makeBarChart(points,width,height){
   });
   return canvas.getImage();
 }
-function makeMiniBar(width,ratio,color=WC.violet){
-  const c=new DrawContext();c.size=new Size(width,3);
-  c.respectScreenScale=true;c.opaque=false;
-  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,3));
-  if(ratio>0){
-    c.setFillColor(new Color(color));
-    c.fillRect(new Rect(0,0,Math.max(1,Math.min(width,width*ratio)),3));
-  }
-  return c.getImage();
-}
 function addChart(parent,points,width,height){
   const image=parent.addImage(makeBarChart(points,width,height));
   image.imageSize=new Size(width,height);image.applyFittingContentMode();
   return image;
 }
-function sevenDayHeatImage(points,width){
-  // Seven equal-width cells — NO misleading giant single-day spike.
-  const c=new DrawContext();c.size=new Size(width,12);
-  c.respectScreenScale=true;c.opaque=false;
-  const maximum=Math.max(.01,...points.map(p=>Math.abs(p.value)));
-  const pitch=width/7,box=Math.max(10,pitch-5);
-  points.forEach((p,i)=>{
-    const v=p.value;
-    c.setFillColor(new Color(v<0?WC.mint:(v>0?WC.violet:(p.active?WC.amber:WC.edge))));
-    const fraction=Math.abs(v)/maximum;
-    const fill=v===0?3:Math.max(6,box*fraction);
-    const start=i*pitch+(pitch-box)/2;
-    c.fillRect(new Rect(start,2,box,8));
-    if(v!==0&&fill<box){
-      c.setFillColor(new Color(WC.bg));
-      c.fillRect(new Rect(start+fill,2,box-fill,8));
-    }
-  });
-  return c.getImage();
-}
-function addSevenDayStrip(parent,points,width){
-  const i=parent.addImage(sevenDayHeatImage(points,width));
-  i.imageSize=new Size(width,12);i.applyFittingContentMode();
-  parent.addSpacer(2);
-  const days=['日','一','二','三','四','五','六'];
-  const row=parent.addStack();row.layoutHorizontally();
-  points.forEach((p,idx)=>{
-    const dt=dayBack(6-idx),date=new Date(+dt.slice(0,4),+dt.slice(5,7)-1,+dt.slice(8,10));
-    const cell=row.addStack();cell.layoutVertically();cell.centerAlignContent();
-    cell.size=new Size(width/7,0);
-    const t=wText(cell,days[date.getDay()],11,idx===6?WC.violet:WC.subtle,idx===6);
-    if(typeof t.centerAlignText==='function')t.centerAlignText();
-  });
-}
-// v3.20 chart primitives (native DrawContext / Path; no WebView or external SVG).
-const WCOL=['#AE9BFA','#7CDBC1','#F6C278','#71B9EF','#E3A0CB'];
 function createChart(w,h){
   const c=new DrawContext();c.size=new Size(w,h);
   c.respectScreenScale=true;c.opaque=false;return c;
@@ -1626,11 +1580,6 @@ function recentTitle(t){
   const category=categoryForDisplay(t),payment=paymentTypeOf(t);
   return [category&&category!=='未分類'?category:'交易',payment].filter(Boolean).join(' · ');
 }
-function paymentRemainder(s,n=2){
-  if(s.monthlyPayments.length<=n)return null;
-  const remain=Math.round((s.month-s.monthlyPayments.slice(0,n).reduce((a,p)=>a+p[1],0))*100)/100;
-  return Math.abs(remain)>=.005?remain:null;
-}
 function widgetWidth(family){
   let screen=390;try{screen=Device.screenSize().width||390;}catch(_){}
   if(family==='small')return screen<=320?121:screen<=375?128:screen<=393?138:149;
@@ -1642,32 +1591,6 @@ function sectionLine(parent,title,right=''){
   wText(row,title,11,WC.ink,true);
   row.addSpacer(4);
   if(right)wText(row,right,11,WC.subtle);
-}
-function widgetCard(parent,pad=7){
-  const c=parent.addStack();c.layoutVertically();
-  c.backgroundColor=new Color(WC.surface);c.cornerRadius=11;
-  c.setPadding(pad,pad,pad,pad);
-  return c;
-}
-function addSeparator(parent,width){
-  const rule=parent.addStack();rule.size=new Size(width,1);
-  rule.backgroundColor=new Color(WC.edge);
-}
-function addRankRows(parent,rows,count,width=120,showBars=true){
-  const max=Math.max(1,...rows.map(r=>Math.abs(r[1])));
-  if(!rows.length){wText(parent,'本月未有分類支出',11,WC.subtle);return 0;}
-  rows.slice(0,count).forEach(([name,value],idx)=>{
-    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
-    wText(row,name.length>9?name.slice(0,8)+'…':name,11,WC.soft);
-    row.addSpacer(4);wText(row,compactMoney(value),11,WC.ink,true);
-    if(showBars){
-      parent.addSpacer(2);
-      const img=parent.addImage(makeMiniBar(width,Math.abs(value)/max,idx===0?WC.violet:WC.mint));
-      img.imageSize=new Size(width,3);img.applyFittingContentMode();
-    }
-    if(idx<Math.min(count,rows.length)-1)parent.addSpacer(showBars?4:3);
-  });
-  return Math.min(count,rows.length);
 }
 function addPaymentRows(parent,rows,count){
   if(!rows.length){wText(parent,'未有付款方式',11,WC.subtle);return 0;}
@@ -1689,11 +1612,6 @@ function addRecentRows(parent,rows,count,labelMax=25){
     if(idx<count-1)parent.addSpacer(3);
   });
   return Math.min(count,rows.length);
-}
-function contextLine(s){
-  if(s.monthOnlyToday)return s.todayCount+'筆交易均在今日';
-  if(s.sevenActive>0)return '近7日 '+s.sevenActive+'個消費日';
-  return '近7日未有交易';
 }
 function simpleHeader(widget,month,transactions,label){
   const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
