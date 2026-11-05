@@ -42,7 +42,7 @@ async function exec(input,disk,texts=[]){
  assert.equal(a.requests,0);assert.equal(a.rows[0].amount,57);
  assert.equal(a.output.shouldAppendNumbers,true);
  assert.equal(a.audit.stage,'saved');
- assert.equal(a.audit.version,'3.8.1');
+ assert.equal(a.audit.version,'3.9.0');
  assert.equal(a.output.status,'saved');
  assert.equal(a.output.numbersRow.length,6);
  assert.equal(a.output.numbersRow[2],'Demo Restaurant');
