@@ -1611,11 +1611,11 @@ function addPieChart(parent,items,size,maxParts=4){
 }
 // Native mini charts: ranked payment meters and comparable signed net periods.
 function makeMeterBar(width,value,max,negative=false,colorIndex=0){
-  const c=createChart(width,6);
-  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,6));
+  const c=createChart(width,5);
+  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,5));
   if(max>0&&Math.abs(value)>0){
     c.setFillColor(new Color(negative?WC.mint:WCOL[colorIndex%WCOL.length]));
-    c.fillRect(new Rect(0,0,Math.max(1,Math.min(width,width*Math.abs(value)/max)),6));
+    c.fillRect(new Rect(0,0,Math.max(1,Math.min(width,width*Math.abs(value)/max)),5));
   }
   return c.getImage();
 }
@@ -1629,9 +1629,9 @@ function addPaymentMeterRows(parent,items,width,count=3,compact=false){
     wText(top,label.length>limit?label.slice(0,limit-1)+'…':label,11,WC.soft);
     top.addSpacer(3);
     wText(top,compactMoney(amount),11,WC.ink,true);
-    parent.addSpacer(2);
-    displayImage(parent,makeMeterBar(width,amount,max,false,i),width,6);
-    if(i<rows.length-1)parent.addSpacer(compact?3:5);
+    parent.addSpacer(1);
+    displayImage(parent,makeMeterBar(width,amount,max,false,i),width,5);
+    if(i<rows.length-1)parent.addSpacer(2);
   });
 }
 function addWeekComparison(parent,s,width,compact=false){
@@ -1641,10 +1641,10 @@ function addWeekComparison(parent,s,width,compact=false){
     const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
     wText(row,label,11,WC.subtle);row.addSpacer(4);
     const meterWidth=Math.max(24,width-(compact?128:135));
-    displayImage(row,makeMeterBar(meterWidth,value,max,value<0,i),meterWidth,6);
+    displayImage(row,makeMeterBar(meterWidth,value,max,value<0,i),meterWidth,5);
     row.addSpacer(4);
     wText(row,compactMoney(value),11,value<0?WC.mint:WC.soft,true);
-    if(i===0)parent.addSpacer(4);
+    if(i===0)parent.addSpacer(2);
   });
 }
 function addDonutLegend(parent,entries,gross,count=3,maxParts=4){
@@ -1811,30 +1811,30 @@ function buildWidget(family=config.widgetFamily||'medium'){
     wText(header,'記帳分析 · '+month+'月',11,WC.ink,true);
     header.addSpacer(5);
     wText(header,'今日'+s.todayRecordedCount+'筆 · 本月'+s.txCount+'筆'+(s.unresolved?' ⚠':''),11,WC.muted);
-    widget.addSpacer(narrow?3:4);
+    widget.addSpacer(narrow?2:3);
     const top=widget.addStack();top.layoutHorizontally();top.spacing=space;
     const todayCol=top.addStack();todayCol.layoutVertically();todayCol.spacing=2;
     todayCol.size=new Size(col,0);
     wText(todayCol,'今日',11,WC.soft);
-    wText(todayCol,compactMoney(s.today),narrow?18:21,WC.ink,true);
+    wText(todayCol,compactMoney(s.today),narrow?18:19,WC.ink,true);
     const monthCol=top.addStack();monthCol.layoutVertically();monthCol.spacing=2;
     monthCol.size=new Size(col,0);
     wText(monthCol,'本月',11,WC.soft);
-    wText(monthCol,compactMoney(s.month),narrow?18:21,WC.mint,true);
-    widget.addSpacer(narrow?4:6);
+    wText(monthCol,compactMoney(s.month),narrow?18:19,WC.mint,true);
+    widget.addSpacer(narrow?3:4);
     sectionLine(widget,'每日淨支出',month+'月1日 — 今日');
     widget.addSpacer(2);
-    addChart(widget,monthChartPoints(s.byDay),width,narrow?37:51);
+    addChart(widget,monthChartPoints(s.byDay),width,narrow?35:44);
     widget.addSpacer(2);
     addMonthAxis(widget);
-    widget.addSpacer(narrow?5:7);
+    widget.addSpacer(narrow?3:4);
     const analyses=widget.addStack();analyses.layoutHorizontally();analyses.spacing=space;
     const category=analyses.addStack();category.layoutVertically();category.spacing=0;
     category.size=new Size(col,0);
     sectionLine(category,'分類分佈');
     category.addSpacer(narrow?3:4);
     const pieRow=category.addStack();pieRow.layoutHorizontally();pieRow.centerAlignContent();
-    const diameter=narrow?55:73;
+    const diameter=narrow?53:65;
     addPieChart(pieRow,s.grossCats,diameter,3);
     pieRow.addSpacer(narrow?3:5);
     const legend=pieRow.addStack();legend.layoutVertically();
@@ -1842,13 +1842,13 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const payments=analyses.addStack();payments.layoutVertically();payments.spacing=0;
     payments.size=new Size(col,0);
     sectionLine(payments,'付款方式');
-    payments.addSpacer(narrow?3:5);
+    payments.addSpacer(3);
     addPaymentMeterRows(payments,s.grossPayments,col,narrow?2:3,narrow);
-    widget.addSpacer(narrow?5:8);
+    widget.addSpacer(narrow?3:4);
     sectionLine(widget,'7日對照');
     widget.addSpacer(3);
     addWeekComparison(widget,s,width,narrow);
-    widget.addSpacer(narrow?5:8);
+    widget.addSpacer(narrow?3:4);
     const recentCount=narrow?1:2;
     sectionLine(widget,'最近交易',String(Math.min(s.recent.length,recentCount))+'筆');
     widget.addSpacer(3);
