@@ -1,5 +1,23 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.17.0] — 2026-11-05
+
+### Visual redesign — all four Widget families
+- Redesigned Small, Medium, Large and iPad Extra Large together, responding to a real device screenshot of the previous Small that duplicated HK$200.30 across month/today/week and looked visually unbalanced.
+- **Small:** 7 native weekday labels and 7-day bar chart remain; visually compact 22pt month total; duplicate-aware secondary labels show "今日 本月全部" and "近7日 1日有紀錄" when otherwise the same HK$ amount would be repeated three times. Real amounts remain intact.
+- **Medium:** distinct left metrics / right 14-day chart with native end labels and compact footer showing the top spend category and most-used payment method.
+- **Large:** reorganized into a main KPI card, signed 14-day chart and two side-by-side analysis panels (top three categories and two payment methods/latest transactions), with a bounded layout for smaller iPhones.
+- **Extra Large:** new iPad analytic two-panel design with 30-day and six-month charts, top five spend categories, top three payment methods, six recent transactions in three columns and unresolved-FX status in the KPI header.
+- New consistent dark color tokens, restrained lavender/mint highlights, smaller rounded panels, readable native text, updated weekday bars with subtle zero-day markers and no mandatory third-party visual assets.
+- Shorter iPhone screen sizes receive height-aware Medium charts. Compact Large sections reduce clipping risk; iPad recent transaction columns reduce vertical scroll/overflow.
+- All amounts still use validated converted HKD; negative refunds and zero-net categories retain correct treatment. No edits to local JSON schema, quick entry, Tap Card automation, FX, remark/edit/delete, or Apple Numbers six-column output.
+
+### Validation / evidence
+- Reviewed the user's actual Small Widget screenshot and rebuilt the design hierarchy against current Apple HIG Widgets, Scriptable ListWidget/WidgetStack and data chart UX sources.
+- Added screenshot-matched test data (HK$200.30 repeated month/today/week), tests for seven real daily bars, seven native weekday labels, minimum font sizes and conservative Small/Medium/Large height budgets.
+- Existing widget view-tree tests, app routing, import, dashboard, edit, delete, compatibility, version mirror and source cleanliness checks remain required in CI.
+- Node mocks do not perform native iPhone/iPad pixel rendering. Actual Scriptable previews remain necessary for final visual acceptance.
+
 ## [3.16.0] — 2026-11-05
 
 ### Corrected regression — Small Widget 7-day expenses restored
