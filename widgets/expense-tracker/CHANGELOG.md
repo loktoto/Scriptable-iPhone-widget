@@ -7,7 +7,7 @@
 - **Small:** one legible month-spend KPI, seven-day signed micro bars and highest gross-spend category share (1 chart). No triple repetition of a single HKD amount.
 - **Medium:** 14-day net-spending micro chart + gross category stacked-composition bar (2 charts), always retains time context even if only one recorded day.
 - **Large:** 14-day signed bars, true category donut rendered via native Scriptable `Path`, and payment composition stacked bars (3 charts), plus 1–2 recent transactions.
-- **Extra Large (iPad):** 30-day daily net bars, six-month monthly net bars, category donut and payment stacked bar (4 charts), six recent transactions in three columns.
+- **Extra Large (iPad):** 30-day daily net bars, six-month monthly net bars, category donut and payment stacked bar (4 charts), up to six recent transactions in three columns (three on the smallest iPads).
 - **Accounting semantics:** category/payment ratios use **positive gross charges before refunds**, with separate net monthly total and refund amount; prevents impossible negative donut wedges. All charts exclude pending currency conversion, preserve signed net refunds and use the existing canonical 食飯 display label.
 - Removed unused helpers inherited from previous widget design generations. No new third-party libraries, WebView, API calls, cloud storage or JSON schema migrations.
 
