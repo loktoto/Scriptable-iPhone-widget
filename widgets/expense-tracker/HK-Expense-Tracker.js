@@ -1579,8 +1579,8 @@ function donutParts(entries,max=4){
   return [...positive.slice(0,max-1),
     ['其他',positive.slice(max-1).reduce((a,x)=>a+x[1],0)]];
 }
-function makeDonutChart(items,size,solid=false){
-  const c=createChart(size,size),parts=donutParts(items);
+function makeDonutChart(items,size,solid=false,maxParts=4){
+  const c=createChart(size,size),parts=donutParts(items,maxParts);
   const total=parts.reduce((sum,x)=>sum+x[1],0);
   const mid=size/2,r=size*.47,hole=size*.29;
   c.setFillColor(new Color(WC.edge));
@@ -1609,14 +1609,14 @@ function makeDonutChart(items,size,solid=false){
 function addDonutChart(parent,items,size){
   return displayImage(parent,makeDonutChart(items,size),size,size);
 }
-function makePieChart(items,size){
-  return makeDonutChart(items,size,true);
+function makePieChart(items,size,maxParts=4){
+  return makeDonutChart(items,size,true,maxParts);
 }
-function addPieChart(parent,items,size){
-  return displayImage(parent,makePieChart(items,size),size,size);
+function addPieChart(parent,items,size,maxParts=4){
+  return displayImage(parent,makePieChart(items,size,maxParts),size,size);
 }
-function addDonutLegend(parent,entries,gross,count=3){
-  const parts=donutParts(entries);
+function addDonutLegend(parent,entries,gross,count=3,maxParts=4){
+  const parts=donutParts(entries,maxParts);
   if(!parts.length){wText(parent,'尚無消費',11,WC.subtle);return;}
   parts.slice(0,count).forEach(([name,amount],i)=>{
     const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
@@ -1683,6 +1683,23 @@ function simpleHeader(widget,month,transactions,label){
 function widgetPending(widget,s){
   if(s.unresolved)wText(widget,'⚠ '+s.unresolved+'筆日期／匯率待核對',11,WC.amber);
 }
+
+function addTodayMonthPanel(parent,s,width,chartH,heroSize=22,axis=true){
+  // One reusable information model for Small + Medium-left.
+  // Top count is the number of TODAY'S successfully HKD-resolved transactions.
+  const header=parent.addStack();header.layoutHorizontally();header.centerAlignContent();
+  wText(header,'今日支出',11,WC.soft,true);header.addSpacer(3);
+  wText(header,s.todayCount+'筆',11,WC.subtle);
+  parent.addSpacer(4);
+  wText(parent,compactMoney(s.today),heroSize,WC.ink,true);
+  parent.addSpacer(5);
+  sectionLine(parent,'本月支出',compactMoney(s.month));
+  parent.addSpacer(4);
+  const days=monthChartPoints(s.byDay);
+  // Calendar-month daily monetary bars, not the old last-seven-day chart.
+  addChart(parent,days,width,chartH);
+  if(axis){parent.addSpacer(2);addMonthAxis(parent);}
+}
 function buildWidget(family=config.widgetFamily||'medium'){
   const s=widgetSummary(),widget=new ListWidget();
   const quick=String(args.widgetParameter||'').trim().toLowerCase()==='quick';
@@ -1704,84 +1721,81 @@ function buildWidget(family=config.widgetFamily||'medium'){
   }
   const width=widgetWidth(family),month=Number(today().slice(5,7));
   if(family==='small'){
-    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 支出');
-    widget.addSpacer(4);
-    wText(widget,compactMoney(s.month),23,WC.ink,true);
-    widget.addSpacer(4);
-    sectionLine(widget,s.sevenActive<=2?'近7日 · 記帳日':'近7日 · 淨支出',s.sevenActive+'／7日');
-    widget.addSpacer(2);
-    addContextChart(widget,chartPoints(s.byDay,7),width,23,s.sevenActive);
-    addWeekdayAxis(widget,width);
-    widget.addSpacer(4);
-    const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
-    wText(row,'最多分類',11,WC.subtle);row.addSpacer(4);
-    const best=s.grossCats[0];
-    wText(row,best&&s.gross>0?best[0]+' '+Math.round(best[1]/s.gross*100)+'%':'暫無支出',
-      11,WC.mint,true);
+    // Today first, month-to-date second. The former "largest category" row is gone.
+    const short=width<=121;
+    addTodayMonthPanel(widget,s,width,short?31:42,short?21:24,true);
+    if(s.unresolved){widget.addSpacer(2);widgetPending(widget,s);}
     return widget;
   }
   if(family==='medium'){
-    const narrow=width<280;
-    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 趨勢');
-    widget.addSpacer(3);
-    const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
-    wText(hero,compactMoney(s.month),narrow?21:23,WC.ink,true);
-    hero.addSpacer(6);
-    wText(hero,s.monthOnlyToday?'全部在今日':s.fourteenActive+'個消費日',11,WC.mint);
-    widget.addSpacer(3);
-    sectionLine(widget,s.fourteenActive<=2?'14日 · 記帳日分佈':'14日 · 每日淨額',
-      s.fourteenActive+'／14日');
-    widget.addSpacer(2);
-    addContextChart(widget,chartPoints(s.byDay,14),width,narrow?23:32,s.fourteenActive);
-    widget.addSpacer(3);
-    addStackedChart(widget,donutParts(s.grossCats),width,9);
-    widget.addSpacer(3);
-    const footer=widget.addStack();footer.layoutHorizontally();footer.centerAlignContent();
-    wText(footer,'分類',11,WC.subtle);footer.addSpacer(5);
-    const categories=s.grossCats.slice(0,2);
-    if(!categories.length)wText(footer,'暫無支出',11,WC.muted);
-    categories.forEach(([name,value],index)=>{
-      if(index)footer.addSpacer(8);
-      wText(footer,String(name).slice(0,5)+' '+Math.round(value/s.gross*100)+'%',
-        11,index===0?WC.violet:WC.mint,true);
-    });
+    // Left mirrors Small; the RIGHT half is a true solid category PIE.
+    const compact=width<295,space=9;
+    const half=Math.floor((width-space)/2);
+    const layout=widget.addStack();layout.layoutHorizontally();layout.spacing=space;
+    const left=layout.addStack();left.layoutVertically();left.spacing=0;left.size=new Size(half,0);
+    addTodayMonthPanel(left,s,half,compact?29:35,compact?19:21,true);
+    const right=layout.addStack();right.layoutVertically();right.spacing=0;
+    right.size=new Size(width-half-space,0);
+    sectionLine(right,'本月分類');
+    right.addSpacer(3);
+    const diameter=compact?53:65;
+    const pieContainer=right.addStack();pieContainer.layoutHorizontally();
+    pieContainer.addSpacer();
+    addPieChart(pieContainer,s.grossCats,diameter,3);
+    pieContainer.addSpacer();
+    right.addSpacer(5);
+    addDonutLegend(right,s.grossCats,s.gross,3,3);
     return widget;
   }
   if(family==='large'){
-    const narrow=width<290,col=Math.floor((width-8)/2);
-    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'支出分析 · '+month+'月');
-    widget.addSpacer(4);
-    const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
-    wText(hero,compactMoney(s.month),23,WC.ink,true);
-    hero.addSpacer(7);
-    wText(hero,s.refunds?'退款 '+s.refunds+'筆':'近7日 '+s.sevenActive+'日',11,WC.mint);
-    widget.addSpacer(4);
-    sectionLine(widget,s.fourteenActive<=2?'14日記帳日分佈':'14日每日淨支出',
-      s.fourteenActive+'／14日');
-    widget.addSpacer(2);
-    addContextChart(widget,chartPoints(s.byDay,14),width,narrow?30:40,s.fourteenActive);
+    // Two separate money KPIs, monthly trend, real pie, payment mix, transaction detail.
+    const narrow=width<290,space=9,col=Math.floor((width-space)/2);
+    const header=widget.addStack();header.layoutHorizontally();header.centerAlignContent();
+    wText(header,'記帳總覽 · '+month+'月',11,WC.ink,true);
+    header.addSpacer(4);
+    wText(header,'今日'+s.todayCount+'筆 · 本月'+s.txCount+'筆',11,WC.muted);
+    widget.addSpacer(5);
+    const kpis=widget.addStack();kpis.layoutHorizontally();kpis.spacing=space;
+    const todayKpi=kpis.addStack();todayKpi.layoutVertically();todayKpi.spacing=3;
+    todayKpi.size=new Size(col,0);
+    wText(todayKpi,'今日支出',11,WC.soft);
+    wText(todayKpi,compactMoney(s.today),narrow?19:22,WC.ink,true);
+    const monthKpi=kpis.addStack();monthKpi.layoutVertically();monthKpi.spacing=3;
+    monthKpi.size=new Size(col,0);
+    wText(monthKpi,'本月支出',11,WC.soft);
+    wText(monthKpi,compactMoney(s.month),narrow?19:22,WC.mint,true);
+    widget.addSpacer(6);
+    sectionLine(widget,'本月每日淨支出',Number(today().slice(8))+'日');
+    widget.addSpacer(3);
+    addChart(widget,monthChartPoints(s.byDay),width,narrow?36:48);
     widget.addSpacer(7);
-    const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=8;
-    const left=panels.addStack();left.layoutVertically();left.size=new Size(col,0);
-    sectionLine(left,'分類 · 退款前');
-    left.addSpacer(5);
-    const ring=left.addStack();ring.layoutHorizontally();ring.centerAlignContent();
-    const size=narrow?59:75;
-    addDonutChart(ring,s.grossCats,size);
-    ring.addSpacer(4);
-    const legend=ring.addStack();legend.layoutVertically();legend.spacing=2;
-    addDonutLegend(legend,s.grossCats,s.gross,4);
-    const right=panels.addStack();right.layoutVertically();right.size=new Size(col,0);
-    sectionLine(right,'付款 · 退款前');
-    right.addSpacer(8);
-    addStackedChart(right,donutParts(s.grossPayments),col,15);
-    right.addSpacer(6);
-    addPaymentRows(right,s.grossPayments,narrow?2:3);
-    widget.addSpacer(7);
+    const analysis=widget.addStack();analysis.layoutHorizontally();analysis.spacing=space;
+    const categories=analysis.addStack();categories.layoutVertically();categories.spacing=0;
+    categories.size=new Size(col,0);
+    sectionLine(categories,'分類 · 退款前');
+    categories.addSpacer(4);
+    const pieHolder=categories.addStack();pieHolder.layoutHorizontally();
+    pieHolder.addSpacer();
+    addPieChart(pieHolder,s.grossCats,narrow?51:65,4);
+    pieHolder.addSpacer();
+    categories.addSpacer(3);
+    addDonutLegend(categories,s.grossCats,s.gross,narrow?2:3,4);
+    const payment=analysis.addStack();payment.layoutVertically();payment.spacing=0;
+    payment.size=new Size(col,0);
+    sectionLine(payment,'付款 · 退款前');
+    payment.addSpacer(7);
+    addStackedChart(payment,donutParts(s.grossPayments),col,15);
+    payment.addSpacer(7);
+    addPaymentRows(payment,s.grossPayments,narrow?2:3);
+    if(s.refundValue>0){
+      payment.addSpacer(3);
+      wText(payment,'本月退款 '+compactMoney(s.refundValue),11,WC.mint);
+    }
+    widget.addSpacer(6);
     sectionLine(widget,'最近交易','最近'+Math.min(s.recent.length,narrow?2:3)+'筆');
     widget.addSpacer(3);
-    addRecentRows(widget,s.recent,narrow?2:3,narrow?13:21);
-    if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
+    addRecentRows(widget,s.recent,narrow?2:3,narrow?14:24);
+    if(s.unresolved){widget.addSpacer(3);widgetPending(widget,s);}
     return widget;
   }
   // iPad Extra Large: four complementary charts with transparent denominators.
