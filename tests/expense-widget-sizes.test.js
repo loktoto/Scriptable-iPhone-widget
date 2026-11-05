@@ -169,6 +169,8 @@ function graphs(node){
    assert.ok(textNodes(w).every(x=>x.font?.size>=11),'No small text shrinking below 11pt');
  console.log('393pt heights (Small/Medium/Large)',estimatedHeight(small),
    estimatedHeight(medium),estimatedHeight(large));
+ console.log('Small block heights',small.children.map((x,i)=>[i,estimatedHeight(x),flatten(x).slice(0,2)]));
+ console.log('Large block heights',large.children.map((x,i)=>[i,estimatedHeight(x),flatten(x).slice(0,2)]));
  assert.ok(estimatedHeight(small)<=158);
  assert.ok(estimatedHeight(medium)<=158);
  assert.ok(estimatedHeight(large)<=354);
