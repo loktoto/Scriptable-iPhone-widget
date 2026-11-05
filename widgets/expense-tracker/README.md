@@ -80,3 +80,8 @@ Small：22pt 主金額＋7日柱圖＋7個原生星期字；同額（例如本�
 **安裝：** 用最新 `widgets/expense-tracker/HK-Expense-Tracker.js` 完整覆蓋 Scriptable `Expense.js`，執行「👀 預覽 Widget 尺寸」逐一檢視，保持原本 Widget 關聯 script 名稱。冇改 Tap Card、transactions.json、Numbers 或 FX。
 
 [研究與 Screenshot Root Cause](../../docs/EXPENSE_WIDGET_VISUAL_REDESIGN_V3_17.md)
+
+### v3.18.0 — 真實截圖問題全面修正（Small／Medium／Large／iPad XL）
+先檢查使用者提交之 PDF 三張 Widget 實際畫面：Large 下方長空白、兩張窄卡文字難讀；Medium 同一 HK$200.30 出現 3 次；Small 七日圖需兼顧清晰與空間。今次 Large 提供**全寬最多四筆最近交易**，Medium 加入**14 日活躍日數＋最重要分類／付款方式**，而 Small 依據**實際交易日期**判斷是否「全部在今日」；另有 Ipad XL 改善。版面按稀疏／非稀疏資料自動縮放；付款方式 Top 2 之外會顯示「其餘」真正金額。全部沿用同一交易資料庫同 Shortcut。
+
+[104 新來源＋實機截圖根因及驗收清單](../../docs/EXPENSE_WIDGET_SCREENSHOT_RESEARCH_104_V3_18.md)（索引不是 104 項獨立實驗）。

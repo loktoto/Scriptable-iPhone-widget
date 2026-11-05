@@ -1,5 +1,21 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.18.0] — 2026-11-05
+
+### Corrected — Screenshot-first visual acceptance
+- Reopened the actual user-submitted one-page PDF with Small/Large/Medium Widget screenshots. The earlier v3.17 CI passed without detecting that Large left approximately the lower quarter to third visually empty, Medium displayed HK$200.30 three times, and important category/merchant text was cramped.
+- **Small:** keeps seven actual daily buckets, 7 native weekday labels and the primary monthly HKD value. Date-based `monthOnlyToday` replaces the unsafe assumption that equal *net sums* mean every transaction occurred today (offsetting prior refund edge case).
+- **Medium:** eliminates repeated month/today/week HKD when all records are from today. Shows 14-day chart with active-day count and explicit best category/payment information, using room for useful text rather than an empty half-chart.
+- **Large:** restores full-width recent transactions (up to 4 on normal iPhones, 2 on very narrow screens) instead of a cramped half-column list. Adapts chart height to sparse activity and shows separate Top 3 categories, Top 2 payment methods, and calculated **other payment remainder** (HK$15.30 in the synthetic screenshot example).
+- **Extra Large (iPad):** uses contextual amounts to avoid triple-value duplication, retains two charts, Top 5 categories, Top 3 payments and six recent transactions. Layout has not been validated on a real iPad.
+- When the stored MerchantName is blank or "未提供商戶", recent Widget rows now display a meaningful Merchant Type / payment label fallback *without writing a guessed merchant into the database*.
+
+### Research / governance
+- Independently rebuilt `docs/EXPENSE_WIDGET_SCREENSHOT_RESEARCH_104_V3_18.md` with **104 additional unique official design-system reference URLs** not in either old 100-source list. Distinguishes direct primary-source reviews from official-index reference entries: not all 104 pages were read and none is misrepresented as 104 independent empirical trials.
+- Added regression checks for partial refunds, equal-value-but-different-day cases, top-two payment remainder, null merchant label fallback, and Small/Medium/Large size limits.
+- Preserved all tap-to-record, manual, FX, refunds, 12 categories (食飯), flexible payment names, local JSON and Numbers six-column fields. No telemetry, external images, new APIs or database migration.
+- Running tests cannot establish **real-device pixel-perfect appearance**. iPhone/iPad Scriptable preview screenshots remain the release acceptance evidence.
+
 ## [3.17.0] — 2026-11-05
 
 ### Visual redesign — all four Widget families

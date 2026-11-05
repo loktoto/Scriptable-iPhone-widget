@@ -41,6 +41,8 @@ jobs:
         run: node tests/expense-source-cleanliness.test.js
       - name: Validate 100-source Widget readability research provenance
         run: node tests/expense-widget-research-v3-16.test.js
+      - name: Validate additional 104-source visual audit and source provenance
+        run: node tests/expense-widget-research-v3-18.test.js
       - name: Enforce independent versions, changelogs and mirror parity
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
