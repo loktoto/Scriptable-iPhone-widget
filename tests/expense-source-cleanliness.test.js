@@ -24,7 +24,11 @@ assert.match(src,/function widgetSummary\(\)/);
 assert.ok(src.includes('grossCats:'),'Donut must use gross positive spending, not signed net totals');
 assert.match(src,/function makeDonutChart\(/);
 assert.match(src,/function makeStackedChart\(/);
-assert.match(src,/addDonutChart\(ring,s\.grossCats/);
+assert.match(src,/function makePieChart\(/);
+assert.match(src,/addPieChart\(pieContainer,s\.grossCats/);
+assert.match(src,/addPieChart\(pieHolder,s\.grossCats/);
+assert.ok(src.includes('return makeDonutChart(items,size,true,maxParts)'),
+ 'Medium and Large category pies must be full solid pies, never hollow Donuts');
 assert.match(src,/addStackedChart\(right,donutParts\(s\.grossPayments/);
 
 assert.match(src,/if\(family==='small'\)/);
