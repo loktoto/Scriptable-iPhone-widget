@@ -1,5 +1,27 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.11.0] — 2026-11-05
+
+### Added
+- Full-screen, dark, mobile-first **手動支出記錄** in Scriptable, patterned after a category-grid expense journal.
+- Date previous/next navigation and native date picker, merchant/record text, numeric nonzero amount (negative refund support), currency selector, time, and payment method (cash / Octopus / FPS / bank transfer / manually entered card).
+- Twelve tappable 3-column colored vector-icon categories: 飲食、日用品、衣服、娛樂、水電、交通、投資、旅行、醫療、訂閱、進修、運動.
+- Both the Scriptable **➕ 手動記帳** menu and Dashboard **＋ 手動記帳** button open the same interface. The editor and delete actions remain functional.
+
+### Persistence and safety
+- Writes valid non-tap-card entries into the existing `ExpenseTrackerHK/transactions.json` using the existing save, backup, de-duplication and disk read-back verification pipeline.
+- Explicitly selected category takes precedence over merchant automatic classification. Saves source=`Manual`, selected payment source and transaction date/time.
+- Rejects zero, empty, invalid amount or date, and unsupported currency; negative amounts remain valid refunds.
+- Reloads the current on-disk database before inserting, preserving concurrent Shortcuts transactions; one form submission has a stable idempotency token.
+- Does not call the network during saving; foreign currencies remain `pending` for optional in-app conversion.
+- WebView requests use fixed internal .invalid paths without user form values; Scriptable reads inputs from the active local WebView. External URL navigation is blocked.
+- A successful save resets the form, provides a success receipt, and shares the same ledger as Dashboard/Widgets.
+- **Apple Numbers** rows are separate and are not automatically appended for manually entered transactions.
+
+### Validation
+- Automated offline tests cover the visual HTML, calendar/category controls, manual validation, cash/refund/FX, unique IDs, idempotency, concurrent Shortcut append, and disk read-back; prior import/edit/delete tests remain.
+- Actual on-device interactive WebView rendering and button behavior require iPhone verification.
+
 ## [3.10.0] — 2026-11-05
 
 ### Added

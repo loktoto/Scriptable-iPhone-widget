@@ -23,6 +23,8 @@ jobs:
         run: node tests/expense-dashboard-edit.test.js
       - name: Test swipe-to-delete and safe transaction removal
         run: node tests/expense-dashboard-delete.test.js
+      - name: Test manual expense entry and visual form
+        run: node tests/expense-manual-entry.test.js
       - name: Enforce independent versions, changelogs and mirror parity
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
