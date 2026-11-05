@@ -1428,6 +1428,7 @@ function widgetSummary(){
   const now=today(),monthKey=monthStart(now),since7=dayBack(6),since30=dayBack(29);
   const byDay=Object.create(null),byMonth=Object.create(null);
   const cats=Object.create(null),pays=Object.create(null);
+  const catCounts=Object.create(null),payCounts=Object.create(null);
   let month=0,todayValue=0,last7=0,last30=0,txCount=0,unresolved=0,refunds=0;
   for(const t of db.transactions){
     if(!validDate(t.date)||!Number.isFinite(t.amountHKD)){unresolved++;continue;}
@@ -1444,8 +1445,12 @@ function widgetSummary(){
     const payment=paymentTypeOf(t)||'未指定';
     cats[category]=(cats[category]||0)+v;
     pays[payment]=(pays[payment]||0)+v;
+    catCounts[category]=(catCounts[category]||0)+1;
+    payCounts[payment]=(payCounts[payment]||0)+1;
   }
-  const sortEntries=dict=>Object.entries(dict).filter(([,v])=>Math.abs(v)>0.005)
+  // A category with a purchase and a matching refund is ACTIVE, net HK$0:
+  // don't mislabel it as "no data" merely because its signed sum cancels out.
+  const sortEntries=(dict,counts)=>Object.entries(dict).filter(([name])=>counts[name]>0)
     .sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
   const recent=db.transactions.slice()
     .sort((a,b)=>String(b.transactionTime||b.date||b.createdAt||'')
@@ -1457,8 +1462,8 @@ function widgetSummary(){
   const round=n=>Math.round(n*100)/100;
   return {
     month:round(month),today:round(todayValue),last7:round(last7),last30:round(last30),
-    txCount,unresolved,refunds,byDay,monthlyCats:sortEntries(cats),
-    monthlyPayments:sortEntries(pays),recent,sixMonths
+    txCount,unresolved,refunds,byDay,monthlyCats:sortEntries(cats,catCounts),
+    monthlyPayments:sortEntries(pays,payCounts),recent,sixMonths
   };
 }
 function chartPoints(byDay,count){
