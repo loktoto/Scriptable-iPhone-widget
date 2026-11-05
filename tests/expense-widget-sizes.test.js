@@ -120,7 +120,8 @@ function graphs(node){
  const suite=createTestSuite(),app=await vm.runInContext(suite.boot,suite.ctx);
  const summary=app.widgetSummary();
  assert.equal(summary.today,85,'Today is 57+16+12');
- assert.equal(summary.todayCount,3,'Header count is TODAY, not month count');
+ assert.equal(summary.todayCount,3,'Today's resolved-HKD transactions');
+ assert.equal(summary.todayRecordedCount,3,'Header count is TODAY, not month count');
  assert.equal(summary.month,218,'Monthly net amount includes refunds');
  assert.equal(summary.txCount,8);
  assert.equal(summary.gross,228);
@@ -150,7 +151,8 @@ function graphs(node){
  assert.ok(sm.includes('1日')&&sm.includes('日（今日）'),'Monthly daily axis labels actual dates');
  assert.ok(md.includes('今日支出')&&md.includes('HK$85.00'));
  assert.ok(md.includes('本月支出')&&md.includes('HK$218.00'));
- assert.ok(md.includes('本月分類'));
+ assert.ok(md.includes('本月分類')&&md.includes('退款前'));
+
  assert.equal(drawImages(medium).length,2,'Medium must be LEFT Small+RIGHT solid category PIE');
  const pie=drawImages(medium)[1];
  assert.ok(pie.draws.some(x=>x.type==='fill-path'),'Pie must have colored sector paths');
@@ -228,6 +230,15 @@ function graphs(node){
  const crossSuite=createTestSuite(cross),crossApp=await vm.runInContext(crossSuite.boot,crossSuite.ctx);
  assert.equal(crossApp.widgetSummary().month,200.3);
  assert.equal(crossApp.widgetSummary().monthOnlyToday,false);
+ const pendingNow=[...rows,{...rows[8],id:'pending-today',date:today}];
+ const fxSuite=createTestSuite(pendingNow),fxApp=await vm.runInContext(fxSuite.boot,fxSuite.ctx);
+ assert.equal(fxApp.widgetSummary().todayRecordedCount,4,
+   'Today's recorded non-zero transaction count includes a pending FX charge');
+ assert.equal(fxApp.widgetSummary().todayCount,3,
+   'Today's resolved-HKD count excludes the unconverted foreign amount');
+ assert.equal(fxApp.widgetSummary().today,85,'Pending FX never contaminates HKD spend');
+ assert.ok(flatten(fxApp.buildWidget('small')).join('|').includes('4筆 ⚠'),
+   'A pending entry increases today count but must retain a warning');
  const tinySuite=createTestSuite(rows,false);
  tinySuite.ctx.Device.screenSize=()=>({width:320});
  const tiny=await vm.runInContext(tinySuite.boot,tinySuite.ctx);
