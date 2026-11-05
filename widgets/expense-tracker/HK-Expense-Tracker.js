@@ -1562,7 +1562,7 @@ function recentTitle(t){
   // Display-only fallback; never overwrite the user's stored merchant.
   return [category&&category!=='未分類'?category:'交易',payment].filter(Boolean).join(' · ');
 }
-function addRecentRows(parent,items,maxRows,maxMerchant=25){
+function addRecentRows(parent,items,maxRows,maxMerchant=25,rowGap=4){
   if(!items.length){wText(parent,'本月暫無交易',11,WC.muted);return 0;}
   items.slice(0,maxRows).forEach((t,i)=>{
     const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
@@ -1570,7 +1570,7 @@ function addRecentRows(parent,items,maxRows,maxMerchant=25){
     wText(row,text.slice(0,maxMerchant),11,WC.secondary);
     row.addSpacer(4);
     wText(row,compactCurrency(t),11,t.amount<0?WC.green:WC.primary,true);
-    if(i<Math.min(items.length,maxRows)-1)parent.addSpacer(4);
+    if(i<Math.min(items.length,maxRows)-1)parent.addSpacer(rowGap);
   });
   return Math.min(maxRows,items.length);
 }
@@ -1744,10 +1744,10 @@ function buildWidget(family=config.widgetFamily||'medium'){
   }
   if(family==='large'){
     const narrow=width<300;
-    const chartH=narrow?23:(summary.fourteenActive<=1?25:31);
+    const chartH=narrow?21:(summary.fourteenActive<=1?23:28);
     widgetHeading(widget,quick?'＋ 快速記帳':'開支總覽',monthText+' · '+summary.txCount+'筆');
     widget.addSpacer(4);
-    const hero=widgetCard(widget,WC.panelAlt,narrow?6:8);
+    const hero=widgetCard(widget,WC.panelAlt,6);
     const heroRow=hero.addStack();heroRow.layoutHorizontally();heroRow.centerAlignContent();
     const amount=heroRow.addStack();amount.layoutVertically();amount.spacing=2;
     wText(amount,'本月淨支出',11,WC.secondary);
@@ -1776,7 +1776,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const maxRecent=narrow?2:4;
     widgetSection(widget,'最近交易',summary.recent.length?'最新'+Math.min(summary.recent.length,maxRecent)+'筆':'');
     widget.addSpacer(4);
-    addRecentRows(widget,summary.recent,maxRecent,narrow?15:26);
+    addRecentRows(widget,summary.recent,maxRecent,narrow?15:26,2);
     if(summary.unresolved){
       widget.addSpacer(4);widgetPending(widget,summary);
     }
