@@ -1572,17 +1572,19 @@ function addSeparator(parent,width){
   const rule=parent.addStack();rule.size=new Size(width,1);
   rule.backgroundColor=new Color(WC.edge);
 }
-function addRankRows(parent,rows,count,width=120){
+function addRankRows(parent,rows,count,width=120,showBars=true){
   const max=Math.max(1,...rows.map(r=>Math.abs(r[1])));
   if(!rows.length){wText(parent,'本月未有分類支出',11,WC.subtle);return 0;}
   rows.slice(0,count).forEach(([name,value],idx)=>{
     const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
     wText(row,name.length>9?name.slice(0,8)+'…':name,11,WC.soft);
     row.addSpacer(4);wText(row,compactMoney(value),11,WC.ink,true);
-    parent.addSpacer(2);
-    const img=parent.addImage(makeMiniBar(width,Math.abs(value)/max,idx===0?WC.violet:WC.mint));
-    img.imageSize=new Size(width,3);img.applyFittingContentMode();
-    if(idx<count-1)parent.addSpacer(4);
+    if(showBars){
+      parent.addSpacer(2);
+      const img=parent.addImage(makeMiniBar(width,Math.abs(value)/max,idx===0?WC.violet:WC.mint));
+      img.imageSize=new Size(width,3);img.applyFittingContentMode();
+    }
+    if(idx<Math.min(count,rows.length)-1)parent.addSpacer(showBars?4:3);
   });
   return Math.min(count,rows.length);
 }
@@ -1710,12 +1712,12 @@ function buildWidget(family=config.widgetFamily||'medium'){
     widget.addSpacer(7);addSeparator(widget,width);widget.addSpacer(6);
     sectionLine(widget,'分類支出',s.monthlyCats.length+'種');
     widget.addSpacer(5);
-    addRankRows(widget,s.monthlyCats,narrow?2:3,width);
+    addRankRows(widget,s.monthlyCats,narrow?2:3,width,false);
     widget.addSpacer(7);addSeparator(widget,width);widget.addSpacer(6);
     sectionLine(widget,'付款方式');
     widget.addSpacer(4);
-    addPaymentRows(widget,s.monthlyPayments,narrow?2:3);
-    const rem=paymentRemainder(s,narrow?2:3);
+    addPaymentRows(widget,s.monthlyPayments,narrow?1:2);
+    const rem=paymentRemainder(s,narrow?1:2);
     if(rem!==null){
       const other=widget.addStack();other.layoutHorizontally();
       wText(other,'其餘',11,WC.subtle);other.addSpacer();
@@ -1724,7 +1726,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     widget.addSpacer(6);addSeparator(widget,width);widget.addSpacer(6);
     sectionLine(widget,'最近交易',s.recent.length+'筆');
     widget.addSpacer(3);
-    addRecentRows(widget,s.recent,narrow?2:4,narrow?15:23);
+    addRecentRows(widget,s.recent,narrow?2:(s.monthlyCats.length<=2?4:3),narrow?15:23);
     if(s.unresolved){
       widget.addSpacer(3);widgetPending(widget,s);
     }
