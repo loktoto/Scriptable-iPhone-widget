@@ -1560,7 +1560,7 @@ function widgetWidth(family){
 function widgetHeading(widget,title,date){
   const head=widget.addStack();head.layoutHorizontally();head.centerAlignContent();
   wText(head,title,11,WC.primary,true);head.addSpacer();
-  wText(head,date,9,WC.muted);
+  wText(head,date,11,WC.muted);
 }
 // Native weekday captions stay readable; the seven columns are data, not decoration.
 function addSevenDayLabels(parent,width){
