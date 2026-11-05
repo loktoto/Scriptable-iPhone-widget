@@ -255,3 +255,12 @@ Merchant Type 固定 12 個：**食物、飲品、娛樂、日用品、交通、
 研究重做：[100 個來源＋專家比較＋不確定性](EXPENSE_WIDGET_RESEARCH_100_V3_16.md)。數值全部用原有 `amountHKD`，退款保留負值，FX pending 不混入 HKD；**無資料庫遷移，Tap Card、Shortcut、Numbers 格式不變。**
 
 更新：GitHub 取最新 `widgets/expense-tracker/HK-Expense-Tracker.js` 覆蓋 Scriptable `Expense.js`，App 主選單「👀 預覽 Widget 尺寸」檢查 Small 及其他支援尺寸。確認狀態列、圖表及星期標籤冇裁切。
+
+
+## v3.17.0 — Small/Medium/Large/Extra Large 全面重做
+- **Small：** 修正 HK$200.30 同一數值連續三次顯示，保留近七日每日柱圖＋原生星期，避免過度縮字。
+- **Medium：** 主金額、今日、七日放左邊；14日圖放右邊；下方最多分類／付款方式。
+- **Large：** KPI 卡＋14日圖＋左右分析欄，分別有前三分類及前兩付款方式／最近兩筆交易。
+- **Extra Large：** Scriptable iPad 30日與6個月雙趨勢、前五類別、前三付款、三欄六筆交易；手機是否可用仍取決於 Scriptable 對 OS 的 family 支援。
+- **資料：** 全部沿用本機 JSON、付款名稱、Remark、Tap Card、快速記帳、FX 與 Apple Numbers 接口。
+- **報告：** [完整視覺重新設計、官方來源及短螢幕高度測試](EXPENSE_WIDGET_VISUAL_REDESIGN_V3_17.md)。

@@ -8,10 +8,10 @@ const canonical='widgets/expense-tracker/HK-Expense-Tracker.js';
 const src=read(canonical);
 assert.equal(src,read('scripts/HK-Expense-Tracker.js'),
  'Intentional Scriptable compatibility mirror must be EXACTLY equal to canonical source');
-assert.match(src,/v3\.16\.0/);
+assert.match(src,/v3\.17\.0/);
 const version=JSON.parse(read('widgets/expense-tracker/VERSION.json'));
-assert.equal(version.version,'3.16.0');
-assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.15\.0\]/);
+assert.equal(version.version,'3.17.0');
+assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.17\.0\]/);
 assert.match(read('docs/EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md'),/Independent Widget Research/);
 for(const removed of ['function barsSVG(', 'function fmt(']){
  assert.ok(!src.includes(removed),'Unused pre-v3.13 chart helper is still in canonical script: '+removed);
@@ -24,7 +24,7 @@ assert.match(src,/function widgetSummary\(\)/);
 assert.match(src,/if\(family==='small'\)/);
 assert.match(src,/if\(family==='medium'\)/);
 assert.match(src,/if\(family==='large'\)/);
-assert.match(src,/iPadOS extraLarge/);
+assert.match(src,/iPad extraLarge/);
 assert.match(src,/async function previewWidget\(\)/);
 assert.match(src,/if\(isPad\)choices\.push\('Extra Large/);
 assert.match(src,/function manualFormHTML\(/);

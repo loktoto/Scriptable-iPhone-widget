@@ -6,7 +6,7 @@
 |---|---|---|
 | [Bus ETA](widgets/bus-eta/) | 2.4.0 | [CHANGELOG](widgets/bus-eta/CHANGELOG.md) |
 | [MTR Next Train](widgets/mtr-next-train/) | 1.0.0 | [CHANGELOG](widgets/mtr-next-train/CHANGELOG.md) |
-| [Expense Tracker](widgets/expense-tracker/) | 3.16.0 | [CHANGELOG](widgets/expense-tracker/CHANGELOG.md) |
+| [Expense Tracker](widgets/expense-tracker/) | 3.17.0 | [CHANGELOG](widgets/expense-tracker/CHANGELOG.md) |
 
 ## Mandatory release workflow / 往後每次修改
 

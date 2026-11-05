@@ -72,3 +72,11 @@ Small 不再只得月結總額：顯示 **本月淨支出、今日淨支出、�
 Medium 仍顯示 14 日趨勢及最多支出分類；Large 仍顯示付款方式／分類／交易；iPad Extra Large 仍保留 30 日＋6 個月雙圖。保留 Tap Card、Quick Entry、資料庫及 Numbers 原樣。
 
 [完整 100 Sources 獨立研究與 v3.15/v3.16 對照](../../docs/EXPENSE_WIDGET_RESEARCH_100_V3_16.md) — 100 個可追溯來源頁面，研究報告區分直接證據與參考來源，實機視覺效果仍須裝置預覽確認。
+
+
+## v3.17.0 — Small / Medium / Large / iPad Extra Large 全面重設
+Small：22pt 主金額＋7日柱圖＋7個原生星期字；同額（例如本月＝今日＝近7日）唔再顯示三次 HK$200.30，而係以「本月全部」「1日有紀錄」解釋。Medium：左 KPI／右14日圖，底部類別及付款方式。Large：主 KPI、14日圖、雙欄分類／付款／交易。iPad XL：30日及6個月分析、五類別、三付款方式及三欄六筆交易。**所有尺寸已重做，唔再只改 Small。**
+
+**安裝：** 用最新 `widgets/expense-tracker/HK-Expense-Tracker.js` 完整覆蓋 Scriptable `Expense.js`，執行「👀 預覽 Widget 尺寸」逐一檢視，保持原本 Widget 關聯 script 名稱。冇改 Tap Card、transactions.json、Numbers 或 FX。
+
+[研究與 Screenshot Root Cause](../../docs/EXPENSE_WIDGET_VISUAL_REDESIGN_V3_17.md)
