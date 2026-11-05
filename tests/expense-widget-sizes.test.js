@@ -78,7 +78,39 @@ function createTestSuite(entries=rows,pad=false){
   Size,Rect,DrawContext,ListWidget:MockWidget,URLScheme:{forRunningScript:()=>'scriptable:///run?scriptName=Expense'},
   Device:{screenSize:()=>({width:pad?1024:393}),isPad:()=>pad},console};
  vm.createContext(ctx);
- const boot='(async()=>{
+ const boot='(async()=>{\n'+script.slice(0,cut)+
+  '\nreturn {buildWidget,widgetSummary,chartPoints,makeBarChart,previewWidget,db,recentTitle,paymentRemainder};\n}\nreturn await runExpenseTrackerHK();\n})()';
+ return {ctx,args,disk,boot};
+}
+function flatten(node){
+ const out=[];(function visit(x){
+  if(x.type==='text')out.push(x.text);
+  if(x.children)for(const ch of x.children)visit(ch);
+ })(node);return out;
+}
+function textNodes(node){
+ const out=[];(function visit(x){
+  if(x.type==='text')out.push(x);
+  if(x.children)for(const child of x.children)visit(child);
+ })(node);return out;
+}
+// Conservative approximate layout estimator (not a substitute for iPhone preview).
+function estimatedHeight(node){
+ if(node.type==='text')return Math.ceil((node.font?.size||11)*1.2);
+ if(node.type==='image')return Math.ceil(node.imageSize?.height||node.content?.size?.height||0);
+ if(node.type==='spacer')return Number.isFinite(node.value)?node.value:0;
+ const sizes=(node.children||[]).map(estimatedHeight);
+ const inner=node.direction==='horizontal'?Math.max(0,...sizes):sizes.reduce((a,b)=>a+b,0);
+ const pad=node.padding||[];
+ return inner+(pad[0]||0)+(pad[2]||0)+Math.max(0,sizes.length-1)*(node.spacing||0);
+}
+function graphs(node){
+ const items=[];(function visit(x){
+  if(x.type==='image'&&x.content.type==='drawn-image'&&x.content.size.height>10)items.push(x.content);
+  if(x.children)for(const ch of x.children)visit(ch);
+ })(node);return items;
+}
+(async()=>{
  const fixture=createTestSuite(),app=await vm.runInContext(fixture.boot,fixture.ctx);
  const summary=app.widgetSummary();
  assert.equal(summary.month,218);
