@@ -1611,8 +1611,8 @@ function buildWidget(family=config.widgetFamily||'medium'){
     // month amount, today amount, 7-day sum AND monthly transaction count.
     // iPhone smallest supported layout is ~141pt tall (Apple HIG). No card-in-card
     // or huge decorative spacers. Native labels avoid rasterized tiny text.
-    widgetHeading(widget,quick?'＋ 快速記帳':'◈ 本月開支',
-      summary.unresolved?'⚠'+summary.unresolved:summary.txCount+'筆');
+    widgetHeading(widget,quick?'＋ 記帳':'◈ 本月開支',
+      summary.txCount+'筆'+(summary.unresolved?' ⚠'+summary.unresolved:''));
     widget.addSpacer(3);
     const total=wText(widget,compactMoney(summary.month),20,WC.primary,true);
     total.minimumScaleFactor=.86;
