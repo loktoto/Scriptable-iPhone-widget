@@ -1,5 +1,22 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.10.0] — 2026-11-05
+
+### Added
+- Swipe left on each Dashboard transaction to reveal a red **🗑️ 刪除** button, then tap and explicitly confirm before deletion. Swipe right closes the action.
+- An accessible **⋯** button reveals the same action without touch; a **🗑️ 刪除交易** native menu fallback is available.
+- Improved mobile-friendly swipeable transaction cards while retaining full text search and per-row editing.
+
+### Integrity
+- Validate the selected transaction and compare with latest `transactions.json` contents before deleting; reject stale/duplicate IDs.
+- Preserve all other and concurrently appended transactions; save a previous-file backup and verify the disk write.
+- Recalculate Dashboard immediately. Widgets refresh on the iOS schedule.
+- Local deletions do not remove Apple Numbers rows or erase pre-existing local backups.
+
+### Validation
+- Syntax, import/edit/delete regression tests, duplicate/stale conflict checks, cancellation and swipe gesture simulation run in GitHub Actions.
+- Actual iOS gesture and WebView callback must still be tested on device.
+
 ## [3.9.0] — 2026-11-05
 
 ### Added

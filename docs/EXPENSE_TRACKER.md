@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.9.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.10.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -158,3 +158,6 @@ Script 回傳例如：
 喺 Scriptable 入面進入 Expense → Dashboard，按每行「✏️ 編輯」，可修改日期／時間、商戶、類別、貨幣、金額（非零，負數代表退款）同卡名；儲存後修改原本 transactions.json 同一筆記錄，再讀回驗證，更新 Dashboard 圖表。列表可搜尋全部交易。若 WebView 編輯按鈕喺某版本 iOS 不生效，可由 Scriptable 主選單選「✏️ 編輯交易」作後備入口。
 
 **注意：** 本機資料更新不會修改之前另外新增至 Apple Numbers 的行；必須另行核對。若交易期間被另一個 Shortcut 改動，會拒絕覆蓋；取消編輯及沒有改動時不會寫入。
+
+## v3.10.0 — 左滑刪除
+喺 Dashboard 交易卡片向左滑動，會露出紅色「刪除」；點擊再經原生確認才會真正刪除。向右滑可收起；如無法滑動，按「⋯」或者主選單「🗑️ 刪除交易」。刪除只更新本機 transactions.json，會先檢查有冇較新改動，寫入 previous 備份並讀回核對。Apple Numbers 既有行及之前嘅備份唔會自動刪除。
