@@ -79,7 +79,7 @@ function createTestSuite(entries=rows,pad=false){
   Device:{screenSize:()=>({width:pad?1024:393}),isPad:()=>pad},console};
  vm.createContext(ctx);
  const boot='(async()=>{\n'+script.slice(0,cut)+
-  '\nreturn {buildWidget,widgetSummary,chartPoints,makeBarChart,previewWidget,db};\n}\nreturn await runExpenseTrackerHK();\n})()';
+  '\nreturn {buildWidget,widgetSummary,chartPoints,makeBarChart,previewWidget,db,recentTitle,paymentRemainder};\n}\nreturn await runExpenseTrackerHK();\n})()';
  return {ctx,args,disk,boot};
 }
 function flatten(node){
@@ -143,12 +143,16 @@ function graphs(node){
  assert.equal(graphs(medium).length,1);
  assert.ok(mt.includes('14日支出趨勢'));
  assert.ok(mt.includes('近7日'));
- assert.ok(mt.includes('最多 訂閱'),'Medium must show the largest category (訂閱 HK$70)');
+ assert.ok(mt.includes('主要分類')&&mt.includes('訂閱 HK$70.00'),'Medium must display the correct largest category');
  assert.ok(!mt.includes('最近交易'),'Medium must NOT mimic Large');
- assert.ok(lt.includes('本月分類 TOP 3'));
- assert.ok(lt.includes('付款方式 TOP 2'));
+ assert.ok(lt.includes('本月分類 · TOP 3'));
+ assert.ok(lt.includes('付款方式 · TOP 2'));
  assert.ok(lt.includes('最近交易'));
  assert.ok(lt.includes('Payme'));
+ assert.ok(lt.includes('近7日')&&lt.includes('最近14日'));
+ assert.ok(summary.monthlyCats.length>=3);
+ assert.ok(lt.includes('訂閱')&&lt.includes('食飯'));
+ assert.ok(!lt.includes('undefined')&&!lt.includes('NaN'));
  assert.ok(lt.includes('Lunch Cafe'));
  assert.equal(graphs(large).length,1,'Large should use one chart plus ranked categories and transactions');
  console.log('Estimated heights 393pt screen: Small '+estimatedHeight(small)+', Medium '+estimatedHeight(medium)+', Large '+estimatedHeight(large));
@@ -177,6 +181,7 @@ function graphs(node){
  assert.ok(xt.includes('最近6筆交易'));
  assert.ok(xt.includes('本月退款'));
  assert.ok(xt.includes('Lunch Cafe'),'iPad XL must include actual transactions');
+ assert.ok(xt.includes('最近30日')&&xt.includes('最近6個月'),'iPad should show two time scales');
  assert.equal(graphs(xl).length,2,'iPad XL must have both 30-day AND six-month charts');
  assert.ok(xt.includes('Payme'));
  assert.ok(xt.includes('⚠ 1筆待核對'));
@@ -208,8 +213,32 @@ function graphs(node){
  const sameLabels=flatten(sameSmall).join('|');
  assert.equal((sameLabels.match(/HK\$200\.30/g)||[]).length,1,
    'Screenshot case: month/today/week same value must be printed just once');
- assert.ok(sameLabels.includes('本月全部'),'Today relationship must be explained instead of duplicated');
+ assert.ok(sameLabels.includes('全部在今日'),'Today relationship must be date-based and explicit');
  assert.ok(sameLabels.includes('1日有紀錄'),'Week activity count replaces redundant third amount');
+ assert.equal(sameApp.widgetSummary().todayCount,4);
+ assert.equal(sameApp.widgetSummary().monthOnlyToday,true);
+ const equalAmountsDifferentDates=createTestSuite([
+   {...sameDayRows[0],id:'today',amount:200.30,amountHKD:200.30},
+   {...sameDayRows[0],id:'prev-charge',date:inMonthAgo(1),amount:8,amountHKD:8},
+   {...sameDayRows[0],id:'prev-refund',date:inMonthAgo(1),amount:-8,amountHKD:-8}
+ ]);
+ const equalApp=await vm.runInContext(equalAmountsDifferentDates.boot,equalAmountsDifferentDates.ctx);
+ assert.equal(equalApp.widgetSummary().month,200.30);
+ assert.equal(equalApp.widgetSummary().today,200.30);
+ assert.equal(equalApp.widgetSummary().monthOnlyToday,false,
+   'Numerical equality caused by refunded earlier activity MUST NOT claim all records were today');
+ assert.ok(!flatten(equalApp.buildWidget('small')).join('|').includes('全部在今日'),
+   'Do not falsely infer all spending was today from equal net amounts');
+ assert.equal(app.recentTitle({merchant:'未提供商戶',category:'食飯',card:'Payme'}),'食飯 · Payme');
+ const paymentDemo=createTestSuite([
+   {...sameDayRows[0],id:'p1',amount:100,amountHKD:100,paymentType:'Online Payment'},
+   {...sameDayRows[1],id:'p2',amount:85,amountHKD:85,paymentType:'現金'},
+   {...sameDayRows[2],id:'p3',amount:15.30,amountHKD:15.30,paymentType:'八達通'}
+ ]);
+ const paymentApp=await vm.runInContext(paymentDemo.boot,paymentDemo.ctx);
+ assert.equal(paymentApp.paymentRemainder(paymentApp.widgetSummary(),2),15.3);
+ assert.ok(flatten(paymentApp.buildWidget('large')).join('|').includes('HK$15.30'),
+   'Large must disclose the other HK$15.30 outside the top two payment methods');
  assert.equal(graphs(sameSmall)[0].size.height,29);
  assert.ok(estimatedHeight(sameSmall)<=141,'Small must fit a conservative 141pt canvas');
  const smallScreen=createTestSuite(rows,false);
