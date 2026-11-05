@@ -615,6 +615,10 @@ function dashboardHTML(flash=''){
   const recent=all.map((t,index)=>({t,index})).sort((a,b)=>
     String(b.t.transactionTime||b.t.date||b.t.createdAt||'').localeCompare(String(a.t.transactionTime||a.t.date||a.t.createdAt||'')));
   const unnamed=all.filter(t=>!paymentTypeOf(t)).length;
+  const categoryPeak=Math.max(1,...monthlyCategoryRows.map(x=>Math.max(0,x.net)));
+  const topCategories=monthlyCategoryRows.filter(x=>x.net>0).sort((a,b)=>b.net-a.net).slice(0,3);
+  const positiveCategoryTotal=topCategories.length?categoryEntries.reduce((a,x)=>a+Math.max(0,x[1]),0):0;
+  const displayMonth=Number(now.slice(5,7))+'月';
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Expense Tracker HK</title>
@@ -693,19 +697,111 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
 @media(max-width:365px){.wrap{padding-left:10px;padding-right:10px}.metric{padding:11px}.metric-num{font-size:19px}.category-tile{min-height:60px}.tx-swipe-front{gap:5px;padding:8px}.edit-link{padding:8px 6px}.pay-grid{gap:6px}}
 @media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.wrap{padding-top:max(104px,calc(env(safe-area-inset-top,0px) + 60px))}}
 @media(prefers-reduced-motion:reduce){.tx-swipe-front{transition:none}}
+  
+/* v3.14.0 — Research-informed, iPhone-first premium money dashboard.
+   Explicitly authored after Apple HIG / NNGroup / Tableau / Carbon / WCAG review.
+   No external fonts, libraries, logos, tracking or network resources. */
+:root{--bg:#0b101a;--panel:#131c2b;--panel2:#1c293b;--line:#29374b;--text:#f7f8ff;--muted:#9aa9bb;--blue:#a99bff;--green:#7ce5c0;--violet:#a897ff;--amber:#ffc688}
+body{background:radial-gradient(ellipse 130% 350px at 8% 0%,rgba(119,104,255,.11),transparent 65%),var(--bg);color:var(--text)}
+.wrap{max-width:700px;padding:max(112px,calc(env(safe-area-inset-top,0px) + 68px)) 16px calc(35px + env(safe-area-inset-bottom,0px))}
+.head{align-items:center;margin:0 0 14px;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#a49bff,#7066d2);box-shadow:0 5px 26px rgba(118,111,255,.21);font-size:23px;color:white}
+.head-title{min-width:0}.head-title h1{font-size:23px;line-height:1.17;letter-spacing:-.5px;margin-top:3px}
+.eyebrow{color:#a89fff;font-size:10px;letter-spacing:.09em;font-weight:800}
+.subtitle{color:#899cb2;font-size:11px;margin-top:4px}
+.quick-add{border-radius:14px;background:#e1deff;color:#262047;padding:13px 14px;font-size:13px;box-shadow:0 6px 20px rgba(151,139,255,.10)}
+.quick-add:active{transform:scale(.98)}
+.quick-nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 0 15px}
+.quick-nav::-webkit-scrollbar{display:none}
+.quick-nav a{border:1px solid #28364a;border-radius:9px;background:#161e2c;color:#b7c4d8;text-decoration:none;font-size:12px;padding:8px 12px;white-space:nowrap;font-weight:600}
+.quick-nav a:first-child{border-color:#6960ac;color:#dedbff}
+.hero{overflow:hidden;position:relative;border-radius:24px;background:linear-gradient(125deg,#514a92 0%,#3d477e 52%,#2b5274 110%);padding:23px 22px 20px;margin-bottom:10px;isolation:isolate;border:1px solid rgba(186,177,255,.26);box-shadow:0 14px 35px rgba(0,0,0,.19)}
+.hero:before{content:"";position:absolute;z-index:-1;top:-125px;right:-115px;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(183,190,255,.35),rgba(124,171,233,.11) 44%,transparent 70%)}
+.hero:after{content:"";position:absolute;z-index:-1;bottom:-115px;left:-85px;width:240px;height:240px;border:1px solid rgba(225,228,255,.17);border-radius:50%;box-shadow:0 0 0 36px rgba(244,245,255,.018),0 0 0 72px rgba(244,245,255,.014)}
+.hero-kicker{display:flex;align-items:center;gap:8px;color:#e6e9ff;font-weight:700;font-size:12px;letter-spacing:.02em}
+.hero-dot{display:inline-block;height:7px;width:7px;border-radius:50%;background:#9cf5d0;box-shadow:0 0 10px rgba(143,255,210,.8)}
+.hero-amount{font-size:clamp(35px,9.8vw,48px);font-weight:780;line-height:1.14;letter-spacing:-1.6px;margin:19px 0 14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;color:#fff}
+.hero-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.hero-badge{display:inline-flex;gap:6px;border-radius:30px;padding:8px 10px;background:rgba(11,18,37,.28);border:1px solid rgba(232,232,255,.2);color:#e7edff;font-weight:600;font-size:11px}
+.hero-soft{color:#d2dafa;font-size:11px}
+.summary{gap:9px;margin-bottom:13px}
+.metric{border-radius:17px;background:linear-gradient(153deg,#172434,#131c2b);border:1px solid #2b3a50;box-shadow:none;min-height:112px;padding:15px}
+.metric-label{color:#adbbd0;font-size:12px}.metric-num{font-size:clamp(20px,5vw,26px);margin:11px 0 5px;color:#f5f8ff}
+.metric-sub{color:#8399b1;font-size:11px}
+.overview{gap:6px;margin-bottom:12px}.mini-pill{background:#172538;border:1px solid #293a50;color:#a9bad0;font-size:10px;padding:6px 9px}
+details.status{font-size:11px}.panel{padding:17px 15px;border:1px solid #293749;border-radius:19px;background:linear-gradient(140deg,#172133,#111b29);margin-bottom:11px}
+.section-top{align-items:center;margin-bottom:14px}h2{font-size:17px;font-weight:750;letter-spacing:-.3px}.small{color:#879db4;font-size:11px}
+.category-overview{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.category-tile{min-height:105px;display:flex;align-items:flex-start;flex-direction:column;justify-content:flex-start;gap:6px;border-radius:15px;border:1px solid #2d3a4f;padding:11px 10px;background:#182438;text-align:left;position:relative}
+.category-tile .cat-top{display:flex;align-items:center;gap:7px;width:100%;min-width:0}
+.category-tile .cat-icon{display:inline-grid;place-items:center;width:29px;height:29px;flex:0 0 29px;border-radius:9px;background:color-mix(in srgb,var(--cat-accent) 13%,transparent)}
+.category-tile .cat-icon svg{width:20px!important;height:20px!important}
+.category-tile strong{font-size:12px;font-weight:750;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.category-tile .cat-val{font-size:12px;font-weight:800;color:#ecf3ff;margin:1px 0 0;min-height:17px;font-variant-numeric:tabular-nums;letter-spacing:-.15px}
+.category-tile .cat-track{display:block;width:100%;height:3px;margin-top:auto;background:#2b394a;border-radius:4px;overflow:hidden}
+.category-tile .cat-fill{display:block;height:100%;background:var(--cat-accent);border-radius:4px}
+.category-tile.active{background:#293b55;border-color:#a799ff;box-shadow:0 0 0 1px rgba(171,158,255,.27)}
+.rankings{display:grid;gap:13px;margin-bottom:17px}
+.rank-item{display:grid;gap:6px}
+.rank-head{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:650}
+.rank-head .rank-right{color:#b5c2d8;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rank-bar{height:6px;border-radius:9px;background:#26354a;overflow:hidden}
+.rank-bar span{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#a89cff,#7ad9d4)}
+.pay-grid{gap:8px}.pay-tile{min-height:72px;display:flex;align-items:center;gap:10px;background:#17263b;border-radius:13px;border:1px solid #293d55;padding:10px;color:#fff}
+.pay-tile .pay-mark{height:34px;width:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;font-weight:800;background:#34355e;color:#c9bfff;font-size:16px}
+.pay-tile .pay-info{min-width:0;display:flex;flex-direction:column;gap:4px}
+.pay-tile .pay-info span{font-size:11px;font-weight:700;color:#eef3ff;max-width:100%}
+.pay-tile .pay-info strong{font-size:13px;color:#b4c2dd}
+.pay-tile.active{border-color:#a89cff;background:#2a3457}
+.footnote{color:#899db8;font-size:11px;line-height:1.55}
+.tx-search{border-radius:13px;background:#0f1826;border:1px solid #34465f;padding:13px;font-size:14px}
+.tx-filters select,.clear-button{min-height:44px;border-radius:11px;background:#1d2d41;font-size:12px}
+.tx-swipe-shell{border-radius:13px;background:#1d293a}
+.tx-swipe-front{min-height:83px;background:#1b2a3d;padding:12px 9px;gap:10px}
+.tx-avatar{height:36px;width:36px;flex:0 0 36px;border-radius:12px;background:#2a314a;display:grid;place-items:center}
+.tx-avatar svg{width:22px!important;height:22px!important}
+.tx-merchant{font-size:13px}.tx-value{font-size:14px}
+.tx-meta{font-size:10px;gap:4px 8px}.tx-remark{font-size:11px;color:#abc5f3}
+.edit-link{min-height:40px;display:inline-flex;align-items:center;padding:7px 9px;border-radius:11px;background:#293f5d}
+.tx-more{min-width:35px;min-height:40px}
+.trend-panel svg{max-height:160px}
+.trend-switch{min-height:39px;padding:8px 10px;border-radius:10px}
+.trend-switch.active{background:#625a9b;border-color:#aba0ff}
+.detail-section{padding-top:10px}.detail-section summary{font-size:12px}
+.empty-state,.empty-trend{background:#182538;border:1px dashed #314258;border-radius:12px;padding:18px;color:#9dacc1}
+.tx-hint{color:#869db5}
+.footer{color:#7d91aa}
+a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #b6a9ff!important;outline-offset:3px}
+#categories,#payments,#transactions,#trends{scroll-margin-top:16px}
+@media(max-width:365px){.wrap{padding-left:11px;padding-right:11px}.brand-mark{flex-basis:37px;width:37px;height:37px}.head-title h1{font-size:20px}.quick-add{font-size:12px;padding:11px 10px}.hero{padding:20px 17px}.category-overview{gap:6px}.category-tile{padding:9px 6px;min-height:95px}.category-tile .cat-icon{width:24px;height:24px;flex-basis:24px}.category-tile .cat-icon svg{width:18px!important;height:18px!important}}
+@media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.hero{padding:29px 30px}}
+
   </style></head><body><main class="wrap">
-  <header class="head"><div class="head-title"><div class="eyebrow">EXPENSE TRACKER · HK</div><h1>記帳儀表板</h1><div class="subtitle">本機記帳 · ${esc(now)}</div></div><a class="quick-add" href="https://expense-editor.invalid/manual-open">＋ 手動記帳</a></header>
+  <header class="head"><div class="brand"><span class="brand-mark" aria-hidden="true">◈</span><div class="head-title"><div class="eyebrow">MY EXPENSES · HKD</div><h1>記帳儀表板</h1><div class="subtitle">${esc(now)} · 私人本機記錄</div></div></div><a class="quick-add" href="https://expense-editor.invalid/manual-open">＋ 記帳</a></header>
+  <nav class="quick-nav" aria-label="Dashboard 快速導覽"><a href="#overview">總覽</a><a href="#categories">分類</a><a href="#payments">付款方式</a><a href="#transactions">交易</a><a href="#trends">趨勢</a></nav>
   ${flash?`<div class="save-flash">${esc(flash)}</div>`:''}
-  <div class="summary"><div class="metric"><div class="metric-label">本月淨支出</div><div class="metric-num">${toMoney(monthTotal)}</div><div class="metric-sub">較上月 ${esc(diff)}</div></div>
-  <div class="metric"><div class="metric-label">今日淨支出</div><div class="metric-num">${toMoney(todayTotal)}</div><div class="metric-sub">近 7 日 ${toMoney(sum(weekRows))}</div></div></div>
+  <section class="hero" id="overview" aria-label="本月 HKD 淨支出">
+    <div class="hero-kicker"><span class="hero-dot" aria-hidden="true"></span> ${displayMonth}淨支出 · HKD</div>
+    <div class="hero-amount">${toMoney(monthTotal)}</div>
+    <div class="hero-footer"><span class="hero-badge">↗ 較上月 ${esc(diff)}</span><span class="hero-soft">本月 ${monthRows.length} 筆已換算記錄</span></div>
+  </section>
+  <div class="summary"><div class="metric"><div class="metric-label">今日支出</div><div class="metric-num">${toMoney(todayTotal)}</div><div class="metric-sub">本日已換算 HKD</div></div>
+  <div class="metric"><div class="metric-label">近 7 日支出</div><div class="metric-num">${toMoney(sum(weekRows))}</div><div class="metric-sub">包含負數退款</div></div></div>
   <div class="overview"><span class="mini-pill">共 ${all.length} 筆</span><span class="mini-pill">本月 ${monthRows.length} 筆已換算</span><span class="mini-pill">退款 ${all.filter(t=>Number(t.amount)<0).length} 筆</span></div>
   <details class="status"><summary>資料狀態／未換算項目</summary><div class="status-body"><span class="mini-pill">日期待核對 ${missingDate}</span><span class="mini-pill">貨幣待核對 ${unknownCurrency}</span><span class="mini-pill">匯率待換算 ${pending}</span></div></details>
-  <section class="panel" aria-labelledby="categoryHeading"><div class="section-top"><h2 id="categoryHeading">本月消費類別</h2><span class="small">按分類可篩選</span></div>
-  <div class="category-overview">${monthlyCategoryRows.map(c=>`<button class="category-tile" type="button" data-pick-category="${esc(c.name==='其他／未分類'?'其他':c.name)}" aria-pressed="false"><strong>${esc(c.name)}</strong><span>${c.count?toMoney(c.net):''}</span></button>`).join('')}</div>
-  <p class="footnote">12 個分類固定顯示；冇數值保持空白。舊「食飯」會歸入食飯，不會改寫原始交易。</p>
+  <section class="panel" id="categories" aria-labelledby="categoryHeading"><div class="section-top"><h2 id="categoryHeading">本月分類</h2><span class="small">12 種 · 點選篩選</span></div>
+  ${topCategories.length?`<div class="rankings">${topCategories.map((c,i)=>`<div class="rank-item"><div class="rank-head"><span>${esc(c.name)}</span><span class="rank-right">${toMoney(c.net)} · ${positiveCategoryTotal?Math.round(c.net/positiveCategoryTotal*100):0}%</span></div><div class="rank-bar"><span style="width:${Math.min(100,c.net/categoryPeak*100).toFixed(1)}%"></span></div></div>`).join('')}</div>`:''}
+  <div class="category-overview">${monthlyCategoryRows.map(c=>{
+    const design=MANUAL_CATEGORIES.find(x=>x.id===c.name);
+    const tint=design?design.color:'#8997b6';
+    const icon=design?manualIconSVG(design.icon,tint):'';
+    return `<button class="category-tile" type="button" style="--cat-accent:${tint}" data-pick-category="${esc(c.name==='其他／未分類'?'其他':c.name)}" aria-pressed="false"><span class="cat-top"><span class="cat-icon">${icon}</span><strong>${esc(c.name)}</strong></span><span class="cat-val">${c.count?toMoney(c.net):''}</span><span class="cat-track"><span class="cat-fill" style="width:${c.count?Math.min(100,Math.max(0,c.net)/categoryPeak*100).toFixed(1):0}%"></span></span></button>`;
+  }).join('')}</div>
+  <p class="footnote">只有已換算 HKD 嘅交易會計入金額；冇交易嘅類別留空。歷史「食物／餐飲」會顯示為「食飯」，不會改寫原始紀錄。</p>
   <details class="detail-section"><summary>查看分類佔比</summary>${pieSVG(categoryEntries.slice(0,5).concat(categoryEntries.length>5?[['其他',categoryEntries.slice(5).reduce((a,x)=>a+x[1],0)]]:[]))}</details></section>
-  <section class="panel" aria-labelledby="paymentHeading"><div class="section-top"><h2 id="paymentHeading">本月付款方式</h2><span class="small">按付款方式篩選</span></div>
-  ${paymentRows.length?`<div class="pay-grid">${paymentRows.map(([name,net])=>`<button class="pay-tile" type="button" data-pick-payment="${esc(name)}"><span>${esc(name)}</span><strong>${toMoney(net)}</strong></button>`).join('')}</div>`:'<div class="empty-state">暫無已換算付款紀錄；新增 Payme 等方式會自動顯示</div>'}
+  <section class="panel" id="payments" aria-labelledby="paymentHeading"><div class="section-top"><h2 id="paymentHeading">付款方式</h2><span class="small">按方式篩選交易</span></div>
+  ${paymentRows.length?`<div class="pay-grid">${paymentRows.map(([name,net])=>`<button class="pay-tile" type="button" data-pick-payment="${esc(name)}"><span class="pay-mark" aria-hidden="true">${esc(name.slice(0,1).toUpperCase())}</span><span class="pay-info"><span>${esc(name)}</span><strong>${toMoney(net)}</strong></span></button>`).join('')}</div>`:'<div class="empty-state">未有付款方式金額；例如 Payme、AlipayHK、自訂名稱都會自動出現</div>'}
   <p class="footnote">Payment Type 係自訂文字；冇指定就根據原有 Card 推斷。未換算外幣唔計入 HKD 金額。</p></section>
   <section class="panel" id="transactions"><div class="section-top"><h2>交易記錄／快速搜尋</h2><span class="small">${recent.length} 筆</span></div>
   <input class="tx-search" id="txSearch" type="search" placeholder="搜尋商戶、備註、Payme、類別、日期…" aria-label="搜尋交易及備註" autocomplete="off">
@@ -720,13 +816,13 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
     const terms=[t.date||'',t.transactionTime||'',t.merchant||'',t.category||'',t.originalCategory||'',cat,payment,card,t.currency||'',remark,t.source||''].join(' ').toLowerCase();
     return `<div class="tx-swipe-shell" data-row="${index}" data-filter="${esc(terms)}" data-category="${esc(cat)}" data-payment="${esc(payment||'未指定')}" data-card="${esc(card)}">
     <div class="tx-swipe-action"><a class="tx-delete" href="https://expense-editor.invalid/delete?row=${index}" aria-label="刪除第 ${index+1} 筆交易">🗑️<span>刪除</span></a></div>
-    <div class="tx-swipe-front"><div class="tx-main"><div class="tx-line"><span class="tx-merchant">${esc(t.merchant||'未提供商戶')}</span><span class="tx-value ${t.amount<0?'negative':''}">${esc(t.currency)} ${Number(t.amount).toFixed(2)}</span></div>
+    <div class="tx-swipe-front"><span class="tx-avatar" aria-hidden="true">${(()=>{const x=MANUAL_CATEGORIES.find(c=>c.id===cat);return x?manualIconSVG(x.icon,x.color):'◈';})()}</span><div class="tx-main"><div class="tx-line"><span class="tx-merchant">${esc(t.merchant||'未提供商戶')}</span><span class="tx-value ${t.amount<0?'negative':''}">${esc(t.currency)} ${Number(t.amount).toFixed(2)}</span></div>
     <div class="tx-meta"><span>${esc(t.transactionTime||t.date||'待核對')}</span><span>${esc(cat)}</span>${payment?`<span class="tx-pay">${esc(payment)}${card&&payment!==card?' · '+esc(card):''}</span>`:card?`<span>${esc(card)}</span>`:''}<span>${Number.isFinite(t.amountHKD)?toMoney(t.amountHKD):'HKD 待換算'}</span></div>
     ${remark?`<div class="tx-remark">📝 ${esc(remark)}</div>`:''}</div>
     <a class="edit-link" href="https://expense-editor.invalid/edit?row=${index}">✏️ 編輯</a><button class="tx-more" type="button" aria-label="顯示刪除操作" aria-expanded="false">⋯</button></div></div>`;
   }).join(''):'<div class="empty-state">未有交易紀錄</div>'}</div>
   <p class="tx-hint">向左滑顯示刪除鍵，再確認先會刪除；按「✏️ 編輯」可補 Remark、商戶、分類及付款方式。本機修改唔會同步 Apple Numbers。</p></section>
-  <section class="panel"><div class="section-top"><h2>支出趨勢</h2><div class="trend-controls"><button class="trend-switch active" type="button" data-trend="days">近14日</button><button class="trend-switch" type="button" data-trend="months">近6個月</button></div></div>
+  <section class="panel" id="trends"><div class="section-top"><h2>支出趨勢</h2><div class="trend-controls"><button class="trend-switch active" type="button" data-trend="days">近14日</button><button class="trend-switch" type="button" data-trend="months">近6個月</button></div></div>
   <div class="trend-panel" id="trendDays">${dashboardTrendSVG(days)}</div>
   <div class="trend-panel" id="trendMonths" hidden>${dashboardTrendSVG(sixMonths,'#a48eff')}</div>
   <p class="footnote">顯示已換算 HKD 淨支出；負數綠色代表退款。冇資料時唔會留巨型空白圖。</p></section>
