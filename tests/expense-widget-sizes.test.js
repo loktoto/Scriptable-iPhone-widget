@@ -99,7 +99,7 @@ function graphs(node){
  assert.equal(summary.month,218,'Known synthetic monthly HKD net');
  assert.equal(summary.txCount,8,'Pending FX excluded from HKD count');
  assert.equal(summary.unresolved,1,'Pending FX remains visible');
- assert.equal(summary.monthlyCats[0][0],'食飯','Legacy 食物 merged with new 食飯');
+ assert.ok(summary.monthlyCats.some(([k,v])=>k==='食飯'&&v===59),'Legacy 食物 merged with new 食飯');
  assert.ok(summary.monthlyPayments.some(([k])=>k==='Payme'));
  assert.ok(summary.monthlyPayments.some(([k])=>k==='My Custom QR'));
  assert.ok(summary.monthlyPayments.some(([k])=>k==='__proto__'),'Prototype-like custom method must not corrupt groups');
