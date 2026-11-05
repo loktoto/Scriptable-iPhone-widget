@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.13.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.14.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.13.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.14.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.13.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.14.0',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -157,12 +157,12 @@ function merchantName(x) {
 }
 // Canonical Merchant Types. Legacy labels are displayed through a non-destructive
 // adapter: never rewrite existing transaction IDs, categories or historical data.
-const MERCHANT_TYPES=['食物','飲品','娛樂','日用品','交通','旅行','衣服','水電','醫療','訂閱','進修','運動'];
+const MERCHANT_TYPES=['食飯','飲品','娛樂','日用品','交通','旅行','衣服','水電','醫療','訂閱','進修','運動'];
 const PAYMENT_TYPES=['信用卡','扣賬卡','現金','八達通','轉數快','銀行轉帳','電子錢包','其他'];
 const merchantRules=[
  ['交通',/(KOWLOON MOTO|METRO OPERATION|MTR|KMB|CITYBUS|港鐵|鐵路|八達通|巴士|的士|UBER TRIP)/i],
  ['飲品',/(TEN REN TEA|STARBUCKS|TEA SHOP|COFFEE SHOP|手搖|飲品店)/i],
- ['食物',/(HAMA.SUSHI|FROSTY JOY|CAFE DE CORAL|SANG ROASTERY|WING WAH CAKE|YUET EAT|AROME BAKERY|CHEF DE SINGAPORE|HIKINIKU|ZOoba|CAF CAFE|GELATO|MAN FUNG DUMPLING)/i],
+ ['食飯',/(HAMA.SUSHI|FROSTY JOY|CAFE DE CORAL|SANG ROASTERY|WING WAH CAKE|YUET EAT|AROME BAKERY|CHEF DE SINGAPORE|HIKINIKU|ZOoba|CAF CAFE|GELATO|MAN FUNG DUMPLING)/i],
  ['日用品',/(CIRCLE K|7-ELEVEN|7 ELEVEN|OK便利店|AEON|MARKET PLACE|WELLCOME|GREENPRICE|DS GROCERIES|MING FRUIT|FRESH MIST)/i],
  ['醫療',/(HUMAN HEALTH|MANNINGS|MATSUMOTO|松本|SA SA COSMETIC)/i],
  ['娛樂',/(DISNEYLAND|迪士尼)/i]
@@ -171,7 +171,7 @@ function canonicalCategory(raw){
  const c=String(raw==null?'':raw).trim();
  if(MERCHANT_TYPES.includes(c))return c;
  if(!c||/^(未指定|未提供|未知|未分類|NULL|NONE|OTHER|HK\$|HKD|CNY|RMB|港元|人民幣)$/i.test(c))return '未分類';
- if(/^(餐飲|飲食|食肆|餐廳|外賣|吃飯|食飯|用餐|膳食|餐費)$/i.test(c)||/^(restaurants?|dining|food|food & beverage|cafe|coffee shop)$/i.test(c))return '食物';
+ if(/^(食物|餐飲|飲食|食肆|餐廳|外賣|吃飯|食飯|用餐|膳食|餐費)$/i.test(c)||/^(restaurants?|dining|food|food & beverage|cafe|coffee shop)$/i.test(c))return '食飯';
  if(/^(飲料|茶飲|咖啡|beverages?|drinks?)$/i.test(c))return '飲品';
  if(/^(旅遊|travel|tourism|flight|flights)$/i.test(c))return '旅行';
  if(/^(旅遊娛樂|休閒娛樂|entertainment|leisure)$/i.test(c))return '娛樂';
@@ -702,7 +702,7 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
   <details class="status"><summary>資料狀態／未換算項目</summary><div class="status-body"><span class="mini-pill">日期待核對 ${missingDate}</span><span class="mini-pill">貨幣待核對 ${unknownCurrency}</span><span class="mini-pill">匯率待換算 ${pending}</span></div></details>
   <section class="panel" aria-labelledby="categoryHeading"><div class="section-top"><h2 id="categoryHeading">本月消費類別</h2><span class="small">按分類可篩選</span></div>
   <div class="category-overview">${monthlyCategoryRows.map(c=>`<button class="category-tile" type="button" data-pick-category="${esc(c.name==='其他／未分類'?'其他':c.name)}" aria-pressed="false"><strong>${esc(c.name)}</strong><span>${c.count?toMoney(c.net):''}</span></button>`).join('')}</div>
-  <p class="footnote">12 個分類固定顯示；冇數值保持空白。舊「食飯」會歸入食物，不會改寫原始交易。</p>
+  <p class="footnote">12 個分類固定顯示；冇數值保持空白。舊「食飯」會歸入食飯，不會改寫原始交易。</p>
   <details class="detail-section"><summary>查看分類佔比</summary>${pieSVG(categoryEntries.slice(0,5).concat(categoryEntries.length>5?[['其他',categoryEntries.slice(5).reduce((a,x)=>a+x[1],0)]]:[]))}</details></section>
   <section class="panel" aria-labelledby="paymentHeading"><div class="section-top"><h2 id="paymentHeading">本月付款方式</h2><span class="small">按付款方式篩選</span></div>
   ${paymentRows.length?`<div class="pay-grid">${paymentRows.map(([name,net])=>`<button class="pay-tile" type="button" data-pick-payment="${esc(name)}"><span>${esc(name)}</span><strong>${toMoney(net)}</strong></button>`).join('')}</div>`:'<div class="empty-state">暫無已換算付款紀錄；新增 Payme 等方式會自動顯示</div>'}
@@ -995,8 +995,8 @@ async function selectDashboardTransaction(){
 // Manual visual entry — fully local; no card data in URLs.
 const MANUAL_CATEGORIES=[
   {
-    "id": "食物",
-    "label": "食物",
+    "id": "食飯",
+    "label": "食飯",
     "color": "#ff9816",
     "icon": "utensils"
   },
@@ -1216,7 +1216,7 @@ ${flash?'<div class="success">'+esc(flash)+'</div>':''}
 <input id="manualCard" type="text" maxlength="80" placeholder="例如 SOGO VISA／八達通" value="">
 <label for="manualRemark">Remark／備註（可留空）</label>
 <textarea id="manualRemark" maxlength="800" rows="2" placeholder="例如：午餐、同事聚餐、待報銷…"></textarea></div>
-<h2>Merchant Type · 12 類</h2><input type="hidden" id="manualCategory" value="食物">
+<h2>Merchant Type · 12 類</h2><input type="hidden" id="manualCategory" value="食飯">
 <div class="categories">${catHTML}</div>
 <p class="hint">只會記錄有效、非零金額；負數代表退款。外幣先以原幣儲存，之後可由主選單換算。Apple Numbers 已有資料列不會自動同步。</p>
 <p id="manualError" class="error" role="alert"></p></form>
@@ -1625,7 +1625,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.13.0',status,receipt,
+    version:'3.14.0',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1655,8 +1655,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.13.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.13.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.14.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.14.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1680,7 +1680,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.13.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.14.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -1789,7 +1789,7 @@ if (config.runsInWidget) {
     const source=quickFromTexts?'Texts':'Parameter';
     if (!config.runsInApp){
       recordShortcutAttempt('quick_requires_app',{inputType:'quick_manual',source});
-      emitShortcutReceipt('[EXPENSE-HK-v3.13.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
+      emitShortcutReceipt('[EXPENSE-HK-v3.14.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
     }else{
       recordShortcutAttempt('quick_opened',{inputType:'quick_manual',source});
       await addManual();
@@ -1806,7 +1806,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.13.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.14.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -1827,10 +1827,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.13.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.14.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.13.0',status:'error',receipt:'[EXPENSE-HK-v3.13.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.14.0',status:'error',receipt:'[EXPENSE-HK-v3.14.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();
