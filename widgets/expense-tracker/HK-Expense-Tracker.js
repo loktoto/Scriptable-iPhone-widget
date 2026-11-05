@@ -1806,7 +1806,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
   if(family==='large'){
     // Four complementary views: daily net trend, category composition,
     // payment ranked meters, and previous versus current rolling 7 days.
-    const narrow=width<290,space=narrow?7:10,col=Math.floor((width-space)/2);
+    const narrow=width<290,spacious=width>=330,space=narrow?7:10,col=Math.floor((width-space)/2);
     const header=widget.addStack();header.layoutHorizontally();header.centerAlignContent();
     wText(header,'記帳分析 · '+month+'月',11,WC.ink,true);
     header.addSpacer(5);
@@ -1824,7 +1824,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     widget.addSpacer(narrow?3:4);
     sectionLine(widget,'每日淨支出',month+'月1日 — 今日');
     widget.addSpacer(2);
-    addChart(widget,monthChartPoints(s.byDay),width,narrow?35:44);
+    addChart(widget,monthChartPoints(s.byDay),width,narrow?35:(spacious?56:44));
     widget.addSpacer(2);
     addMonthAxis(widget);
     widget.addSpacer(narrow?3:4);
@@ -1834,7 +1834,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     sectionLine(category,'分類分佈');
     category.addSpacer(narrow?3:4);
     const pieRow=category.addStack();pieRow.layoutHorizontally();pieRow.centerAlignContent();
-    const diameter=narrow?53:65;
+    const diameter=narrow?53:(spacious?76:65);
     addPieChart(pieRow,s.grossCats,diameter,3);
     pieRow.addSpacer(narrow?3:5);
     const legend=pieRow.addStack();legend.layoutVertically();
