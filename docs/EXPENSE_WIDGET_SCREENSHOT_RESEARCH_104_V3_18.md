@@ -54,6 +54,11 @@
 - **Corrected／修正：** 排版驗收由單一 estimatedHeight 改為同時驗證「有多少可讀資料、訊息是否重複、功能與金額是否真實」；按交易日期判斷「今日全部」。
 - **New／新增：** 一日有記錄／七日多筆／跨日退款抵銷／長付款名稱／商戶未提供的 mock 回歸、額外 104 來源分類參考。
 
+### 可重現的修正函式
+- `widgetSummary().monthOnlyToday` 的判斷式為 `txCount>0 && todayCount===txCount`；不再用支出合計碰巧相等來推斷所有交易來自今日。
+- `paymentRemainder(summary,2)` 以全月 HKD 淨支出扣除頭兩類付款工具的淨額，餘額只於有第三種付款方式且非零時才顯示。
+- `recentTitle(transaction)` 只在商戶欄本身為空／「未提供商戶」時用類別與付款名稱作顯示後備，絕不寫回資料庫。
+
 ## 5. 必須保留的資料完整性驗收
 
 - Non-zero amount only，退款保留負數；不存在或為零的 amount 不新增紀錄。
