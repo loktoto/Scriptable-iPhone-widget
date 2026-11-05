@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.20.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.21.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -275,3 +275,7 @@ Small 改為有數據含意嘅七日熱度條；Medium 根據一個／多個有�
 
 ## v3.20.0 — 重新設計圖表驅動 Widget
 新版 Small 一圖；Medium 14日趨勢＋分類比例兩圖；Large 14日、分類環形及付款堆疊三圖；iPad Extra Large 加入六個月比較合共四圖。所有圖表為 Scriptable native DrawContext，不會引入雲端服務。數據以 HKD 計算，`gross`（正向消費）與 `net`（扣除退款淨支出）清楚分開。詳細證據／驗收見 [Expense Widget Redesign v2](EXPENSE_WIDGET_REDESIGN_V2_V3_20.md)。
+
+
+## v3.21.0 — 原生 Widget 實機圖像審計
+按使用者提供的三張 v3.20 真機 Small／Medium／Large 截圖重新驗收：改正稀疏日期單一高柱、Small 沒有星期標籤、Medium 付款名稱被截斷、Large「退款前」分母不清及底部資訊量不足。新版本加入小圖活動日模式（>2日仍以港元淨額顯示）及七個原生星期字。原有自動入帳、手動輸入、付款工具、外幣、退款、Numbers bridge 不變。研究：[v3.21 原始碼及截圖研究](EXPENSE_WIDGET_RESEARCH_AUDIT_V3_21.md)。

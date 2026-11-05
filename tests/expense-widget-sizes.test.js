@@ -140,15 +140,15 @@ function graphs(node){
  assert.ok(s.includes('近7日')&&s.includes('最多分類'));
  assert.ok(s.includes('HK$218.00'));
  assert.equal(drawImages(small).length,1);
- assert.equal(drawImages(small)[0].size.height,26);
- assert.ok(m.includes('最近14日')&&m.includes('分類'));
+ assert.equal(drawImages(small)[0].size.height,23);
+ assert.ok(m.includes('14日')&&m.includes('分類'));
  assert.equal(drawImages(medium).length,2,'Medium must have daily trend + category stacked chart');
  assert.ok(drawImages(medium).some(x=>x.size.height===9));
- assert.ok(l.includes('支出分類')&&l.includes('付款構成')&&l.includes('最近交易'));
+ assert.ok(l.includes('分類 · 退款前')&&l.includes('付款 · 退款前')&&l.includes('最近交易'));
  assert.equal(drawImages(large).length,3,'Large: daily bars, donut and payment stacked bar');
  assert.ok(drawImages(large).some(x=>x.draws.some(y=>y.type==='fill-path')),
    'Donut must actually render native Path sectors, not merely a title');
- assert.ok(drawImages(large).some(x=>x.size.height===12),
+ assert.ok(drawImages(large).some(x=>x.size.height===15),
    'Payment composition chart must be rendered');
  for(const family of [small,medium,large]){
    assert.ok(textNodes(family).every(x=>x.font?.size>=11));
@@ -168,7 +168,7 @@ function graphs(node){
  }
  const ipad=createTestSuite(rows,true),pad=await vm.runInContext(ipad.boot,ipad.ctx);
  const xl=pad.buildWidget('extraLarge'),xt=flatten(xl).join('|'),xlCharts=drawImages(xl);
- assert.ok(xt.includes('財務分析')&&xt.includes('最近30日')&&xt.includes('最近6個月'));
+ assert.ok(xt.includes('財務分析')&&xt.includes('30日')&&xt.includes('6個月'));
  assert.ok(xt.includes('分類 · 正向支出')&&xt.includes('付款構成'));
  assert.ok(xt.includes('最近六筆交易'));
  assert.equal(xlCharts.length,4,'iPad XL needs 30-day, 6mo, donut, payment distribution');
@@ -206,6 +206,19 @@ function graphs(node){
  assert.equal((flatten(one.buildWidget('medium')).join('|').match(/HK\$200\.30/g)||[]).length,1);
  assert.equal(drawImages(one.buildWidget('medium')).length,2,
    'Single active day must still use meaningful charts with correct numbers');
+ const sparseSmall=one.buildWidget('small');
+ const sparseMedium=one.buildWidget('medium');
+ const sparseLarge=one.buildWidget('large');
+ const sparseMarks=drawImages(sparseMedium)[0].draws.filter(x=>x.type==='rect');
+ assert.equal(sparseMarks.length,14,'Sparse 14-day timeline draws exactly fourteen day markers');
+ assert.ok(sparseMarks.every(x=>x.rect.height===8),
+   'Sparse records must never be drawn as a giant single monetary bar');
+ assert.ok(flatten(sparseMedium).join('|').includes('記帳日分佈'));
+ assert.ok(flatten(sparseLarge).join('|').includes('分類 · 退款前'));
+ assert.ok(flatten(sparseLarge).join('|').includes('付款 · 退款前'));
+ assert.ok(flatten(sparseLarge).join('|').includes('最近3筆'));
+ assert.equal(flatten(sparseSmall).filter(x=>['日','一','二','三','四','五','六'].includes(x)).length,7);
+
  const past=[{...four[0],amount:200.30,amountHKD:200.30},
    {...four[1],date:inMonthAgo(1),amount:8,amountHKD:8},
    {...four[2],date:inMonthAgo(1),amount:-8,amountHKD:-8}];

@@ -2,7 +2,7 @@
 
 **Main:** [HK-Expense-Tracker.js](HK-Expense-Tracker.js)  
 **Read-only diagnostic:** [HK-Expense-Input-Diagnostic.js](HK-Expense-Input-Diagnostic.js)  
-**Current version:** [3.20.0](VERSION.json) · [Release notes](CHANGELOG.md)
+**Current version:** [3.21.0](VERSION.json) · [Release notes](CHANGELOG.md)
 
 - Apple Intelligence / Shortcuts Dictionary, nested `amount.content`, regular JSON, constrained key-based text extraction.
 - Save valid nonzero amounts only. Negative transactions are refunds; other missing fields may still be saved.
@@ -106,3 +106,12 @@ Small：22pt 主金額＋7日柱圖＋7個原生星期字；同額（例如本�
 - 原有 Tap Card、Shortcut、Expense.js 名稱、本地 transactions.json、Payme、自訂付款、Remark、編輯／刪除、Numbers 六欄全部保留。
 
 [研究、同類產品視覺對照、圖表語義、尺寸驗收規格](../../docs/EXPENSE_WIDGET_REDESIGN_V2_V3_20.md)。
+
+
+## v3.21.0 — 實機截圖主導的稀疏圖表修正
+Small 7個原生星期字及有效記帳日熱度；Medium 兩類別名／佔比而唔係被截短付款名稱；Large 退款前比例標籤、較清楚付款條及3筆最近交易（窄屏2筆）；iPad XL 30日／6個月圖按資料密度動態轉為記帳日時間線。
+- <=2 個記帳日期：顯示**等高活動日期標記**，標題明確表示「有幾日記帳」，唔再用巨大單柱傳達只有一天的金額。
+- >2 個記帳日期：保留 signed HKD 金額圖及原生分類／付款構成圖。
+- 保留同一個 Expense.js、transactions.json、本地資料、Shortcut / Tap Card、進階手動記帳、12分類及 Remark，**不需資料庫遷移**。
+
+[完整第三方產品核實、圖表規則與截圖驗收報告](../../docs/EXPENSE_WIDGET_RESEARCH_AUDIT_V3_21.md)
