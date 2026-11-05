@@ -1,5 +1,25 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.9.0] — 2026-11-05
+
+### Added
+- Each transaction in the Dashboard has an Edit button and full-list search by date, merchant, category, card and currency.
+- Native Scriptable editor allows updates to date/time, merchant, category, currency, nonzero amount (negative refunds), and card.
+- Separate in-app Edit Transaction menu provides a fallback for WebView interception limitations.
+
+### Integrity
+- Edits modify the original local transactions.json row while preserving transaction ID, source and original creation time.
+- Re-read and compare the on-disk record before replacing it, to prevent overwriting edits from concurrent automations.
+- Verify persistence after each update; preserve previous version through the existing save() backup.
+- Recompute HKD after amount/date/currency changes, or mark foreign FX as pending.
+- Rebuild Dashboard after successful save; actual iOS widget reload timing remains under iOS control.
+- Empty or zero amounts, invalid dates and unapproved conflicts are rejected; cancel/no-op does not save.
+
+### Limitations and testing
+- Editing local records does not update already appended Apple Numbers rows.
+- Dashboard uses an intercepted .invalid URL carrying only row index (never card/merchant/amount data). All other external HTTP navigation is blocked.
+- Automated offline regression tests for editing, validation, conflict detection and FX are included; actual iPhone WebView/Alert interaction must still be verified.
+
 ## [3.8.1] — 2026-11-04
 
 **Added**
