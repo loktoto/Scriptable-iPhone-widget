@@ -5,7 +5,7 @@ const cp=require('node:child_process'),assert=require('node:assert/strict');
 const file=path.join(__dirname,'..','widgets/expense-tracker/HK-Expense-Tracker.js');
 cp.execFileSync(process.execPath,['--check',file]);
 const source=fs.readFileSync(file,'utf8');
-async function runApp(menuChoice,queryParameters={}){
+async function runApp(menuChoice,queryParameters={},shortcutParameter=null,runsInApp=true){
  const events={alerts:[],pages:[],presented:0,completed:0,errors:[],outputs:[]};
  const disk=new Map();
  const fm={
@@ -35,8 +35,8 @@ async function runApp(menuChoice,queryParameters={}){
   FileManager:{local:()=>fm},
   Script:{name:()=> 'Expense',complete:()=>events.completed++,
     setShortcutOutput:x=>events.outputs.push(x)},
-  config:{runsInApp:true,runsInWidget:false,runsWithSiri:false,runsInActionExtension:false},
-  args:{shortcutParameter:null,plainTexts:[],queryParameters},
+  config:{runsInApp,runsInWidget:false,runsWithSiri:false,runsInActionExtension:false},
+  args:{shortcutParameter,plainTexts:[],queryParameters},
   Alert,WebView,
   console:{log:()=>{},warn:()=>{},error:(...args)=>events.errors.push(args.join(' '))}
  };
@@ -69,7 +69,21 @@ async function runApp(menuChoice,queryParameters={}){
  assert.match(quickLink.pages[0],/id="manualSave"/);
  assert.equal(quickLink.alerts.some(a=>a.title==='Expense Tracker HK'),false,'Quick link must bypass menu');
  assert.equal(quickLink.outputs.length,0,'Quick link must not output an automatic import receipt');
+ // Quick-entry text opens the interactive manual form directly via Run In App.
+ const shortcutQuick=await runApp(-1,{},'EXPENSE_QUICK_MANUAL',true);
+ assert.equal(shortcutQuick.presented,1,'Quick Shortcut must open an interactive WebView');
+ assert.match(shortcutQuick.pages[0],/id="manualForm"/);
+ assert.equal(shortcutQuick.alerts.some(a=>a.title==='Expense Tracker HK'),false,'Quick Shortcut must skip the main menu');
+ assert.equal(shortcutQuick.outputs.length,0,'Quick Shortcut must not be processed as an expense transaction');
+ const requiresApp=await runApp(-1,{},'EXPENSE_QUICK_MANUAL',false);
+ assert.equal(requiresApp.presented,0,'Run In App OFF must not attempt an interactive form');
+ assert.equal(requiresApp.outputs[0].status,'quick_requires_app');
+ assert.match(requiresApp.outputs[0].receipt,/Run In App/);
+ // URL invocations must not be lost to the !config.runsInApp branch.
+ const urlNotApp=await runApp(-1,{view:'manual'},null,false);
+ assert.equal(urlNotApp.presented,1);
+ assert.match(urlNotApp.pages[0],/id="manualForm"/);
  const exit=await runApp(-1);
  assert.equal(exit.presented,0,'Cancel should not show a WebView');
- console.log('PASS: full Scriptable app Dashboard, manual entry, one-tap manual deep link, Dashboard deep link, cancel and no runtime errors');
+ console.log('PASS: full Scriptable app Dashboard, manual entry, one-tap Shortcut text, URL deep links, Run In App guard, Dashboard, cancel and no runtime errors');
 })().catch(e=>{console.error(e);process.exitCode=1;});

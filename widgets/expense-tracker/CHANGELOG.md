@@ -1,5 +1,23 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.11.4] — 2026-11-05
+
+### Fixed — Quick manual entry launches Scriptable but no form appears
+- Added a **dedicated Shortcuts Run Script input**: the exact text `EXPENSE_QUICK_MANUAL`, using **Run In App = ON**, which opens the manual-entry WebView immediately, bypassing the main menu.
+- Corrected the entry-point order so `view=manual` / `view=dashboard` URL invocations are checked **before** the generic `!config.runsInApp` no-input branch.
+- If the new quick-launch text is passed without Run In App enabled, return an explicit `quick_requires_app` diagnostic instead of silently treating it as an invalid transaction.
+- Keep the previous URL Scheme and quick-widget routes for compatibility. The **recommended launcher** is now the separate Run Script action with explicit Parameter and Run In App.
+
+### Tap Card and existing data unchanged
+- Existing nonempty Apple Intelligence / Wallet Dictionary and JSON transactions retain priority over URL routes; `EXPENSE_QUICK_MANUAL` is the only text recognized as a quick-entry command.
+- No changes to `transactions.json` schema, widget charts, FX, editing, deleting or manual saving.
+- The quick launcher never writes a transaction until the user enters a valid nonzero amount and saves.
+
+### Verification
+- Added full-script Scriptable app-route tests of both the quick Parameter with Run In App ON and an explicit error with it OFF.
+- Tests also cover a URL manual deep link in a non-app configuration and normal Wallet JSON import priority.
+- Real iPhone Shortcuts / Scriptable handoff must still be confirmed on device.
+
 ## [3.11.3] — 2026-11-05
 
 ### Added — One-tap manual expense launcher

@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.11.3｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.11.4｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -192,3 +192,14 @@ scriptable:///run?scriptName=Expense&view=manual
 **用法 B — 另一個 Scriptable Widget：** 喺主畫面加多一個 Scriptable Widget，選同一個 `Expense` Script，於 Widget Parameter 輸入 `quick`。新 Widget 一撳就開手動表單；舊 Widget 冇填 Parameter 仍然開 Dashboard。
 
 **兩條流程互不影響：** Apple Wallet Tap Card Automation 保持原本「使用裝置端模型 → Run Expense with 回應」設定，毋須修改。自動傳入有效 Dictionary 仍然優先執行自動入帳；URL `view=manual` 只用於冇傳交易輸入嘅互動開啟。兩者都存入本機 `ExpenseTrackerHK/transactions.json`。一鍵係開啟表單，並非唔輸入金額就能自動記帳。
+
+## v3.11.4 — 一撳即開手動記帳（新建獨立 Shortcut）
+之前用 `URL → 開啟 URL` 可能只會打開 Scriptable App，但冇執行到表單。新版最可靠嘅入口改用 **Scriptable 原生 Run Script**，指定腳本及文字參數：
+
+1. 先將 GitHub 最新完整程式貼入 Scriptable 嘅 `Expense` 腳本。
+2. 喺「捷徑」新建一條「快速記帳」，加入 **Scriptable → Run Script**，選 `Expense`。
+3. 點 **Parameter**，設為普通文字 **`EXPENSE_QUICK_MANUAL`**（唔係 URL，唔係 Magic Variable）。
+4. 喺同一動作把 **Run In App 開啟**。此功能必須在 Scriptable 前景顯示互動 WebView；如果關閉會收到 `quick_requires_app` 錯誤提示。
+5. 不需要 URL、Open URLs、AI 模型或 Show Result 動作。把「快速記帳」加入主畫面，一按直接開手動表單。
+
+**絕對唔好改原本 Tap Card Automation：** 仍然係「使用裝置端模型 → Run Expense with 回應」，其 Parameter 保留交易 Dictionary，Run In App 可以繼續依原設定。兩條 Shortcut 都使用相同嘅 `transactions.json`，但唔共享入口參數。
