@@ -28,6 +28,12 @@ const boot='(async()=>{\n'+script.slice(0,cut)+
  assert.equal(app.categoryOf('餐飲','Old Restaurant'),'食物');
  assert.equal(app.categoryForDisplay(original),'食物','legacy category is presented without rewriting');
  assert.equal(app.paymentTypeOf(original),'信用卡');
+ assert.equal(app.categoryOf('食飯','未提供商戶'),'食物');
+ assert.equal(app.categoryForDisplay({...original,category:'食飯'}),'食物');
+ const payme=app.normalize({amount:2,currency:'HKD',merchantType:'食飯',card:'Payme',date:'20261105_150247'});
+ assert.equal(payme.category,'食物');assert.equal(payme.originalCategory,'食飯');assert.equal(payme.paymentType,'Payme');
+ assert.equal(app.normalize({amount:3,currency:'HKD',merchantType:'食物',card:'Wallet',paymentType:'My Custom Method'}).paymentType,'My Custom Method');
+ assert.equal(app.paymentTypeOf({card:'AlipayHK'}),'AlipayHK');
  assert.equal(app.categoryOf('健康醫療','Unknown Clinic'),'醫療');
  assert.equal(app.categoryOf('超市雜貨','Store'),'日用品');
  const valid=app.normalize({merchantName:'Cafe',amount:57,merchantType:'飲品',
@@ -64,6 +70,11 @@ const boot='(async()=>{\n'+script.slice(0,cut)+
  assert.ok(html.includes('data-payment="信用卡"'));
  assert.ok(html.includes('data-category="食物"'));
  assert.ok(html.includes('function applyFilters()'));
+ assert.ok(html.includes('padding:max(110px'),'iPhone top chrome safe area');
+ assert.ok(html.includes('data-trend="months"'),'Compact period switch');
+ assert.ok(html.includes('id="trendMonths" hidden'),'Second chart initially hidden');
+ assert.ok(html.indexOf('id="txList"')<html.indexOf('id="trendDays"'),'Transactions before trends');
+ assert.ok(html.includes('data-pick-payment'),'Payment summary supports filtering');
  assert.ok(!html.includes('data-filter="KPay'));
  const transaction=db.transactions[1], snapshot=JSON.parse(JSON.stringify(transaction));
  assert.equal(app.applyDashboardEdit(1,snapshot,{

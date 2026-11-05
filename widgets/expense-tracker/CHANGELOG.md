@@ -1,5 +1,23 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.13.0] — 2026-11-05
+
+### Redesigned — iPhone dashboard
+- Reserve top safe area so the dashboard header no longer overlaps the iPhone status bar and Scriptable's native WebView controls.
+- Reorder mobile content: clear header + quick add, compact KPIs, collapsible diagnostics, twelve tappable Merchant Type tiles, observed payment methods, searchable/editable/deletable transaction list, and concise trend chart.
+- Combine two oversized charts into one compact 14-day / 6-month switcher; empty periods display a short no-data state rather than a large blank chart. Display negative net amounts below baseline.
+- Move transaction search/edit/delete above trend charts, and make the category donut expandable to reduce scrolling. Empty category values remain blank.
+
+### Corrected — flexible payments and historical Merchant Type
+- Payment Type is **free text** and optional, not constrained to a fixed list. Payme, AlipayHK, Apple Pay and user-defined labels appear distinctly, with dynamic filter options based on existing transactions.
+- Preserve the raw Card separately; optionally infer credit card from VISA/Mastercard branding when a paymentType is not explicit.
+- Manual entry now offers a text field + suggestions, while Dashboard editing accepts custom payment names. Unknown payment labels are not guessed.
+- `食飯`, `用餐`, `膳食`, `餐費` are recognized as 食物 for reporting. Historical originalCategory and stored transaction rows are not rewritten.
+
+### Regression / compatibility
+- Prior Apple Intelligence/Tap Card Dictionary inputs, nonzero-amount/refund rules, quick launch, local DB, duplicate detection, read-back validation, FX, notes, CSV and Numbers six-column bridge remain unchanged.
+- New tests cover mobile safe-area, compact trends, dynamically observed payment methods, preservation of old categories, search/filter and editing. Physical iPhone WebView layout requires on-device validation.
+
 ## [3.12.0] — 2026-11-05
 
 ### Added — Merchant Type, Payment Type and Remark
