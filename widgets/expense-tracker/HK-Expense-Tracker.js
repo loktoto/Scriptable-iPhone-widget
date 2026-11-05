@@ -1653,10 +1653,17 @@ function buildWidget(family=config.widgetFamily||'medium'){
     wText(widget,compactMoney(s.month),24,WC.ink,true);
     widget.addSpacer(5);
     const principal=s.monthlyCats[0];
+    const positiveCats=s.monthlyCats.reduce((total,row)=>total+Math.max(0,row[1]),0);
     const line=widget.addStack();line.layoutHorizontally();line.centerAlignContent();
-    wText(line,principal?'最多 '+principal[0]:'今日',11,WC.subtle);
+    wText(line,principal?'主要 '+String(principal[0]).slice(0,6):'暫無交易',11,WC.subtle);
     line.addSpacer(4);
-    wText(line,principal&&s.month!==0&&Math.abs(principal[1]-s.month)<.005?'100%':principal?compactMoney(principal[1]):compactMoney(s.today),11,WC.mint,true);
+    // Use a short genuine share on Small; the precise HKD amount is visible
+    // on Medium/Large. Avoid a second long amount that clips a 141pt card.
+    if(principal){
+      const share=positiveCats>0&&principal[1]>0?
+        Math.round(principal[1]/positiveCats*100)+'%':compactMoney(principal[1]);
+      wText(line,share,11,WC.mint,true);
+    }
     widget.addSpacer(4);
     sectionLine(widget,'近7日',s.sevenActive+'日有紀錄');
     widget.addSpacer(3);
