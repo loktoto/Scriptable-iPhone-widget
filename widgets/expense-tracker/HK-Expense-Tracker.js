@@ -1438,8 +1438,12 @@ function widgetSummary(){
   // net monthly spending remains positive charges minus refunds.
   const grossCat=Object.create(null),grossPay=Object.create(null);
   let gross=0,refundValue=0;
-  let month=0,todayNet=0,week=0,monthCount=0,todayCount=0,unresolved=0,refunds=0;
+  let month=0,todayNet=0,week=0,monthCount=0,todayCount=0,todayRecordedCount=0,unresolved=0,refunds=0;
   for(const t of db.transactions){
+    // Today's transaction count includes valid non-zero pending-FX records.
+    // HKD KPIs/charts still exclude amounts that are not converted.
+    if(t.date===now&&Number.isFinite(Number(t.amount))&&Number(t.amount)!==0)
+      todayRecordedCount++;
     if(!validDate(t.date)||!Number.isFinite(t.amountHKD)){unresolved++;continue;}
     const v=t.amountHKD,m=t.date.slice(0,7);
     byDay[t.date]=(byDay[t.date]||0)+v;byMonth[m]=(byMonth[m]||0)+v;
@@ -1468,7 +1472,7 @@ function widgetSummary(){
   const activeIn=from=>Object.keys(byDay).filter(k=>k>=from&&k<=now).length;
   const round=v=>Math.round(v*100)/100;
   return {month:round(month),today:round(todayNet),last7:round(week),
-    txCount:monthCount,todayCount,monthOnlyToday:monthCount>0&&todayCount===monthCount,
+    txCount:monthCount,todayCount,todayRecordedCount,monthOnlyToday:monthCount>0&&todayCount===monthCount,
     sevenActive:activeIn(s7),fourteenActive:activeIn(s14),
     thirtyActive:activeIn(dayBack(29)),
     byDay,monthlyCats:ranked(cats,catCount),monthlyPayments:ranked(pays,payCount),
@@ -1680,7 +1684,7 @@ function addTodayMonthPanel(parent,s,width,chartH,heroSize=22,axis=true){
   // Top count is the number of TODAY'S successfully HKD-resolved transactions.
   const header=parent.addStack();header.layoutHorizontally();header.centerAlignContent();
   wText(header,'今日支出',11,WC.soft,true);header.addSpacer(3);
-  wText(header,s.todayCount+'筆'+(s.unresolved?' ⚠':''),11,WC.subtle);
+  wText(header,s.todayRecordedCount+'筆'+(s.unresolved?' ⚠':''),11,WC.subtle);
   parent.addSpacer(4);
   wText(parent,compactMoney(s.today),heroSize,WC.ink,true);
   parent.addSpacer(5);
@@ -1726,7 +1730,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     addTodayMonthPanel(left,s,half,compact?29:35,compact?19:21,true);
     const right=layout.addStack();right.layoutVertically();right.spacing=0;
     right.size=new Size(width-half-space,0);
-    sectionLine(right,'本月分類');
+    sectionLine(right,'本月分類','退款前');
     right.addSpacer(3);
     const diameter=compact?53:65;
     const pieContainer=right.addStack();pieContainer.layoutHorizontally();
@@ -1743,7 +1747,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const header=widget.addStack();header.layoutHorizontally();header.centerAlignContent();
     wText(header,'記帳總覽 · '+month+'月'+(s.unresolved?' ⚠':''),11,WC.ink,true);
     header.addSpacer(4);
-    wText(header,'今日'+s.todayCount+'筆 · 本月'+s.txCount+'筆',11,WC.muted);
+    wText(header,'今日'+s.todayRecordedCount+'筆 · 本月'+s.txCount+'筆',11,WC.muted);
     widget.addSpacer(5);
     const kpis=widget.addStack();kpis.layoutHorizontally();kpis.spacing=space;
     const todayKpi=kpis.addStack();todayKpi.layoutVertically();todayKpi.spacing=3;
