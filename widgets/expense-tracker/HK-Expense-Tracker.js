@@ -1611,11 +1611,11 @@ function addPieChart(parent,items,size,maxParts=4){
 }
 // Native mini charts: ranked payment meters and comparable signed net periods.
 function makeMeterBar(width,value,max,negative=false,colorIndex=0){
-  const c=createChart(width,6);
-  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,6));
+  const c=createChart(width,5);
+  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,5));
   if(max>0&&Math.abs(value)>0){
     c.setFillColor(new Color(negative?WC.mint:WCOL[colorIndex%WCOL.length]));
-    c.fillRect(new Rect(0,0,Math.max(1,Math.min(width,width*Math.abs(value)/max)),6));
+    c.fillRect(new Rect(0,0,Math.max(1,Math.min(width,width*Math.abs(value)/max)),5));
   }
   return c.getImage();
 }
@@ -1629,9 +1629,9 @@ function addPaymentMeterRows(parent,items,width,count=3,compact=false){
     wText(top,label.length>limit?label.slice(0,limit-1)+'…':label,11,WC.soft);
     top.addSpacer(3);
     wText(top,compactMoney(amount),11,WC.ink,true);
-    parent.addSpacer(2);
-    displayImage(parent,makeMeterBar(width,amount,max,false,i),width,6);
-    if(i<rows.length-1)parent.addSpacer(compact?3:5);
+    parent.addSpacer(1);
+    displayImage(parent,makeMeterBar(width,amount,max,false,i),width,5);
+    if(i<rows.length-1)parent.addSpacer(2);
   });
 }
 function addWeekComparison(parent,s,width,compact=false){
@@ -1641,10 +1641,10 @@ function addWeekComparison(parent,s,width,compact=false){
     const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
     wText(row,label,11,WC.subtle);row.addSpacer(4);
     const meterWidth=Math.max(24,width-(compact?128:135));
-    displayImage(row,makeMeterBar(meterWidth,value,max,value<0,i),meterWidth,6);
+    displayImage(row,makeMeterBar(meterWidth,value,max,value<0,i),meterWidth,5);
     row.addSpacer(4);
     wText(row,compactMoney(value),11,value<0?WC.mint:WC.soft,true);
-    if(i===0)parent.addSpacer(4);
+    if(i===0)parent.addSpacer(2);
   });
 }
 function addDonutLegend(parent,entries,gross,count=3,maxParts=4){
