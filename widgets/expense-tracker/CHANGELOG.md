@@ -1,5 +1,16 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.23.0] — 2026-11-06
+
+### Full Large Widget rebuild — charts-first editorial grid
+- Re-audited the actual 1-page Scriptable screenshot PDF (Large/Medium/Small); separate verification of official Apple Widgets/Layout HIG, Scriptable ListWidget and Carbon chart design, rather than trusting old report claims.
+- **Large** rebalances spacing into a clearer header, two KPI areas, taller month-to-date signed bar chart, category solid Pie with side-by-side legend, and per-payment horizontal ranked *mini bar charts* (up to 3, 2 on narrow widths).
+- **New fourth visual perspective:** paired "近7日／前7日" signed net HKD comparison, including dates before the current month, without altering the monthly totals or pretending missing FX is HKD.
+- Recent transactions remain visible, up to 2 on common widths and 1 on narrow iPhones, avoiding clipped dense rows. Small, Medium and iPad Extra Large remain unchanged.
+- Charts have different jobs: *trend*, *category composition*, *payment magnitude comparison* and *time-period comparison*. Payment bar widths are normalized against the maximum visible payment amount, not falsely presented as shares of total.
+- Retains all Tap Card/Shortcuts, local JSON ledger, refund handling, custom payment methods, editing, remarks, FX and Apple Numbers bridge. No database migration.
+- Added regression assertions for 320pt/393pt iPhones, Mini bars count and previous-week signed sums. Native screenshot pixel-level acceptance remains outstanding.
+
 ## [3.22.1] — 2026-11-06
 
 ### Medium Pie and legend alignment; clean visible headings

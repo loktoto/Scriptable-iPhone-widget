@@ -10,7 +10,7 @@ assert.equal(src,read('scripts/HK-Expense-Tracker.js'),
  'Intentional Scriptable compatibility mirror must be EXACTLY equal to canonical source');
 assert.match(src,/v3\.22\.1/);
 const version=JSON.parse(read('widgets/expense-tracker/VERSION.json'));
-assert.equal(version.version,'3.22.1');
+assert.equal(version.version,'3.23.0');
 assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.22\.1\]/);
 assert.match(read('docs/EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md'),/Independent Widget Research/);
 for(const removed of ['function barsSVG(', 'function fmt(']){
