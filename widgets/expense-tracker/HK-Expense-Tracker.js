@@ -1462,13 +1462,15 @@ function widgetSummary(){
       .localeCompare(String(a.transactionTime||a.date||a.createdAt||''))).slice(0,6);
   const sixMonths=Array.from({length:6},(_,i)=>{
     const key=monthsBack(5-i);
-    return {label:key.slice(5)+'月',value:byMonth[key]||0};
+    return {label:key.slice(5)+'月',value:byMonth[key]||0,
+      active:Object.prototype.hasOwnProperty.call(byMonth,key)};
   });
   const activeIn=from=>Object.keys(byDay).filter(k=>k>=from&&k<=now).length;
   const round=v=>Math.round(v*100)/100;
   return {month:round(month),today:round(todayNet),last7:round(week),
     txCount:monthCount,todayCount,monthOnlyToday:monthCount>0&&todayCount===monthCount,
     sevenActive:activeIn(s7),fourteenActive:activeIn(s14),
+    thirtyActive:activeIn(dayBack(29)),
     byDay,monthlyCats:ranked(cats,catCount),monthlyPayments:ranked(pays,payCount),
     gross:round(gross),refundValue:round(refundValue),
     grossCats:ranked(grossCat,catCount),grossPayments:ranked(grossPay,payCount),
@@ -1777,11 +1779,15 @@ function buildWidget(family=config.widgetFamily||'medium'){
   const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=12;
   const leftW=Math.floor(width*.52),rightW=width-leftW-12;
   const left=panels.addStack();left.layoutVertically();left.size=new Size(leftW,0);
-  sectionLine(left,'最近30日每日淨額');
-  left.addSpacer(4);addChart(left,chartPoints(s.byDay,30),leftW,compactPad?47:60);
+  sectionLine(left,s.thirtyActive<=2?'30日記帳日分佈':'最近30日淨額',
+    s.thirtyActive+'／30日');
+  left.addSpacer(4);
+  addContextChart(left,chartPoints(s.byDay,30),leftW,compactPad?47:60,s.thirtyActive);
   left.addSpacer(7);
-  sectionLine(left,'最近6個月淨額');
-  left.addSpacer(4);addChart(left,s.sixMonths,leftW,compactPad?30:42);
+  const months=s.sixMonths.filter(x=>x.active).length;
+  sectionLine(left,months<=1?'6個月記帳月份':'最近6個月淨額',months+'／6月');
+  left.addSpacer(4);
+  addContextChart(left,s.sixMonths,leftW,compactPad?30:42,months);
   const right=panels.addStack();right.layoutVertically();right.size=new Size(rightW,0);
   sectionLine(right,'分類 · 正向支出');
   right.addSpacer(5);
