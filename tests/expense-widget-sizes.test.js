@@ -173,7 +173,14 @@ function graphs(node){
  assert.ok(xt.includes('最近六筆交易'));
  assert.equal(xlCharts.length,4,'iPad XL needs 30-day, 6mo, donut, payment distribution');
  assert.ok(xlCharts.some(x=>x.draws.some(y=>y.type==='fill-path')));
- assert.ok(estimatedHeight(xl)<=305.5,'Smallest iPad XL 305.5pt canvas must fit');
+ console.log('iPad 1024pt XL estimated',estimatedHeight(xl));
+ assert.ok(estimatedHeight(xl)<=378.5,'iPad 1024pt XL must fit its 378.5pt canvas');
+ const miniSuite=createTestSuite(rows,true);
+ miniSuite.ctx.Device.screenSize=()=>({width:768});
+ const mini=await vm.runInContext(miniSuite.boot,miniSuite.ctx);
+ console.log('iPad 768pt XL estimated',estimatedHeight(mini.buildWidget('extraLarge')));
+ assert.ok(estimatedHeight(mini.buildWidget('extraLarge'))<=305.5,
+   'Smallest iPad XL 305.5pt canvas must fit');
  const emptySuite=createTestSuite([],true),empty=await vm.runInContext(emptySuite.boot,emptySuite.ctx);
  for(const family of ['small','medium','large','extraLarge']){
    const node=empty.buildWidget(family),labels=flatten(node).join('|');
