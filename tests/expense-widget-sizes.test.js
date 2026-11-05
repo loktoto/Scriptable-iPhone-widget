@@ -56,7 +56,7 @@ class DrawContext{
  setFillColor(){}
  fillRect(rect){this.draws.push({type:'rect',rect})}
  fillEllipse(rect){this.draws.push({type:'ellipse',rect})}
- addPath(p){this.draws.push({type:'path',points:p.points})}
+ addPath(path){this.draws.push({type:'path',points:path.points})}
  fillPath(){this.draws.push({type:'fill-path'})}
  setFont(){}
  setTextColor(){}
@@ -68,13 +68,7 @@ class Size{constructor(width,height){this.width=width;this.height=height}}
 class Rect{constructor(x,y,width,height){Object.assign(this,{x,y,width,height})}}
 class Color{constructor(x){this.value=x}}
 class Point{constructor(x,y){this.x=x;this.y=y}}
-class Path{
- constructor(){this.points=[]}
- move(p){this.points.push(p)}
- addLine(p){this.points.push(p)}
- closeSubpath(){}
-}
-
+class Path{constructor(){this.points=[]} move(p){this.points.push(p)} addLine(p){this.points.push(p)} closeSubpath(){}}
 const Font={semiboldSystemFont:size=>({size,bold:true}),systemFont:size=>({size}),
  mediumSystemFont:size=>({size,medium:true})};
 const dbPath='/local/ExpenseTrackerHK/transactions.json';
@@ -89,7 +83,39 @@ function createTestSuite(entries=rows,pad=false){
   Size,Rect,DrawContext,Point,Path,ListWidget:MockWidget,URLScheme:{forRunningScript:()=>'scriptable:///run?scriptName=Expense'},
   Device:{screenSize:()=>({width:pad?1024:393}),isPad:()=>pad},console};
  vm.createContext(ctx);
- const boot='(async()=>{
+ const boot='(async()=>{\n'+script.slice(0,cut)+
+  '\nreturn {buildWidget,widgetSummary,chartPoints,makeBarChart,makeDonutChart,makeStackedChart,donutParts,previewWidget,db,recentTitle};\n}\nreturn await runExpenseTrackerHK();\n})()';
+ return {ctx,args,disk,boot};
+}
+function flatten(node){
+ const out=[];(function visit(x){
+  if(x.type==='text')out.push(x.text);
+  if(x.children)for(const ch of x.children)visit(ch);
+ })(node);return out;
+}
+function textNodes(node){
+ const out=[];(function visit(x){
+  if(x.type==='text')out.push(x);
+  if(x.children)for(const child of x.children)visit(child);
+ })(node);return out;
+}
+// Conservative approximate layout estimator (not a substitute for iPhone preview).
+function estimatedHeight(node){
+ if(node.type==='text')return Math.ceil((node.font?.size||11)*1.2);
+ if(node.type==='image')return Math.ceil(node.imageSize?.height||node.content?.size?.height||0);
+ if(node.type==='spacer')return Number.isFinite(node.value)?node.value:0;
+ const sizes=(node.children||[]).map(estimatedHeight);
+ const inner=node.direction==='horizontal'?Math.max(0,...sizes):sizes.reduce((a,b)=>a+b,0);
+ const pad=node.padding||[];
+ return inner+(pad[0]||0)+(pad[2]||0)+Math.max(0,sizes.length-1)*(node.spacing||0);
+}
+function graphs(node){
+ const items=[];(function visit(x){
+  if(x.type==='image'&&x.content.type==='drawn-image'&&x.content.size.height>10)items.push(x.content);
+  if(x.children)for(const ch of x.children)visit(ch);
+ })(node);return items;
+}
+(async()=>{
  const suite=createTestSuite(),app=await vm.runInContext(suite.boot,suite.ctx);
  const summary=app.widgetSummary();
  assert.equal(summary.month,218,'Net HKD amount must include refund');
