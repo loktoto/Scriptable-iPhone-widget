@@ -1,5 +1,22 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.19.0] — 2026-11-05
+
+### Clean-sheet redesign (all Widget families)
+- Replaced the **entire old Widget presentation layer**, not just spacing and words. Retains the existing validated local JSON ledger and all Shortcuts/Numbers/FX/edit/delete interfaces.
+- **Small:** elegant month-spend hero + most meaningful category and a seven-day *equal-cell expenditure heatstrip*, not the old giant lone column. Every weekday remains visible with native text, and active-day intensity reflects genuine HKD net values.
+- **Medium:** adapts by data density. With <=1 active day in the last fourteen days, replaces a misleading one-bar 14-day chart with two ranked categories, actual amounts and preferred payment method. With multi-day activity, shows a compact signed 14-day trend instead.
+- **Large:** structured full-width monthly hero, compact 14-day activity graph, ranked categories, actual payment names and full-width recent transactions. Font size stays >=11pt, and narrow devices reduce row counts rather than aggressively shrink text.
+- **Extra Large:** independent three-column iPad console: 30-day trend plus six-month chart, Top-5 ranked categories, Top-4 payment methods and six transactions split into three columns. No assumption that iPhone supports the iPad-only family.
+- Keeps high-value contextual information without printing the same HK$ amount three times; `monthOnlyToday` is established by **transaction dates**, not by coincidentally equal net totals.
+- Missing MerchantName falls back to an informative category/payment display label without changing persisted data. Refunds stay signed, pending FX is not counted as HKD.
+- Reuses one-pass summary aggregation and safe null-prototype payment/category maps; removes prior presentation helpers instead of stacking more cosmetic patches.
+
+### Verification / limitations
+- Added an all-family offline Scriptable view-tree regression including the user's HK$200.30 one-active-day screenshot, 7-day heatstrip, sparse versus multi-day layouts, 320pt small devices, 393pt devices, foreign-currency pending, negative refunds, `__proto__` payment labels, iPad analytics and ledger immutability.
+- Retains full repository lint / Shortcuts / Dashboard edit-delete / automatic version checks and exact matching legacy script mirror.
+- **Important:** mocked Scriptable structure tests cannot certify final native iPhone screenshots. Final real-device visual acceptance remains outstanding.
+
 ## [3.18.0] — 2026-11-05
 
 ### Corrected — Screenshot-first visual acceptance

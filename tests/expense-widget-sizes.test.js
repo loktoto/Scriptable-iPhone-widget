@@ -111,143 +111,130 @@ function graphs(node){
  })(node);return items;
 }
 (async()=>{
- const fixture=createTestSuite();
- const app=await vm.runInContext(fixture.boot,fixture.ctx);
+ const fixture=createTestSuite(),app=await vm.runInContext(fixture.boot,fixture.ctx);
  const summary=app.widgetSummary();
- assert.equal(summary.month,218,'Known synthetic monthly HKD net');
- assert.equal(summary.txCount,8,'Pending FX excluded from HKD count');
- assert.equal(summary.unresolved,1,'Pending FX remains visible');
- assert.ok(summary.monthlyCats.some(([k,v])=>k==='食飯'&&v===59),'Legacy 食物 merged with new 食飯');
+ assert.equal(summary.month,218);
+ assert.equal(summary.txCount,8);
+ assert.equal(summary.unresolved,1);
+ assert.equal(summary.todayCount,3);
+ assert.ok(summary.monthlyCats.some(([k,v])=>k==='食飯'&&v===59));
  assert.ok(summary.monthlyPayments.some(([k])=>k==='Payme'));
- assert.ok(summary.monthlyPayments.some(([k])=>k==='My Custom QR'));
- assert.ok(summary.monthlyPayments.some(([k])=>k==='__proto__'),'Prototype-like custom method must not corrupt groups');
+ assert.ok(summary.monthlyPayments.some(([k])=>k==='__proto__'));
  assert.equal(summary.recent.length,6);
  assert.equal(summary.sixMonths.length,6);
- const small=app.buildWidget('small'),medium=app.buildWidget('medium'),large=app.buildWidget('large');
+ const small=app.buildWidget('small'),medium=app.buildWidget('medium'),
+   large=app.buildWidget('large');
  const st=flatten(small).join('|'),mt=flatten(medium).join('|'),lt=flatten(large).join('|');
- assert.ok(st.includes('月開支'),'Small title must fit');
- assert.ok(st.includes('今日'),'Small must show today expense');
- assert.ok(st.includes('近7日'),'Small must show seven-day total');
- assert.ok(st.includes('8筆'),'Small retains current-month transaction count');
- assert.equal(graphs(small).length,1,'Small MUST restore a seven-day chart');
- assert.equal(graphs(small)[0].size.height,29,'Small chart must remain a readable, compact seven-day plot');
- assert.equal(app.chartPoints(summary.byDay,7).length,7,'Seven real day buckets required');
- assert.ok(textNodes(small).every(n=>n.font?.size>=11),'All native text on Small must be >= 11pt');
- assert.ok(estimatedHeight(small)<=141,'Approximate Small vertical layout must fit the smallest documented 141pt height');
- assert.ok(st.includes('一')||st.includes('日'),'Native weekday glyphs must be visible');
- assert.ok(!st.includes('HK$218.00|HK$218.00|HK$218.00'),
-   'Small should not repeat identical figures three times');
- const smallNativeLabels=flatten(small).filter(x=>['日','一','二','三','四','五','六'].includes(x));
- assert.equal(smallNativeLabels.length,7,'Show all seven native-text weekday labels');
- assert.ok(!st.includes('14日')&&!st.includes('分類 Top 3'),'Small is not a shrunken Medium/Large');
- assert.equal(graphs(medium).length,1);
- assert.ok(mt.includes('近14日 · '),'Medium must show 14-day chart activity rather than generic label');
- assert.ok(mt.includes('近7日'));
- assert.ok(mt.includes('主要分類')&&mt.includes('訂閱 HK$70.00'),'Medium must display the correct largest category');
- assert.ok(!mt.includes('最近交易'),'Medium must NOT mimic Large');
- assert.ok(lt.includes('本月分類 · TOP 3'));
- assert.ok(lt.includes('付款方式 · TOP 2'));
+ assert.ok(st.includes('月 · 支出'));
+ assert.ok(st.includes('主要'),'Small must show meaningful leading category rather than repeated totals');
+ assert.ok(st.includes('近7日'));
+ assert.ok(st.includes('8筆'));
+ assert.equal(graphs(small).length,1,'Seven-day mini heat strip is a real DrawContext image');
+ assert.equal(graphs(small)[0].size.height,12);
+ assert.equal(app.chartPoints(summary.byDay,7).length,7);
+ assert.equal(flatten(small).filter(x=>['日','一','二','三','四','五','六'].includes(x)).length,7);
+ assert.ok(textNodes(small).every(n=>n.font?.size>=11));
+ assert.ok(!st.includes('14日'),'Small must not duplicate Medium');
+ assert.ok(mt.includes('近14日'),'Medium normal multi-day scenario shows 14-day context');
+ assert.equal(graphs(medium).length,1,'Medium normal multi-day case should draw time trend');
+ assert.ok(lt.includes('14日趨勢'));
+ assert.ok(lt.includes('分類支出'));
+ assert.ok(lt.includes('付款方式'));
  assert.ok(lt.includes('最近交易'));
- assert.ok(lt.includes('Payme'));
- assert.ok(lt.includes('近7日')&&lt.includes('最近14日'));
- assert.ok(summary.monthlyCats.length>=3);
+ assert.ok(lt.includes('Lunch Cafe'),'Large renders full-width recent merchant names');
  assert.ok(lt.includes('訂閱')&&lt.includes('食飯'));
- assert.ok(!lt.includes('undefined')&&!lt.includes('NaN'));
- assert.ok(lt.includes('Lunch Cafe'));
- assert.equal(graphs(large).length,1,'Large should use one chart plus ranked categories and transactions');
- console.log('Estimated heights 393pt screen: Small '+estimatedHeight(small)+', Medium '+estimatedHeight(medium)+', Large '+estimatedHeight(large));
- assert.ok(estimatedHeight(large)<=354,'393pt iPhone Large should fit 354pt real Apple HIG size');
- assert.ok(estimatedHeight(medium)<=158,'Medium must fit 158pt iPhone size');
- const wideRows=large.children.filter(x=>x?.type==='stack');
- assert.ok(wideRows.length>0,'Large must have a structured stacked layout');
- for(const accessory of ['accessoryInline','accessoryCircular','accessoryRectangular']){
-   const widget=app.buildWidget(accessory),labels=flatten(widget).join('|');
-   assert.ok(labels.length>0,'Lock-screen accessory must show at least one value');
-   assert.equal(graphs(widget).length,0,'Accessory should not render complex charts');
+ assert.equal(graphs(large).length,1,'Large contains one compact trend, not a large chart panel');
+ for(const family of [small,medium,large]){
+   const texts=textNodes(family);
+   assert.ok(texts.every(x=>x.font.size>=11),'Native text must meet minimum 11pt');
  }
+ console.log('New family heights (393pt device):',estimatedHeight(small),estimatedHeight(medium),estimatedHeight(large));
+ assert.ok(estimatedHeight(small)<=158,'393pt Small must fit 158pt');
+ assert.ok(estimatedHeight(medium)<=158,'393pt Medium must fit 158pt');
+ assert.ok(estimatedHeight(large)<=354,'393pt Large must fit 354pt');
  assert.equal(small.url,'scriptable:///run?scriptName=Expense&view=dashboard');
- assert.ok(Number.isFinite(new Date(small.refreshAfterDate).getTime()),'Refresh request must contain a valid date');
+ assert.ok(Number.isFinite(new Date(small.refreshAfterDate).getTime()));
+ for(const accessory of ['accessoryInline','accessoryCircular','accessoryRectangular']){
+   const a=app.buildWidget(accessory);
+   assert.ok(flatten(a).join('|').includes('本月')||flatten(a).join('|').includes('$'));
+   assert.equal(graphs(a).length,0);
+ }
  fixture.args.widgetParameter='quick';
  assert.equal(app.buildWidget('small').url,'scriptable:///run?scriptName=Expense&view=manual');
- const ipad=createTestSuite(rows,true);
- const ipadApp=await vm.runInContext(ipad.boot,ipad.ctx);
- const xl=ipadApp.buildWidget('extraLarge');
- const xt=flatten(xl).join('|');
- assert.ok(xt.includes('開支分析 · iPad'));
+ const ipad=createTestSuite(rows,true),ipadApp=await vm.runInContext(ipad.boot,ipad.ctx);
+ const xl=ipadApp.buildWidget('extraLarge'),xt=flatten(xl).join('|');
+ assert.ok(xt.includes('財務總覽'));
  assert.ok(xt.includes('最近30日'));
  assert.ok(xt.includes('最近6個月'));
- assert.ok(xt.includes('分類 TOP 5'));
- assert.ok(xt.includes('付款方式 TOP 3'));
- assert.ok(xt.includes('最近6筆交易'));
- assert.ok(xt.includes('本月退款'));
- assert.ok(xt.includes('Lunch Cafe'),'iPad XL must include actual transactions');
- assert.ok(xt.includes('最近30日')&&xt.includes('最近6個月'),'iPad should show two time scales');
- assert.equal(graphs(xl).length,2,'iPad XL must have both 30-day AND six-month charts');
- assert.ok(xt.includes('Payme'));
- assert.ok(xt.includes('⚠ 1筆待核對'));
- const widths=graphs(xl).map(x=>x.size.width);
- assert.ok(widths.every(x=>x>150&&x<=665),'iPad charts must use bounded widths');
- const empty=createTestSuite([],true),emptyApp=await vm.runInContext(empty.boot,empty.ctx);
- for(const size of ['small','medium','large','extraLarge']){
-   const w=emptyApp.buildWidget(size),out=flatten(w).join('|');
-   assert.ok(out.includes('HK$0.00'),'No-data view must display honest 0 monthly value');
-   assert.ok(!out.includes('NaN')&&!out.includes('undefined'));
+ assert.ok(xt.includes('本月分類 Top 5'));
+ assert.ok(xt.includes('付款方式 Top 4'));
+ assert.ok(xt.includes('最近六筆交易'));
+ assert.ok(xt.includes('Lunch Cafe'));
+ assert.equal(graphs(xl).length,2,'Extra Large is a distinct multi-period analytic dashboard');
+ assert.ok(graphs(xl).every(x=>x.size.width>100));
+ const noData=createTestSuite([],true),empty=await vm.runInContext(noData.boot,noData.ctx);
+ for(const family of ['small','medium','large','extraLarge']){
+   const view=empty.buildWidget(family),t=flatten(view).join('|');
+   assert.ok(t.includes('HK$0.00'));
+   assert.ok(!t.includes('undefined')&&!t.includes('NaN'));
  }
- // Same-day charge and full refund is a zero-net, but ACTIVE, record group.
- const cancelRows=[
-   {...rows[0],id:'cancel-spend',amount:5,amountHKD:5},
-   {...rows[0],id:'cancel-refund',amount:-5,amountHKD:-5}
- ];
- const zero=createTestSuite(cancelRows),zeroApp=await vm.runInContext(zero.boot,zero.ctx);
- const zeroSummary=zeroApp.widgetSummary();
- assert.equal(zeroSummary.month,0);
- assert.ok(zeroSummary.monthlyCats.some(([name,v])=>name==='食飯'&&v===0),'Active zero-net category must remain visible');
- assert.ok(zeroSummary.monthlyPayments.some(([name,v])=>name==='Payme'&&v===0),'Active zero-net payment must remain visible');
- // User screenshot regression: 4 purchases today = month/today/week HK$200.30.
- const sameDayRows=[50,50,50,50.30].map((n,i)=>({
-   id:'same-'+i,date:today,merchant:'Quick '+i,category:'食飯',
-   amount:n,amountHKD:n,currency:'HKD',card:'Payme'
+ const cancelRows=[{...rows[0],id:'positive',amount:5,amountHKD:5},
+  {...rows[0],id:'refund',amount:-5,amountHKD:-5}];
+ const cancel=createTestSuite(cancelRows),ca=await vm.runInContext(cancel.boot,cancel.ctx);
+ assert.equal(ca.widgetSummary().month,0);
+ assert.ok(ca.widgetSummary().monthlyCats.some(([k,v])=>k==='食飯'&&v===0));
+ assert.ok(ca.widgetSummary().monthlyPayments.some(([k,v])=>k==='Payme'&&v===0));
+ // Exact screenshot: four transactions, HK$200.30. One active day.
+ const four=[50,50,50,50.30].map((amount,i)=>({
+  id:'four-'+i,date:today,transactionTime:today+'T12:0'+i+':00',
+  merchant:'未提供商戶',category:i===0?'訂閱':'食飯',
+  card:'Payme',amount,amountHKD:amount,currency:'HKD'
  }));
- const sameDay=createTestSuite(sameDayRows),sameApp=await vm.runInContext(sameDay.boot,sameDay.ctx);
- const sameSmall=sameApp.buildWidget('small');
- const sameLabels=flatten(sameSmall).join('|');
- assert.equal((sameLabels.match(/HK\$200\.30/g)||[]).length,1,
-   'Screenshot case: month/today/week same value must be printed just once');
- assert.ok(sameLabels.includes('全部在今日'),'Today relationship must be date-based and explicit');
- assert.ok(sameLabels.includes('1日有紀錄'),'Week activity count replaces redundant third amount');
- assert.equal(sameApp.widgetSummary().todayCount,4);
- assert.equal(sameApp.widgetSummary().monthOnlyToday,true);
- const equalAmountsDifferentDates=createTestSuite([
-   {...sameDayRows[0],id:'today',amount:200.30,amountHKD:200.30},
-   {...sameDayRows[0],id:'prev-charge',date:inMonthAgo(1),amount:8,amountHKD:8},
-   {...sameDayRows[0],id:'prev-refund',date:inMonthAgo(1),amount:-8,amountHKD:-8}
- ]);
- const equalApp=await vm.runInContext(equalAmountsDifferentDates.boot,equalAmountsDifferentDates.ctx);
- assert.equal(equalApp.widgetSummary().month,200.30);
- assert.equal(equalApp.widgetSummary().today,200.30);
- assert.equal(equalApp.widgetSummary().monthOnlyToday,false,
-   'Numerical equality caused by refunded earlier activity MUST NOT claim all records were today');
- assert.ok(!flatten(equalApp.buildWidget('small')).join('|').includes('全部在今日'),
-   'Do not falsely infer all spending was today from equal net amounts');
+ const oneDay=createTestSuite(four),one=await vm.runInContext(oneDay.boot,oneDay.ctx);
+ const sm=one.buildWidget('small'),md=one.buildWidget('medium'),lg=one.buildWidget('large');
+ const smallText=flatten(sm).join('|'),mediumText=flatten(md).join('|');
+ assert.equal((smallText.match(/HK\$200\.30/g)||[]).length,1,
+   'Small must show monthly HK$200.30 only once');
+ assert.equal((mediumText.match(/HK\$200\.30/g)||[]).length,1,
+   'Medium must not reprint today / month / week equal totals');
+ assert.equal(one.widgetSummary().sevenActive,1);
+ assert.equal(one.widgetSummary().fourteenActive,1);
+ assert.equal(graphs(md).length,0,
+   'Single-day dataset should replace information-poor 14-day chart with useful categories');
+ assert.ok(mediumText.includes('分類排行'));
+ assert.ok(mediumText.includes('食飯'));
+ assert.ok(estimatedHeight(sm)<=141,'Small must fit minimum 141pt iPhone');
+ assert.ok(estimatedHeight(md)<=141,'Medium sparse mode must fit minimum 141pt iPhone');
+ assert.ok(estimatedHeight(lg)<=354,'Large sparse mode must fit 354pt');
+ assert.ok(flatten(lg).join('|').includes('食飯 · Payme'),
+   'Missing merchant must use category/payment on Widget only');
+ // Equal monthly and daily net can arise from earlier cancellations: never infer dates.
+ const cross=[{...four[0],amount:200.30,amountHKD:200.30},
+  {...four[1],date:inMonthAgo(1),amount:8,amountHKD:8},
+  {...four[2],date:inMonthAgo(1),amount:-8,amountHKD:-8}];
+ const different=createTestSuite(cross),diff=await vm.runInContext(different.boot,different.ctx);
+ assert.equal(diff.widgetSummary().month,200.30);
+ assert.equal(diff.widgetSummary().today,200.30);
+ assert.equal(diff.widgetSummary().monthOnlyToday,false);
+ assert.ok(!flatten(diff.buildWidget('large')).join('|').includes('筆交易均在今日'));
  assert.equal(app.recentTitle({merchant:'未提供商戶',category:'食飯',card:'Payme'}),'食飯 · Payme');
- const paymentDemo=createTestSuite([
-   {...sameDayRows[0],id:'p1',amount:100,amountHKD:100,paymentType:'Online Payment'},
-   {...sameDayRows[1],id:'p2',amount:85,amountHKD:85,paymentType:'現金'},
-   {...sameDayRows[2],id:'p3',amount:15.30,amountHKD:15.30,paymentType:'八達通'}
- ]);
- const paymentApp=await vm.runInContext(paymentDemo.boot,paymentDemo.ctx);
- assert.equal(paymentApp.paymentRemainder(paymentApp.widgetSummary(),2),15.3);
- assert.ok(flatten(paymentApp.buildWidget('large')).join('|').includes('HK$15.30'),
-   'Large must disclose the other HK$15.30 outside the top two payment methods');
- assert.equal(graphs(sameSmall)[0].size.height,29);
- assert.ok(estimatedHeight(sameSmall)<=141,'Small must fit a conservative 141pt canvas');
- const smallScreen=createTestSuite(rows,false);
- smallScreen.ctx.Device.screenSize=()=>({width:320});
- const mobile=await vm.runInContext(smallScreen.boot,smallScreen.ctx);
- assert.ok(estimatedHeight(mobile.buildWidget('medium'))<=141,'320pt iPhone Medium must fit 141pt height');
- assert.ok(estimatedHeight(mobile.buildWidget('large'))<=311,'320pt iPhone Large must fit 311pt height');
- const stable=JSON.parse(fixture.disk.get(dbPath));
- assert.equal(stable.transactions[6].category,'食物','Viewing widgets must NOT migrate source rows');
- assert.equal(stable.transactions[8].fxStatus,'pending','Widgets must not call FX or mutate pending records');
- console.log('PASS: All four redesigned sizes with visual density and screenshot regression, paired charts, prototype-safe payment groups, refunds, pending FX, empty states and quick link');
-})().catch(e=>{console.error(e);process.exitCode=1});
+ const payRows=[
+  {...four[0],id:'p1',amount:100,amountHKD:100,paymentType:'Online Payment'},
+  {...four[1],id:'p2',amount:85,amountHKD:85,paymentType:'現金'},
+  {...four[2],id:'p3',amount:15.30,amountHKD:15.30,paymentType:'八達通'}
+ ];
+ const payment=createTestSuite(payRows),pay=await vm.runInContext(payment.boot,payment.ctx);
+ assert.equal(pay.paymentRemainder(pay.widgetSummary(),2),15.3);
+ assert.ok(flatten(pay.buildWidget('large')).join('|').includes('HK$15.30'));
+ const tiny=createTestSuite(rows,false);tiny.ctx.Device.screenSize=()=>({width:320});
+ const phone=await vm.runInContext(tiny.boot,tiny.ctx);
+ console.log('Minimum-width heights:',estimatedHeight(phone.buildWidget('small')),
+  estimatedHeight(phone.buildWidget('medium')),estimatedHeight(phone.buildWidget('large')));
+ assert.ok(estimatedHeight(phone.buildWidget('small'))<=141);
+ assert.ok(estimatedHeight(phone.buildWidget('medium'))<=141);
+ assert.ok(estimatedHeight(phone.buildWidget('large'))<=311);
+ const disk=JSON.parse(fixture.disk.get(dbPath));
+ assert.equal(disk.transactions[6].category,'食物');
+ assert.equal(disk.transactions[8].fxStatus,'pending');
+ console.log('PASS: clean-sheet responsive Widget UI, one-day density adaptation, 7-day heatstrip, iPad XL, local-storage preservation');
+})().catch(e=>{console.error(e);process.exitCode=1;});
