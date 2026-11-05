@@ -1633,9 +1633,9 @@ function paymentRemainder(s,n=2){
 }
 function widgetWidth(family){
   let screen=390;try{screen=Device.screenSize().width||390;}catch(_){}
-  if(family==='small')return Math.max(103,Math.min(139,(screen-125)/2));
-  if(family==='extraLarge')return Math.max(440,Math.min(680,screen-130));
-  return Math.max(245,Math.min(348,screen-76));
+  if(family==='small')return screen<=320?121:screen<=375?128:screen<=393?138:149;
+  if(family==='extraLarge')return Math.max(440,Math.min(605,screen-132));
+  return (screen<=320?292:screen<=375?321:screen<=393?338:screen<=414?360:364)-24;
 }
 function sectionLine(parent,title,right=''){
   const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
@@ -1801,50 +1801,58 @@ function buildWidget(family=config.widgetFamily||'medium'){
     if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
     return widget;
   }
-  // iPad Extra Large is an information-rich 3-zone analytics console,
-  // never an enlarged phone widget. All rows use native 11pt text.
-  simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'財務總覽 · '+month+'月');
-  widget.addSpacer(7);
-  const summary=widget.addStack();summary.layoutHorizontally();summary.centerAlignContent();
-  wText(summary,compactMoney(s.month),28,WC.ink,true);
-  summary.addSpacer(14);
-  wText(summary,contextLine(s),12,WC.mint);
-  summary.addSpacer();
-  wText(summary,'退款 '+s.refunds+'筆',11,WC.soft);
-  widget.addSpacer(10);
-  const cols=widget.addStack();cols.layoutHorizontally();cols.spacing=10;
-  const colWidth=Math.floor((width-20)/3);
-  const a=widgetCard(cols,9);a.size=new Size(colWidth,0);
-  wText(a,'最近30日',11,WC.ink,true);a.addSpacer(6);
-  addChart(a,chartPoints(s.byDay,30),colWidth-18,58);
-  a.addSpacer(9);
-  wText(a,'最近6個月',11,WC.ink,true);a.addSpacer(6);
-  addChart(a,s.sixMonths,colWidth-18,43);
-  const b=widgetCard(cols,9);b.size=new Size(colWidth,0);
-  wText(b,'本月分類 Top 5',11,WC.ink,true);b.addSpacer(8);
-  addRankRows(b,s.monthlyCats,5,colWidth-18);
-  const c=widgetCard(cols,9);c.size=new Size(colWidth,0);
-  wText(c,'付款方式 Top 4',11,WC.ink,true);c.addSpacer(8);
-  addPaymentRows(c,s.monthlyPayments,4);
-  widget.addSpacer(10);
-  sectionLine(widget,'最近六筆交易');
+  // iPad Extra Large: four complementary charts with transparent denominators.
+  simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'財務分析 · '+month+'月');
   widget.addSpacer(5);
-  const trans=widget.addStack();trans.layoutHorizontally();trans.spacing=10;
+  const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
+  wText(hero,compactMoney(s.month),25,WC.ink,true);
+  hero.addSpacer(12);
+  wText(hero,'支出 '+compactMoney(s.gross),11,WC.soft);
+  hero.addSpacer(10);
+  wText(hero,'退款 '+compactMoney(s.refundValue),11,WC.mint);
+  widget.addSpacer(8);
+  const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=12;
+  const leftW=Math.floor(width*.52),rightW=width-leftW-12;
+  const left=panels.addStack();left.layoutVertically();left.size=new Size(leftW,0);
+  sectionLine(left,'最近30日每日淨額');
+  left.addSpacer(4);addChart(left,chartPoints(s.byDay,30),leftW,60);
+  left.addSpacer(7);
+  sectionLine(left,'最近6個月淨額');
+  left.addSpacer(4);addChart(left,s.sixMonths,leftW,42);
+  const right=panels.addStack();right.layoutVertically();right.size=new Size(rightW,0);
+  sectionLine(right,'分類 · 正向支出');
+  right.addSpacer(5);
+  const cat=right.addStack();cat.layoutHorizontally();cat.centerAlignContent();
+  addDonutChart(cat,s.grossCats,84);cat.addSpacer(8);
+  const legend=cat.addStack();legend.layoutVertically();legend.spacing=3;
+  addDonutLegend(legend,s.grossCats,s.gross,4);
+  right.addSpacer(7);
+  sectionLine(right,'付款構成 · 正向支出');
+  right.addSpacer(4);
+  addStackedChart(right,donutParts(s.grossPayments),rightW,12);
+  right.addSpacer(4);
+  addPaymentRows(right,s.grossPayments,2);
+  widget.addSpacer(8);
+  sectionLine(widget,'最近六筆交易');
+  widget.addSpacer(4);
+  const recent=widget.addStack();recent.layoutHorizontally();recent.spacing=10;
   for(let i=0;i<3;i++){
-    const col=trans.addStack();col.layoutVertically();col.size=new Size(colWidth,0);
+    const col=recent.addStack();col.layoutVertically();
+    col.size=new Size(Math.floor((width-20)/3),0);
     addRecentRows(col,s.recent.slice(i*2,i*2+2),2,13);
   }
-  if(s.unresolved){widget.addSpacer(6);widgetPending(widget,s);}
+  if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
   return widget;
 }
+
 async function previewWidget(){
   const choices=[
-    'Small — 七日熱度條＋本月金額',
-    'Medium — 按交易日數顯示分類／趨勢',
-    'Large — 全寬分類、付款及最近交易'
+    'Small — 7日微型柱圖＋分類',
+    'Medium — 14日趨勢＋分類比例',
+    'Large — 趨勢＋環形圖＋付款構成'
   ];
   let isPad=false;try{isPad=Device.isPad();}catch(_){}
-  if(isPad)choices.push('Extra Large — iPad 三區分析');
+  if(isPad)choices.push('Extra Large — iPad 四圖分析');
   const pick=new Alert();pick.title='預覽記帳 Widget';
   choices.forEach(name=>pick.addAction(name));pick.addCancelAction('取消');
   const choice=await pick.presentSheet();if(choice<0)return;
