@@ -125,6 +125,52 @@ function graphs(node){
  assert.ok(lt.includes('Payme'));
  assert.ok(lt.includes('Lunch Cafe'));
  assert.equal(graphs(large).length,1,'Large should use one chart plus ranked categories and transactions');
+ for(const accessory of ['accessoryInline','accessoryCircular','accessoryRectangular']){
+   const widget=app.buildWidget(accessory),labels=flatten(widget).join('|');
+   assert.ok(labels.includes('本月')||labels.includes('
+ assert.ok(Number.isFinite(new Date(small.refreshAfterDate).getTime()),'Refresh request must contain a valid date');
+ fixture.args.widgetParameter='quick';
+ assert.equal(app.buildWidget('small').url,'scriptable:///run?scriptName=Expense&view=manual');
+ const ipad=createTestSuite(rows,true);
+ const ipadApp=await vm.runInContext(ipad.boot,ipad.ctx);
+ const xl=ipadApp.buildWidget('extraLarge');
+ const xt=flatten(xl).join('|');
+ assert.ok(xt.includes('記帳控制台 · iPad'));
+ assert.ok(xt.includes('最近 30 日'));
+ assert.ok(xt.includes('最近 6 個月'));
+ assert.ok(xt.includes('本月分類 Top 5'));
+ assert.ok(xt.includes('付款方式 Top 3'));
+ assert.ok(xt.includes('最近 6 筆交易'));
+ assert.ok(xt.includes('本月退款'));
+ assert.equal(graphs(xl).length,2,'iPad XL must have both 30-day AND six-month charts');
+ assert.ok(xt.includes('Payme'));
+ assert.ok(xt.includes('1 筆日期／匯率待核對'));
+ const widths=graphs(xl).map(x=>x.size.width);
+ assert.ok(widths.every(x=>x>150&&x<=665),'iPad charts must use bounded widths');
+ const empty=createTestSuite([],true),emptyApp=await vm.runInContext(empty.boot,empty.ctx);
+ for(const size of ['small','medium','large','extraLarge']){
+   const w=emptyApp.buildWidget(size),out=flatten(w).join('|');
+   assert.ok(out.includes('HK$0.00'),'No-data view must display honest 0 monthly value');
+   assert.ok(!out.includes('NaN')&&!out.includes('undefined'));
+ }
+ // Same-day charge and full refund is a zero-net, but ACTIVE, record group.
+ const cancelRows=[
+   {...rows[0],id:'cancel-spend',amount:5,amountHKD:5},
+   {...rows[0],id:'cancel-refund',amount:-5,amountHKD:-5}
+ ];
+ const zero=createTestSuite(cancelRows),zeroApp=await vm.runInContext(zero.boot,zero.ctx);
+ const zeroSummary=zeroApp.widgetSummary();
+ assert.equal(zeroSummary.month,0);
+ assert.ok(zeroSummary.monthlyCats.some(([name,v])=>name==='食飯'&&v===0),'Active zero-net category must remain visible');
+ assert.ok(zeroSummary.monthlyPayments.some(([name,v])=>name==='Payme'&&v===0),'Active zero-net payment must remain visible');
+ const stable=JSON.parse(fixture.disk.get(dbPath));
+ assert.equal(stable.transactions[6].category,'食物','Viewing widgets must NOT migrate source rows');
+ assert.equal(stable.transactions[8].fxStatus,'pending','Widgets must not call FX or mutate pending records');
+ console.log('PASS: Small/Medium/Large/iPad XL distinct information, paired charts, prototype-safe payment groups, refunds, pending FX, empty states and quick link');
+})().catch(e=>{console.error(e);process.exitCode=1});
+),'Lock-screen accessory value missing for '+accessory);
+   assert.equal(graphs(widget).length,0,'Accessory widget should not render charts');
+ }
  assert.equal(small.url,'scriptable:///run?scriptName=Expense&view=dashboard');
  assert.ok(Number.isFinite(new Date(small.refreshAfterDate).getTime()),'Refresh request must contain a valid date');
  fixture.args.widgetParameter='quick';
