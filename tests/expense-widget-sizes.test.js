@@ -166,14 +166,14 @@ function graphs(node){
        const leftImages=graphs(kids[0]);
        const rightLabels=flatten(kids[1]);
        if(leftImages.some(x=>x.draws.some(y=>y.type==='fill-path'))&&
-          rightLabels.some(x=>/^\\d+%$/.test(x))&&rightLabels.length>=3) return true;
+          rightLabels.some(x=>/^\d+%$/.test(x))&&rightLabels.length>=3) return true;
      }
    }
    return (node.children||[]).some(hasInlinePieAndLegend);
  };
  assert.ok(hasInlinePieAndLegend(medium),'Medium must align the Pie and legend side-by-side');
  const inlineLabels=flatten(medium);
- assert.ok(inlineLabels.some(x=>/^\\d+%$/.test(x)),'Pie legend retains category percentages');
+ assert.ok(inlineLabels.some(x=>/^\d+%$/.test(x)),'Pie legend retains category percentages');
 
  assert.ok(!md.includes('近7日')&&!md.includes('最近14日'));
  assert.ok(lg.includes('今日3筆')&&lg.includes('本月8筆'));
