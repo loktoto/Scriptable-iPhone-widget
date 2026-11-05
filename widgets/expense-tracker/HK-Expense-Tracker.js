@@ -212,15 +212,20 @@ function normalizePaymentType(raw){
  if(/^(payme)$/i.test(s))return 'Payme';
  if(/^(alipayhk|alipay hk)$/i.test(s))return 'AlipayHK';
  if(/^(apple pay)$/i.test(s))return 'Apple Pay';
- // An actual card name is still saved in Card. Infer broad type only when
- // there is no explicit user-supplied paymentType.
+ // Explicit user-defined paymentType is NEVER collapsed to a whitelist.
+ return s;
+}
+function paymentTypeFromCard(card){
+ const s=normalizePaymentType(card);
+ if(!s)return '';
+ // Only fallback from Card may infer a broad card class.
  if(/\b(visa|mastercard|amex|american express)\b/i.test(s))return '信用卡';
  return s;
 }
 function paymentTypeOf(t){
  if(!t)return '';
  const explicit=normalizePaymentType(t.paymentType);
- return explicit||normalizePaymentType(t.card);
+ return explicit||paymentTypeFromCard(t.card);
 }
 function hash(s) { let h=2166136261; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);} return (h>>>0).toString(16); }
 function normalize(t) {
@@ -239,7 +244,7 @@ function normalize(t) {
     ||currencyFrom(rawAmount)||currencyFrom(rawCategory)||'UNKNOWN';
   const card=String(field(t,'Card','card','cardName','信用卡','卡名','付款方式')||'').trim();
   const paymentType=normalizePaymentType(field(t,'paymentType','PaymentType','paymentMethod','PaymentMethod','支付類型','付款類型'))||
-    normalizePaymentType(card);
+    paymentTypeFromCard(card);
   const remark=String(field(t,'remark','Remark','remarks','Remarks','note','notes','memo','備註','補充')||'').trim().slice(0,800);
   const suppliedId=String(field(t,'id','ID','transactionId','TransactionID','交易ID')||'').trim();
   const source=String(field(t,'Source','source')||'Shortcut').trim();
@@ -1236,7 +1241,7 @@ function saveManualForm(payload,nonce) {
   if(!MANUAL_CATEGORIES.some(c=>c.id===category))throw new Error('請選擇有效分類');
   const merchant=String(payload.merchant||'').trim().slice(0,120);
   const card=String(payload.card||'').trim().slice(0,80);
-  const paymentType=normalizePaymentType(payload.paymentType||'')||normalizePaymentType(payload.card||'');
+  const paymentType=normalizePaymentType(payload.paymentType||'')||paymentTypeFromCard(payload.card||'');
   const remark=String(payload.remark||'').trim().slice(0,800);
   if(!/^\d{13,}-[0-9a-z]+$/.test(nonce))throw new Error('無效表單識別碼');
   const identity='manual-form:'+nonce;
