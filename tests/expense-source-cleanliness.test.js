@@ -24,7 +24,7 @@ assert.match(src,/function widgetSummary\(\)/);
 assert.match(src,/if\(family==='small'\)/);
 assert.match(src,/if\(family==='medium'\)/);
 assert.match(src,/if\(family==='large'\)/);
-assert.match(src,/iPadOS extraLarge/);
+assert.match(src,/iPad extraLarge/);
 assert.match(src,/async function previewWidget\(\)/);
 assert.match(src,/if\(isPad\)choices\.push\('Extra Large/);
 assert.match(src,/function manualFormHTML\(/);
