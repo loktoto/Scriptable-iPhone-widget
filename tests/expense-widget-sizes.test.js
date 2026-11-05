@@ -120,7 +120,7 @@ function graphs(node){
  const suite=createTestSuite(),app=await vm.runInContext(suite.boot,suite.ctx);
  const summary=app.widgetSummary();
  assert.equal(summary.today,85,'Today is 57+16+12');
- assert.equal(summary.todayCount,3,'Today's resolved-HKD transactions');
+ assert.equal(summary.todayCount,3,'Today resolved-HKD transaction count');
  assert.equal(summary.todayRecordedCount,3,'Header count is TODAY, not month count');
  assert.equal(summary.month,218,'Monthly net amount includes refunds');
  assert.equal(summary.txCount,8);
@@ -233,9 +233,9 @@ function graphs(node){
  const pendingNow=[...rows,{...rows[8],id:'pending-today',date:today}];
  const fxSuite=createTestSuite(pendingNow),fxApp=await vm.runInContext(fxSuite.boot,fxSuite.ctx);
  assert.equal(fxApp.widgetSummary().todayRecordedCount,4,
-   'Today's recorded non-zero transaction count includes a pending FX charge');
+   'Today recorded nonzero transactions include the pending FX charge');
  assert.equal(fxApp.widgetSummary().todayCount,3,
-   'Today's resolved-HKD count excludes the unconverted foreign amount');
+   'Today resolved-HKD count excludes unconverted foreign currency');
  assert.equal(fxApp.widgetSummary().today,85,'Pending FX never contaminates HKD spend');
  assert.ok(flatten(fxApp.buildWidget('small')).join('|').includes('4筆 ⚠'),
    'A pending entry increases today count but must retain a warning');
