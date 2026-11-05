@@ -1694,7 +1694,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     // Vertical information hierarchy: KPI -> graph -> two-column insights -> recents.
     widgetHeading(widget,quick?'＋ 快速記帳':'開支總覽',monthText+' · '+summary.txCount+'筆');
     widget.addSpacer(5);
-    const hero=widgetCard(widget,WC.panelAlt,8);
+    const hero=widgetCard(widget,WC.panelAlt,7);
     const heroRow=hero.addStack();heroRow.layoutHorizontally();heroRow.centerAlignContent();
     const left=heroRow.addStack();left.layoutVertically();left.spacing=3;
     wText(left,'本月淨支出',11,WC.secondary);
@@ -1703,10 +1703,10 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const right=heroRow.addStack();right.layoutVertically();right.spacing=4;
     wText(right,'今日 '+compactMoney(summary.today),11,WC.green,true);
     wText(right,'近7日 '+compactMoney(summary.last7),11,WC.secondary);
-    widget.addSpacer(5);
+    widget.addSpacer(3);
     widgetSection(widget,'近14日趨勢','淨支出');
     widget.addSpacer(2);
-    addChart(widget,chartPoints(summary.byDay,14),width,46,false);
+    addChart(widget,chartPoints(summary.byDay,14),width,38,false);
     widget.addSpacer(5);
     const columns=widget.addStack();columns.layoutHorizontally();columns.spacing=10;
     const colWidth=Math.floor((width-10)/2);
