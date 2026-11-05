@@ -1,5 +1,21 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.20.0] — 2026-11-05
+
+### Charts-first redesign v2 — all four sizes
+- Research comparison of Apple Widgets and Charts HIG, Scriptable APIs and real widget designs (MoneyCoach, Spendee, Dime, Spendient). See [full independent redesign brief](../../docs/EXPENSE_WIDGET_REDESIGN_V2_V3_20.md).
+- **Small:** one legible month-spend KPI, seven-day signed micro bars and highest gross-spend category share (1 chart). No triple repetition of a single HKD amount.
+- **Medium:** 14-day net-spending micro chart + gross category stacked-composition bar (2 charts), always retains time context even if only one recorded day.
+- **Large:** 14-day signed bars, true category donut rendered via native Scriptable `Path`, and payment composition stacked bars (3 charts), plus 1–2 recent transactions.
+- **Extra Large (iPad):** 30-day daily net bars, six-month monthly net bars, category donut and payment stacked bar (4 charts), six recent transactions in three columns.
+- **Accounting semantics:** category/payment ratios use **positive gross charges before refunds**, with separate net monthly total and refund amount; prevents impossible negative donut wedges. All charts exclude pending currency conversion, preserve signed net refunds and use the existing canonical 食飯 display label.
+- Removed unused helpers inherited from previous widget design generations. No new third-party libraries, WebView, API calls, cloud storage or JSON schema migrations.
+
+### Regression and compatibility
+- New simulated Scriptable `DrawContext` with `Path`/ellipse mocks tests actual donut sectors and all four chart counts, positive gross vs net refund reconciliation, empty cases, single-day HK$200.30, iPad, 320pt and 393pt limits.
+- Retains the same local `transactions.json` ledger, Tap Card and Shortcuts, manually editable Remark, dynamic payments, swipe-delete, FX safeguards, quick entry and Numbers six-column bridge.
+- **Real-device Scriptable widget screenshot inspection remains pending.** Node mocks are not Apple-native pixel rendering.
+
 ## [3.19.0] — 2026-11-05
 
 ### Clean-sheet redesign (all Widget families)

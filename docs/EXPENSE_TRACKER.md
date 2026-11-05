@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.16.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.20.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -271,3 +271,7 @@ Merchant Type 固定 12 個：**食物、飲品、娛樂、日用品、交通、
 已加 regression cases：HK$200.30 單日四筆、跨日退款令月／今日同額、付款 Top 2 其餘 HK$15.30、商戶名稱為 null 顯示類別／付款而不覆蓋舊資料。**104 個新增設計索引及根因報告**：[read here](EXPENSE_WIDGET_SCREENSHOT_RESEARCH_104_V3_18.md)。
 ## v3.19.0 — 從零重建四種 Widget 介面
 Small 改為有數據含意嘅七日熱度條；Medium 根據一個／多個有交易日自動切換「分類／趨勢」；Large 改成全寬大字資訊而非窄卡；Extra Large 係真正三欄分析控制台。請避免使用舊版 Widget 的分支 patch，更新完整主 Script；詳情：[v3.19 設計研究](EXPENSE_WIDGET_RESEARCH_V3_19.md)。
+
+
+## v3.20.0 — 重新設計圖表驅動 Widget
+新版 Small 一圖；Medium 14日趨勢＋分類比例兩圖；Large 14日、分類環形及付款堆疊三圖；iPad Extra Large 加入六個月比較合共四圖。所有圖表為 Scriptable native DrawContext，不會引入雲端服務。數據以 HKD 計算，`gross`（正向消費）與 `net`（扣除退款淨支出）清楚分開。詳細證據／驗收見 [Expense Widget Redesign v2](EXPENSE_WIDGET_REDESIGN_V2_V3_20.md)。
