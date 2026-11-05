@@ -31,6 +31,10 @@ jobs:
         run: node tests/expense-merchant-payment-remark.test.js
       - name: Test compact Dashboard and dynamic payment types
         run: node tests/expense-dashboard-responsive.test.js
+      - name: Test premium expense Dashboard and 食飯 category compatibility
+        run: node tests/expense-dashboard-aesthetic.test.js
+      - name: Verify 100-source Dashboard UX research map
+        run: node tests/expense-dashboard-research.test.js
       - name: Enforce independent versions, changelogs and mirror parity
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}

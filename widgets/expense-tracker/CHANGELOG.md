@@ -1,5 +1,25 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.14.0] — 2026-11-05
+
+### Changed — Canonical Merchant Type 食飯
+- User-requested canonical category is now **食飯**, not 食物, in manual-entry buttons, Dashboard category tiles, payment reporting, filtered transaction labels, normalization and editor suggestions.
+- Legacy `食物`, `餐飲`, `飲食`, `Restaurants`, `食肆`, `吃飯` and similar aliases map to 食飯 at display/import boundaries. `originalCategory` and stored historical transaction rows are preserved without migration.
+- All 12 canonical category labels remain consistent across views. Existing user categories/custom payment labels and local Numbers bridge stay intact.
+
+### Redesigned — premium, Apple-inspired dark mobile dashboard
+- Rebuilt the visual hierarchy from research: branded header + easy Quick Add, small section navigation, single spacious gradient month-spend hero, compact today/7-day metrics, collapsible data-status diagnostics, clear category analysis and transaction lists.
+- Category overview retains 12 clickable tile filters but adds distinct thin-stroke icons, meaningful accents and proportional mini-bars, plus ranked bars for top three categories. Months without transactions keep blank category values.
+- Payment grid uses first-letter monograms, no external brand assets, and continues to discover arbitrary payment types (Payme/AlipayHK/custom). Card remains a separate raw input.
+- Transaction rows gain small Merchant Type glyphs and improved text hierarchy; Remark search, category/payment/card filters, edit and accessible ⋯/left-swipe delete remain.
+- Existing compact 14-day / 6-month trends, refund handling and optional category donut are preserved; empty states remain honest and concise.
+- Stronger focus styles, responsive 365–650px layouts, reduced motion and iPhone top safe area without any new network, API, tracking or library dependency.
+
+### Research / QA
+- Added `docs/EXPENSE_DASHBOARD_RESEARCH_100.md`: exactly **100 distinct linked documents** across 40 W3C WCAG Understanding pages, 30 IBM Carbon components, 14 Apple HIG pages, 12 Nielsen Norman Group pages and 4 Tableau/Baymard documents; clearly distinguishes reading map from primary design evidence.
+- Added regression checks for 100 unique references and the new canonical Food category, including historical category aliases, HTML structure and interactive controls.
+- JavaScript, mocked Scriptable app, import/Numbers, saving, editing, deletion and mirror/version CI tests run before merge. Actual device-native WebView rendering still requires visual acceptance on iPhone.
+
 ## [3.13.0] — 2026-11-05
 
 ### Redesigned — iPhone dashboard

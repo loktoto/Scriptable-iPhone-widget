@@ -20,7 +20,7 @@ const harness='(async()=>{\n'+source.slice(0,cut)+
 const entries=()=>JSON.parse(disk.get(dbPath)).transactions;
 function fields(patch={}){
  return {date:'2026-11-05',time:'09:44',merchant:'Example Cash Market',
-  amount:'57',currency:'HKD',card:'',paymentType:'現金',remark:'',category:'食物',...patch};
+  amount:'57',currency:'HKD',card:'',paymentType:'現金',remark:'',category:'食飯',...patch};
 }
 (async()=>{
  const app=await vm.runInContext(harness,ctx);
@@ -45,7 +45,7 @@ function fields(patch={}){
  assert.ok(html.includes('id="manualCategory"'));
  assert.ok(html.includes('已儲存'));
  assert.equal(app.MANUAL_CATEGORIES.length,12);
- assert.equal(app.MANUAL_CATEGORIES[0].id,'食物');
+ assert.equal(app.MANUAL_CATEGORIES[0].id,'食飯');
  assert.equal(app.MANUAL_CATEGORIES[1].id,'飲品');
  assert.equal((html.match(/class="category(?: selected)?"/g)||[]).length,12);
  assert.ok(html.includes('grid-template-columns:repeat(3'));
@@ -53,7 +53,7 @@ function fields(patch={}){
  const script=/\<script>([\s\S]*?)\<\/script>/.exec(html);
  assert.ok(script,'Interactive form script missing');
  new vm.Script(script[1]);
- assert.ok(app.dashboardHTML().includes('＋ 手動記帳'));
+ assert.ok(app.dashboardHTML().includes('＋ 記帳'));
  assert.ok(app.dashboardHTML().includes('https://expense-editor.invalid/manual-open'));
  // Only a numeric nonzero amount can be entered, including negative refunds.
  const row=app.saveManualForm(fields(),nonce);
@@ -66,7 +66,7 @@ function fields(patch={}){
  assert.equal(entries()[0].paymentType,'現金');
  assert.equal(entries()[0].date,'2026-11-05');
  assert.equal(entries()[0].transactionTime,'2026-11-05T09:44:00');
- assert.equal(entries()[0].category ,'食物');
+ assert.equal(entries()[0].category ,'食飯');
  assert.equal(entries()[0].source,'Manual');
  assert.equal(entries()[0].amountHKD,57);
  assert.ok(entries()[0].id.startsWith('external:manual-form:'));

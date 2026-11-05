@@ -21,18 +21,20 @@ const boot='(async()=>{\n'+script.slice(0,cut)+
  '\nreturn {MERCHANT_TYPES,PAYMENT_TYPES,normalize,categoryOf,categoryForDisplay,paymentTypeOf,manualFormHTML,saveManualForm,dashboardHTML,applyDashboardEdit,db};\n}\nreturn await runExpenseTrackerHK();\n})()';
 (async()=>{
  const app=await vm.runInContext(boot,context);
- assert.equal([...app.MERCHANT_TYPES].join('/'),'食物/飲品/娛樂/日用品/交通/旅行/衣服/水電/醫療/訂閱/進修/運動');
+ assert.equal([...app.MERCHANT_TYPES].join('/'),'食飯/飲品/娛樂/日用品/交通/旅行/衣服/水電/醫療/訂閱/進修/運動');
  assert.equal([...app.PAYMENT_TYPES].join('/'),'信用卡/扣賬卡/現金/八達通/轉數快/銀行轉帳/電子錢包/其他');
- assert.equal(app.categoryOf('Restaurants','KPay*FOOD'),'食物');
+ assert.equal(app.categoryOf('Restaurants','KPay*FOOD'),'食飯');
  assert.equal(app.categoryOf('飲品','MTR'),'飲品','explicit label overrides merchant rules');
- assert.equal(app.categoryOf('餐飲','Old Restaurant'),'食物');
- assert.equal(app.categoryForDisplay(original),'食物','legacy category is presented without rewriting');
+ assert.equal(app.categoryOf('餐飲','Old Restaurant'),'食飯');
+ assert.equal(app.categoryOf('食物','Old Restaurant'),'食飯');
+ assert.equal(app.categoryForDisplay({...original,category:'食物'}),'食飯');
+ assert.equal(app.categoryForDisplay(original),'食飯','legacy category is presented without rewriting');
  assert.equal(app.paymentTypeOf(original),'信用卡');
- assert.equal(app.categoryOf('食飯','未提供商戶'),'食物');
- assert.equal(app.categoryForDisplay({...original,category:'食飯'}),'食物');
+ assert.equal(app.categoryOf('食飯','未提供商戶'),'食飯');
+ assert.equal(app.categoryForDisplay({...original,category:'食飯'}),'食飯');
  const payme=app.normalize({amount:2,currency:'HKD',merchantType:'食飯',card:'Payme',date:'20261105_150247'});
- assert.equal(payme.category,'食物');assert.equal(payme.originalCategory,'食飯');assert.equal(payme.paymentType,'Payme');
- assert.equal(app.normalize({amount:3,currency:'HKD',merchantType:'食物',card:'Wallet',paymentType:'My Custom Method'}).paymentType,'My Custom Method');
+ assert.equal(payme.category,'食飯');assert.equal(payme.originalCategory,'食飯');assert.equal(payme.paymentType,'Payme');
+ assert.equal(app.normalize({amount:3,currency:'HKD',merchantType:'食飯',card:'Wallet',paymentType:'My Custom Method'}).paymentType,'My Custom Method');
  assert.equal(app.paymentTypeOf({card:'AlipayHK'}),'AlipayHK');
  assert.equal(app.categoryOf('健康醫療','Unknown Clinic'),'醫療');
  assert.equal(app.categoryOf('超市雜貨','Store'),'日用品');
@@ -40,14 +42,14 @@ const boot='(async()=>{\n'+script.slice(0,cut)+
    currency:'HKD',card:'SOGO VISA',paymentType:'信用卡',remark:'午餐後飲品 + 同事'});
  assert.equal(valid.amount,57);assert.equal(valid.category,'飲品');
  assert.equal(valid.paymentType,'信用卡');assert.equal(valid.remark,'午餐後飲品 + 同事');
- const noExtras=app.normalize({merchantName:'Sample',amount:12,currency:'HKD',merchantType:'食物'});
+ const noExtras=app.normalize({merchantName:'Sample',amount:12,currency:'HKD',merchantType:'食飯'});
  assert.equal(noExtras.remark,'');assert.equal(noExtras.paymentType,'');
  assert.equal(app.normalize({amount:'0',currency:'HKD'}),null);
  assert.equal(app.normalize({amount:'-10',currency:'HKD'}).amount,-10);
  const form=app.manualFormHTML('1730800000000-abc1234');
  for(const id of ['manualRemark','manualPaymentType','manualCard','manualCategory'])assert.ok(form.includes('id="'+id+'"'));
  assert.ok(form.includes('data-category="飲品"'));
- assert.ok(form.includes('data-category="食物"'));
+ assert.ok(form.includes('data-category="食飯"'));
  assert.ok(!form.includes('data-category="投資"'));
  const save=app.saveManualForm({date:'2026-11-05',time:'10:50',merchant:'Coffee Shop',
   currency:'HKD',amount:'9.60',category:'飲品',card:'',paymentType:'現金',remark:'早上咖啡'},
@@ -68,7 +70,7 @@ const boot='(async()=>{\n'+script.slice(0,cut)+
  assert.ok(html.includes('data-filter="') && html.includes('早上咖啡'));
  assert.ok(html.includes('data-payment="現金"'));
  assert.ok(html.includes('data-payment="信用卡"'));
- assert.ok(html.includes('data-category="食物"'));
+ assert.ok(html.includes('data-category="食飯"'));
  assert.ok(html.includes('function applyFilters()'));
  assert.ok(html.includes('padding:max(110px'),'iPhone top chrome safe area');
  assert.ok(html.includes('data-trend="months"'),'Compact period switch');

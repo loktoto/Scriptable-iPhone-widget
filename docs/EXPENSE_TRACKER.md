@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.13.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.14.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -228,3 +228,11 @@ Merchant Type 固定 12 個：**食物、飲品、娛樂、日用品、交通、
 1. 用 GitHub 最新 `widgets/expense-tracker/HK-Expense-Tracker.js` 完全覆蓋 Scriptable 內的 `Expense.js`。
 2. 重新開 Dashboard，核對頂部冇遮擋、付款方式保留 Payme、食飯歸入食物、Remark 可搜尋。
 3. 照舊使用 Tap Card／快速記帳；毋須重建交易資料庫。
+
+## v3.14.0 — 12 類正式名稱「食飯」＋ Dashboard 重新設計
+
+**正式 Merchant Type 已由「食物」更新為「食飯」**。舊「食物／餐飲／Restaurants」會喺 Dashboard、交易搜尋、手動輸入顯示為「食飯」，但本機舊交易 `category` / `originalCategory` 不會強行改寫，避免破壞歷史資料。同時保留原本 12 個類別及 Payme 等自訂付款方式。
+
+介面採用簡潔深色財務風格：本月主金額卡、今日/近七日副指標、前三類水平比較條、帶圖示及微型進度條的 12 分類、動態 Payment Type 卡、交易搜尋／備註／編輯／左滑刪除，以及可切換 14 日／6 個月趨勢。**參考 100 個設計、手機 UX 及無障礙來源頁面**，詳見 [100 Sources Dashboard Research](EXPENSE_DASHBOARD_RESEARCH_100.md)；其中核心設計結論和標準規格有清楚區分。
+
+沿用同一個 `Expense.js`、`ExpenseTrackerHK/transactions.json`，唔改 Tap Card Shortcut Parameter 六欄輸入、原有 Apple Numbers 六欄連動或額外開雲端。
