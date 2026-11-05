@@ -1,5 +1,19 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.21.0] — 2026-11-05
+
+### Independent real-device screenshot audit and conditional chart semantics
+- Rebuilt the research from the user's **actual 1-page PDF with Small/Medium/Large screenshots** and independently checked Apple HIG, Scriptable DrawContext/Path/ListWidget, USWDS, IBM, Datawrapper and WCAG; previous URL indexes are context, not evidence. [v3.21 research and evidence matrix](../../docs/EXPENSE_WIDGET_RESEARCH_AUDIT_V3_21.md).
+- **Sparse day correction:** when <=2 dates have records, 7/14/30-day trend displays equal-height date activity markers rather than a giant isolated HKD bar. The heading explicitly says 記帳日分佈 and shows the active-day denominator, so this is not misrepresented as an amount comparison. With >2 recorded days, the original signed net HKD amount bars remain.
+- **Small:** 7 native weekday labels accompany the seven daily buckets, with improved balance and no repeated same HKD amount.
+- **Medium:** retains two independent visualizations and now labels top two gross spending categories and percentages rather than displaying a cut-off payment method with little value.
+- **Large:** explicitly labels category and payment shares as 退款前, makes the payment composition thicker, allows 3 recent full-width rows (2 on narrow widths), and includes all 4 donut legend segments when applicable.
+- **iPad Extra Large:** 30-day and six-month charts use activity timelines when records are sparse; otherwise they remain amount trend charts. This preserves four charts and existing compact/full iPad layouts.
+- **Never changed:** transaction schema, Tap Card/Shortcuts, local JSON, edit/delete, refunds, unconverted foreign-currency safeguards, flexible payment names, Remark, and Numbers six-column bridge.
+
+### QA
+- Added weekday and sparse-timeline geometry tests plus signed-vs-gross data test invariants. Node mocks and CI cannot certify pixel-level native iPhone/iPad display. Updated iPad real-device screenshots remain outstanding.
+
 ## [3.20.0] — 2026-11-05
 
 ### Charts-first redesign v2 — all four sizes
