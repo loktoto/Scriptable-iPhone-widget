@@ -276,6 +276,17 @@ function graphs(node){
  const tinyLarge=drawImages(tiny.buildWidget('large'));
  assert.equal(tinyLarge.length,6,'320pt Large uses two payments and two weekly comparison bars');
  assert.ok(flatten(tiny.buildWidget('large')).join('|').includes('7日對照'));
+ for(const [screenWidth,screenHeight,largeMax] of [
+   [414,736,357],[414,896,379],[430,932,382]
+ ]){
+   const sizeSuite=createTestSuite(rows,false);
+   sizeSuite.ctx.Device.screenSize=()=>({width:screenWidth,height:screenHeight});
+   const sized=await vm.runInContext(sizeSuite.boot,sizeSuite.ctx);
+   const largeHeight=estimatedHeight(sized.buildWidget('large'));
+   console.log('Large responsive height',screenWidth,screenHeight,largeHeight);
+   assert.ok(largeHeight<=largeMax,'Widget must fit the actual width AND height: '+screenWidth+'x'+screenHeight);
+   assert.equal(drawImages(sized.buildWidget('large')).length,7);
+ }
 
  const saved=JSON.parse(suite.disk.get(dbPath));
  assert.equal(saved.transactions[6].category,'食物');
