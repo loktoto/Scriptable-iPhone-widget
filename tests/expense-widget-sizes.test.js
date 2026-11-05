@@ -141,7 +141,7 @@ function graphs(node){
  assert.equal(smallNativeLabels.length,7,'Show all seven native-text weekday labels');
  assert.ok(!st.includes('14日')&&!st.includes('分類 Top 3'),'Small is not a shrunken Medium/Large');
  assert.equal(graphs(medium).length,1);
- assert.ok(mt.includes('14日支出趨勢'));
+ assert.ok(mt.includes('近14日 · '),'Medium must show 14-day chart activity rather than generic label');
  assert.ok(mt.includes('近7日'));
  assert.ok(mt.includes('主要分類')&&mt.includes('訂閱 HK$70.00'),'Medium must display the correct largest category');
  assert.ok(!mt.includes('最近交易'),'Medium must NOT mimic Large');
