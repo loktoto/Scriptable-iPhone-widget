@@ -1706,14 +1706,14 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
     wText(hero,compactMoney(s.month),25,WC.ink,true);
     hero.addSpacer(5);wText(hero,contextLine(s),11,WC.mint);
-    widget.addSpacer(7);
+    widget.addSpacer(4);
     sectionLine(widget,'14日趨勢',s.fourteenActive+'個交易日');
     widget.addSpacer(2);addChart(widget,chartPoints(s.byDay,14),width,narrow?13:16);
-    widget.addSpacer(7);addSeparator(widget,width);widget.addSpacer(6);
+    widget.addSpacer(4);addSeparator(widget,width);widget.addSpacer(6);
     sectionLine(widget,'分類支出',s.monthlyCats.length+'種');
     widget.addSpacer(5);
     addRankRows(widget,s.monthlyCats,narrow?2:3,width,false);
-    widget.addSpacer(7);addSeparator(widget,width);widget.addSpacer(6);
+    widget.addSpacer(4);addSeparator(widget,width);widget.addSpacer(6);
     sectionLine(widget,'付款方式');
     widget.addSpacer(4);
     addPaymentRows(widget,s.monthlyPayments,narrow?1:2);
