@@ -8,10 +8,10 @@ const canonical='widgets/expense-tracker/HK-Expense-Tracker.js';
 const src=read(canonical);
 assert.equal(src,read('scripts/HK-Expense-Tracker.js'),
  'Intentional Scriptable compatibility mirror must be EXACTLY equal to canonical source');
-assert.match(src,/v3\.22\.1/);
+assert.match(src,/v3\.23\.0/);
 const version=JSON.parse(read('widgets/expense-tracker/VERSION.json'));
-assert.equal(version.version,'3.22.1');
-assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.22\.1\]/);
+assert.equal(version.version,'3.23.0');
+assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.23\.0\]/);
 assert.match(read('docs/EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md'),/Independent Widget Research/);
 for(const removed of ['function barsSVG(', 'function fmt(']){
  assert.ok(!src.includes(removed),'Unused pre-v3.13 chart helper is still in canonical script: '+removed);
@@ -30,10 +30,15 @@ assert.ok(src.includes('addInlinePieLegend(legendBox,s.grossCats,s.gross,compact
 assert.ok(!src.includes("sectionLine(right,'本月分類','退款前')"));
 assert.ok(!src.includes("sectionLine(categories,'分類 · 退款前')"));
 assert.ok(!src.includes("sectionLine(payment,'付款 · 退款前')"));
-assert.match(src,/addPieChart\(pieHolder,s\.grossCats/);
+assert.ok(src.includes('addPieChart(pieRow,s.grossCats,diameter,3)'));
+assert.ok(src.includes('addPaymentMeterRows(payments,s.grossPayments'));
+assert.ok(src.includes('addWeekComparison(widget,s,width,narrow)'));
+assert.match(src,/function makeMeterBar\(/);
 assert.ok(src.includes('return makeDonutChart(items,size,true,maxParts)'),
  'Medium and Large category pies must be full solid pies, never hollow Donuts');
-assert.match(src,/addStackedChart\(right,donutParts\(s\.grossPayments/);
+assert.ok(src.includes('addPaymentMeterRows(payments,s.grossPayments'));
+assert.ok(src.includes('addStackedChart(right,donutParts(s.grossPayments)'));
+
 
 assert.match(src,/if\(family==='small'\)/);
 assert.match(src,/if\(family==='medium'\)/);

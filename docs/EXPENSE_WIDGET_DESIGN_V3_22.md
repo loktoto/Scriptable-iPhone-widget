@@ -83,3 +83,7 @@ HK$200.30             [實心Pie Chart]
 - **Large:** 分類與付款標題改成「分類」「付款」；不改兩者圖形、總額或交易列表。
 - **重要數據語義：** 只從 Widget UI 隱藏「退款前」文字，並未改比例圖分母：分類與付款比例仍使用正向消費，而本月總額仍使用已換算 HKD 的扣退款淨支出。README／本規格保留完整解釋。
 - **驗收：** 純 Scriptable Mock 回歸檢查 Pie/legend 真正左右並排、字體至少 11pt、320pt／393pt 寬度測試、Large 標籤改動與資料庫保存不變。**實機 iOS Pixel QA 仍未執行。**
+
+
+## v3.23.0 附註
+Large 改採四種互補圖形：本月每日 signed net bar；類別正向消費 Pie；最多三個付款類別以獨立橫向 bars（以最高付款類別為相對長度基準）；最近7日與前7日 signed net 比較。所有顯示均為只讀。真機 320pt／393pt 仍需截圖確認。詳情：EXPENSE_WIDGET_LARGE_REDESIGN_V3_23.md。

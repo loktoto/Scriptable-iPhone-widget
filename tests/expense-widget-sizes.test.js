@@ -177,15 +177,21 @@ function graphs(node){
 
  assert.ok(!md.includes('近7日')&&!md.includes('最近14日'));
  assert.ok(lg.includes('今日3筆')&&lg.includes('本月8筆'));
- assert.ok(lg.includes('今日支出')&&lg.includes('本月支出'));
- assert.ok(lg.includes('本月每日淨支出')&&lg.includes('分類'));
- assert.ok(lg.includes('付款')&&lg.includes('最近交易')&&!lg.includes('退款前'));
+ assert.ok(lg.includes('每日淨支出')&&lg.includes('分類分佈'));
+ assert.ok(lg.includes('付款方式')&&lg.includes('7日對照')&&lg.includes('最近交易'));
  assert.ok(!md.includes('退款前')&&!lg.includes('退款前'));
- assert.equal(drawImages(large).length,3,'Large includes monthly bars, pie and payment shares');
- const largePie=drawImages(large)[1];
+ const largeImages=drawImages(large);
+ assert.equal(largeImages.length,7,'Large has daily bars + Pie + 3 ranked payments + 2 comparable weeks');
+ const largePie=largeImages[1];
  assert.ok(largePie.draws.some(x=>x.type==='fill-path'));
  assert.equal(largePie.draws.filter(x=>x.type==='ellipse').length,1);
- assert.ok(drawImages(large).some(x=>x.size.height===15));
+ assert.equal(largeImages.filter(x=>x.size.height===5).length,5,
+   'Five mini bars: top three payment methods + two comparable rolling periods');
+ assert.equal(app.widgetSummary().previous7,
+   Object.entries(app.widgetSummary().byDay).reduce((t,[date,v])=>{
+     const left=ago(13),right=ago(7);
+     return date>=left&&date<=right?t+v:t;
+   },0),'Prior seven-day period uses signed net HKD');
  for(const w of [small,medium,large])
    assert.ok(textNodes(w).every(x=>x.font?.size>=11),'No small text shrinking below 11pt');
  console.log('393pt heights (Small/Medium/Large)',estimatedHeight(small),
@@ -267,6 +273,21 @@ function graphs(node){
  assert.ok(estimatedHeight(tiny.buildWidget('small'))<=141);
  assert.ok(estimatedHeight(tiny.buildWidget('medium'))<=141);
  assert.ok(estimatedHeight(tiny.buildWidget('large'))<=311);
+ const tinyLarge=drawImages(tiny.buildWidget('large'));
+ assert.equal(tinyLarge.length,6,'320pt Large uses two payments and two weekly comparison bars');
+ assert.ok(flatten(tiny.buildWidget('large')).join('|').includes('7日對照'));
+ for(const [screenWidth,screenHeight,largeMax] of [
+   [414,736,357],[414,896,379],[430,932,382]
+ ]){
+   const sizeSuite=createTestSuite(rows,false);
+   sizeSuite.ctx.Device.screenSize=()=>({width:screenWidth,height:screenHeight});
+   const sized=await vm.runInContext(sizeSuite.boot,sizeSuite.ctx);
+   const largeHeight=estimatedHeight(sized.buildWidget('large'));
+   console.log('Large responsive height',screenWidth,screenHeight,largeHeight);
+   assert.ok(largeHeight<=largeMax,'Widget must fit the actual width AND height: '+screenWidth+'x'+screenHeight);
+   assert.equal(drawImages(sized.buildWidget('large')).length,7);
+ }
+
  const saved=JSON.parse(suite.disk.get(dbPath));
  assert.equal(saved.transactions[6].category,'食物');
  assert.equal(saved.transactions[8].fxStatus,'pending');
