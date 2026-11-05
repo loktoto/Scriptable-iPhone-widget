@@ -1,5 +1,20 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.11.5] — 2026-11-05
+
+### Fixed — Shortcut Texts vs Parameter mismatch
+- **Real-device screenshot root cause:** the literal `EXPENSE_QUICK_MANUAL` was entered into the Scriptable Run Script action's expanded **Texts** list, not the blue **Parameter** field. These are separate Scriptable inputs: `args.plainTexts` vs `args.shortcutParameter`.
+- Recognize the quick-entry command in **either** location and immediately open the manual-entry WebView when **Run In App = ON**.
+- For Texts, require exactly **one nonempty text item** equal to the command **and no supplied Parameter**. Arbitrary user notes or transaction descriptions are never treated as commands.
+- A nonblank Apple Wallet/Apple Intelligence **Shortcut Parameter has priority over Texts**, protecting the pre-existing Tap Card automation even when both fields are populated.
+- `quick_requires_app` diagnostics identify which source (`Texts` or `Parameter`) contained the quick-entry token.
+- No database schema changes, no data clearing, and no changes to FX, manual-entry form, Dashboard, editing, deletion or widgets.
+
+### Verification
+- Full-script Scriptable mock tests: Texts command (with whitespace), Parameter command, Run In App off, multiple Texts, unrelated texts, and Wallet Dictionary priority.
+- Syntax, prior transaction imports, manual form, Dashboard edit/delete and independent-version checks remain in CI.
+- iPhone screen navigation and native WebView rendering cannot be fully validated in offline tests.
+
 ## [3.11.4] — 2026-11-05
 
 ### Fixed — Quick manual entry launches Scriptable but no form appears

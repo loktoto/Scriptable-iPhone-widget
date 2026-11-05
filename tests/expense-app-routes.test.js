@@ -5,7 +5,7 @@ const cp=require('node:child_process'),assert=require('node:assert/strict');
 const file=path.join(__dirname,'..','widgets/expense-tracker/HK-Expense-Tracker.js');
 cp.execFileSync(process.execPath,['--check',file]);
 const source=fs.readFileSync(file,'utf8');
-async function runApp(menuChoice,queryParameters={},shortcutParameter=null,runsInApp=true){
+async function runApp(menuChoice,queryParameters={},shortcutParameter=null,runsInApp=true,plainTexts=[]){
  const events={alerts:[],pages:[],presented:0,completed:0,errors:[],outputs:[]};
  const disk=new Map();
  const fm={
@@ -36,7 +36,7 @@ async function runApp(menuChoice,queryParameters={},shortcutParameter=null,runsI
   Script:{name:()=> 'Expense',complete:()=>events.completed++,
     setShortcutOutput:x=>events.outputs.push(x)},
   config:{runsInApp,runsInWidget:false,runsWithSiri:false,runsInActionExtension:false},
-  args:{shortcutParameter,plainTexts:[],queryParameters},
+  args:{shortcutParameter,plainTexts,queryParameters},
   Alert,WebView,
   console:{log:()=>{},warn:()=>{},error:(...args)=>events.errors.push(args.join(' '))}
  };
@@ -75,6 +75,24 @@ async function runApp(menuChoice,queryParameters={},shortcutParameter=null,runsI
  assert.match(shortcutQuick.pages[0],/id="manualForm"/);
  assert.equal(shortcutQuick.alerts.some(a=>a.title==='Expense Tracker HK'),false,'Quick Shortcut must skip the main menu');
  assert.equal(shortcutQuick.outputs.length,0,'Quick Shortcut must not be processed as an expense transaction');
+ const textListQuick=await runApp(-1,{},null,true,['EXPENSE_QUICK_MANUAL']);
+ assert.equal(textListQuick.presented,1,'Command in Texts must open manual WebView');
+ assert.match(textListQuick.pages[0],/id="manualForm"/);
+ assert.equal(textListQuick.outputs.length,0,'Texts control command is not a purchase');
+ const paddedTexts=await runApp(-1,{},null,true,['   EXPENSE_QUICK_MANUAL  ']);
+ assert.equal(paddedTexts.presented,1,'Trim Texts command whitespace');
+ const textsNeedsApp=await runApp(-1,{},null,false,['EXPENSE_QUICK_MANUAL']);
+ assert.equal(textsNeedsApp.presented,0);
+ assert.equal(textsNeedsApp.outputs[0].status,'quick_requires_app');
+ assert.match(textsNeedsApp.outputs[0].receipt,/Texts/);
+ const multipleTexts=await runApp(-1,{},null,true,['EXPENSE_QUICK_MANUAL','ordinary note']);
+ assert.equal(multipleTexts.presented,0,'Multiple Texts must not be treated as control command');
+ const normalText=await runApp(-1,{},null,true,['ordinary note']);
+ assert.equal(normalText.presented,0,'Unrelated text must not invoke the form');
+ const wallet={merchantName:'Demo Restaurant',merchantType:'Restaurants',amount:57,currency:'HKD',card:'SAMPLE CARD',date:'20261104_203328'};
+ const walletAndTexts=await runApp(-1,{view:'manual'},wallet,true,['EXPENSE_QUICK_MANUAL']);
+ assert.equal(walletAndTexts.presented,0,'Wallet Dictionary must override Texts quick command');
+ assert.equal(walletAndTexts.outputs[0].status,'saved','Wallet transaction must still save');
  const requiresApp=await runApp(-1,{},'EXPENSE_QUICK_MANUAL',false);
  assert.equal(requiresApp.presented,0,'Run In App OFF must not attempt an interactive form');
  assert.equal(requiresApp.outputs[0].status,'quick_requires_app');
@@ -85,5 +103,5 @@ async function runApp(menuChoice,queryParameters={},shortcutParameter=null,runsI
  assert.match(urlNotApp.pages[0],/id="manualForm"/);
  const exit=await runApp(-1);
  assert.equal(exit.presented,0,'Cancel should not show a WebView');
- console.log('PASS: full Scriptable app Dashboard, manual entry, one-tap Shortcut text, URL deep links, Run In App guard, Dashboard, cancel and no runtime errors');
+ console.log('PASS: full Scriptable app Dashboard, manual entry, one-tap Shortcut Parameter and Texts, Wallet priority, URL deep links, Run In App guard, Dashboard and cancel');
 })().catch(e=>{console.error(e);process.exitCode=1;});
