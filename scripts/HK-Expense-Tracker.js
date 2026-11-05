@@ -1443,7 +1443,7 @@ function widgetSummary(){
   const now=today(), valid=hk(db.transactions);
   const month=valid.filter(t=>monthStart(t.date)===monthStart(now));
   const byDay=groupSum(valid,t=>t.date);
-  const monthlyCats=Object.entries(groupSum(month,t=>t.category))
+  const monthlyCats=Object.entries(groupSum(month,t=>categoryForDisplay(t)))
     .filter(([_,value])=>value>0).sort((a,b)=>b[1]-a[1]);
   const recent=db.transactions.slice()
     .sort((a,b)=>String(b.transactionTime||b.date||b.createdAt||'')
