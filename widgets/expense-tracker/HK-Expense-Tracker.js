@@ -1655,7 +1655,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const line=widget.addStack();line.layoutHorizontally();line.centerAlignContent();
     wText(line,principal?'最多 '+principal[0]:'今日',11,WC.subtle);
     line.addSpacer(4);
-    wText(line,principal?compactMoney(principal[1]):compactMoney(s.today),11,WC.mint,true);
+    wText(line,principal&&s.month!==0&&Math.abs(principal[1]-s.month)<.005?'100%':principal?compactMoney(principal[1]):compactMoney(s.today),11,WC.mint,true);
     widget.addSpacer(4);
     sectionLine(widget,'近7日',s.sevenActive+'日有紀錄');
     widget.addSpacer(3);
@@ -1680,7 +1680,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
         best.forEach(([name,value],idx)=>{
           const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
           wText(row,name,11,WC.soft);row.addSpacer();
-          wText(row,compactMoney(value),11,idx===0?WC.violet:WC.ink,true);
+          wText(row,s.month!==0&&best.length===1&&Math.abs(value-s.month)<.005?'100%':compactMoney(value),11,idx===0?WC.violet:WC.ink,true);
           if(idx===0)widget.addSpacer(3);
         });
       }else wText(widget,'目前未有分類資料',11,WC.subtle);
@@ -1694,7 +1694,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
     const footer=widget.addStack();footer.layoutHorizontally();footer.centerAlignContent();
     wText(footer,'常用 '+(pay?pay[0]:'未指定'),11,WC.subtle);
     footer.addSpacer(4);
-    if(pay)wText(footer,compactMoney(pay[1]),11,WC.mint,true);
+    if(pay)wText(footer,s.month!==0&&Math.abs(pay[1]-s.month)<.005?'100%':compactMoney(pay[1]),11,WC.mint,true);
     return widget;
   }
   if(family==='large'){
