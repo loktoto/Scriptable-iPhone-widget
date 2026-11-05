@@ -8,10 +8,10 @@ const canonical='widgets/expense-tracker/HK-Expense-Tracker.js';
 const src=read(canonical);
 assert.equal(src,read('scripts/HK-Expense-Tracker.js'),
  'Intentional Scriptable compatibility mirror must be EXACTLY equal to canonical source');
-assert.match(src,/v3\.19\.0/);
+assert.match(src,/v3\.20\.0/);
 const version=JSON.parse(read('widgets/expense-tracker/VERSION.json'));
-assert.equal(version.version,'3.19.0');
-assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.19\.0\]/);
+assert.equal(version.version,'3.20.0');
+assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.20\.0\]/);
 assert.match(read('docs/EXPENSE_WIDGET_RESEARCH_AND_AUDIT.md'),/Independent Widget Research/);
 for(const removed of ['function barsSVG(', 'function fmt(']){
  assert.ok(!src.includes(removed),'Unused pre-v3.13 chart helper is still in canonical script: '+removed);
@@ -21,6 +21,12 @@ assert.ok(src.includes('const byDay=Object.create(null),byMonth=Object.create(nu
 assert.ok(src.includes('catCount[cat]=(catCount[cat]||0)+1;'),
  'Canceling spend and refund must still count as activity');
 assert.match(src,/function widgetSummary\(\)/);
+assert.ok(src.includes('grossCats:'),'Donut must use gross positive spending, not signed net totals');
+assert.match(src,/function makeDonutChart\(/);
+assert.match(src,/function makeStackedChart\(/);
+assert.match(src,/addDonutChart\(ring,s\.grossCats/);
+assert.match(src,/addStackedChart\(right,donutParts\(s\.grossPayments/);
+
 assert.match(src,/if\(family==='small'\)/);
 assert.match(src,/if\(family==='medium'\)/);
 assert.match(src,/if\(family==='large'\)/);

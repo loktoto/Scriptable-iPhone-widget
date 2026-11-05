@@ -2,7 +2,7 @@
 
 **Main:** [HK-Expense-Tracker.js](HK-Expense-Tracker.js)  
 **Read-only diagnostic:** [HK-Expense-Input-Diagnostic.js](HK-Expense-Input-Diagnostic.js)  
-**Current version:** [3.16.0](VERSION.json) · [Release notes](CHANGELOG.md)
+**Current version:** [3.20.0](VERSION.json) · [Release notes](CHANGELOG.md)
 
 - Apple Intelligence / Shortcuts Dictionary, nested `amount.content`, regular JSON, constrained key-based text extraction.
 - Save valid nonzero amounts only. Negative transactions are refunds; other missing fields may still be saved.
@@ -95,3 +95,14 @@ Small：22pt 主金額＋7日柱圖＋7個原生星期字；同額（例如本�
 - **Debug / Preview：** Scriptable → `Expense.js` → 「👀 預覽 Widget 尺寸」，逐一比較各個尺寸。本版本改動設計及視圖邏輯，無需資料庫遷移。
 
 研究及可驗收標準見 [Clean-sheet Widget Design](../../docs/EXPENSE_WIDGET_RESEARCH_V3_19.md)。
+
+
+## v3.20.0 — Charts-first, all 4 Widget sizes
+- Small: 本月 HKD 淨額＋7日每日 signed 柱圖＋最多分類百分比。
+- Medium: 14日淨額圖＋分類組合比例條，兩張獨立圖表。
+- Large: 14日柱圖＋分類環形圖＋付款分佈堆疊比例圖，另保留最多2筆最近交易。
+- iPad Extra Large: 30日每日圖＋6個月圖＋分類環形圖＋付款分佈圖，另最多六筆交易（細 iPad 三筆）。
+- **分母要分開：** 月額係扣退款後淨支出；環形及堆疊比例圖係未扣退款嘅正向支出，絕不以負數計算百分比。待換算外幣唔計入 HKD。
+- 原有 Tap Card、Shortcut、Expense.js 名稱、本地 transactions.json、Payme、自訂付款、Remark、編輯／刪除、Numbers 六欄全部保留。
+
+[研究、同類產品視覺對照、圖表語義、尺寸驗收規格](../../docs/EXPENSE_WIDGET_REDESIGN_V2_V3_20.md)。

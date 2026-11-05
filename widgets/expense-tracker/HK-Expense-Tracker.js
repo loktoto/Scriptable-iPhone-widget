@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.19.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.20.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.19.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.20.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.19.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.20.0',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -682,7 +682,7 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
 @media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.wrap{padding-top:max(104px,calc(env(safe-area-inset-top,0px) + 60px))}}
 @media(prefers-reduced-motion:reduce){.tx-swipe-front{transition:none}}
   
-/* v3.19.0 — Research-informed, iPhone-first premium money dashboard.
+/* v3.20.0 — Research-informed, iPhone-first premium money dashboard.
    Explicitly authored after Apple HIG / NNGroup / Tableau / Carbon / WCAG review.
    No external fonts, libraries, logos, tracking or network resources. */
 :root{--bg:#0b101a;--panel:#131c2b;--panel2:#1c293b;--line:#29374b;--text:#f7f8ff;--muted:#9aa9bb;--blue:#a99bff;--green:#7ce5c0;--violet:#a897ff;--amber:#ffc688}
@@ -1410,6 +1410,7 @@ const WC={
  edge:'#263653',ink:'#F6F8FF',soft:'#BBC8DB',subtle:'#8F9DB5',
  violet:'#AE9BFA',mint:'#7CDBC1',amber:'#F6C278',negative:'#72DBB5'
 };
+const WCOL=['#AE9BFA','#7CDBC1','#F6C278','#71B9EF','#E3A0CB'];
 function wText(parent,value,size=11,color=WC.soft,bold=false){
   const t=parent.addText(String(value));
   t.font=bold?Font.semiboldSystemFont(size):Font.systemFont(size);
@@ -1433,6 +1434,10 @@ function widgetSummary(){
   const now=today(),mon=monthStart(now),s7=dayBack(6),s14=dayBack(13);
   const byDay=Object.create(null),byMonth=Object.create(null);
   const cats=Object.create(null),pays=Object.create(null),catCount=Object.create(null),payCount=Object.create(null);
+  // Gross positive charges are a valid denominator for donut/stacked shares;
+  // net monthly spending remains positive charges minus refunds.
+  const grossCat=Object.create(null),grossPay=Object.create(null);
+  let gross=0,refundValue=0;
   let month=0,todayNet=0,week=0,monthCount=0,todayCount=0,unresolved=0,refunds=0;
   for(const t of db.transactions){
     if(!validDate(t.date)||!Number.isFinite(t.amountHKD)){unresolved++;continue;}
@@ -1443,10 +1448,12 @@ function widgetSummary(){
     if(m!==mon)continue;
     month+=v;monthCount++;
     if(t.date===now)todayCount++;
-    if(v<0)refunds++;
+    if(v>0)gross+=v;
+    if(v<0){refunds++;refundValue-=v;}
     const cat=categoryForDisplay(t),pay=paymentTypeOf(t)||'未指定';
     cats[cat]=(cats[cat]||0)+v;pays[pay]=(pays[pay]||0)+v;
     catCount[cat]=(catCount[cat]||0)+1;payCount[pay]=(payCount[pay]||0)+1;
+    if(v>0){grossCat[cat]=(grossCat[cat]||0)+v;grossPay[pay]=(grossPay[pay]||0)+v;}
   }
   const ranked=(totals,counts)=>Object.entries(totals).filter(([k])=>counts[k]>0)
     .sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
@@ -1463,6 +1470,8 @@ function widgetSummary(){
     txCount:monthCount,todayCount,monthOnlyToday:monthCount>0&&todayCount===monthCount,
     sevenActive:activeIn(s7),fourteenActive:activeIn(s14),
     byDay,monthlyCats:ranked(cats,catCount),monthlyPayments:ranked(pays,payCount),
+    gross:round(gross),refundValue:round(refundValue),
+    grossCats:ranked(grossCat,catCount),grossPayments:ranked(grossPay,payCount),
     sixMonths,recent,refunds,unresolved};
 }
 function chartPoints(byDay,count){
@@ -1491,53 +1500,79 @@ function makeBarChart(points,width,height){
   });
   return canvas.getImage();
 }
-function makeMiniBar(width,ratio,color=WC.violet){
-  const c=new DrawContext();c.size=new Size(width,3);
-  c.respectScreenScale=true;c.opaque=false;
-  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,3));
-  if(ratio>0){
-    c.setFillColor(new Color(color));
-    c.fillRect(new Rect(0,0,Math.max(1,Math.min(width,width*ratio)),3));
-  }
-  return c.getImage();
-}
 function addChart(parent,points,width,height){
   const image=parent.addImage(makeBarChart(points,width,height));
   image.imageSize=new Size(width,height);image.applyFittingContentMode();
   return image;
 }
-function sevenDayHeatImage(points,width){
-  // Seven equal-width cells — NO misleading giant single-day spike.
-  const c=new DrawContext();c.size=new Size(width,12);
-  c.respectScreenScale=true;c.opaque=false;
-  const maximum=Math.max(.01,...points.map(p=>Math.abs(p.value)));
-  const pitch=width/7,box=Math.max(10,pitch-5);
-  points.forEach((p,i)=>{
-    const v=p.value;
-    c.setFillColor(new Color(v<0?WC.mint:(v>0?WC.violet:(p.active?WC.amber:WC.edge))));
-    const fraction=Math.abs(v)/maximum;
-    const fill=v===0?3:Math.max(6,box*fraction);
-    const start=i*pitch+(pitch-box)/2;
-    c.fillRect(new Rect(start,2,box,8));
-    if(v!==0&&fill<box){
-      c.setFillColor(new Color(WC.bg));
-      c.fillRect(new Rect(start+fill,2,box-fill,8));
-    }
+function createChart(w,h){
+  const c=new DrawContext();c.size=new Size(w,h);
+  c.respectScreenScale=true;c.opaque=false;return c;
+}
+function displayImage(parent,image,w,h){
+  const node=parent.addImage(image);node.imageSize=new Size(w,h);
+  node.applyFittingContentMode();return node;
+}
+function makeStackedChart(items,width,height=11){
+  const c=createChart(width,height),total=items.reduce((sum,x)=>sum+Math.max(0,x[1]),0);
+  c.setFillColor(new Color(WC.edge));c.fillRect(new Rect(0,0,width,height));
+  if(total<=0)return c.getImage();
+  let x=0;
+  items.forEach(([name,val],i)=>{
+    const part=Math.max(0,val);if(!part)return;
+    const next=Math.min(width,x+width*part/total);
+    c.setFillColor(new Color(WCOL[i%WCOL.length]));
+    c.fillRect(new Rect(x,0,Math.max(0,next-x),height));x=next;
   });
   return c.getImage();
 }
-function addSevenDayStrip(parent,points,width){
-  const i=parent.addImage(sevenDayHeatImage(points,width));
-  i.imageSize=new Size(width,12);i.applyFittingContentMode();
-  parent.addSpacer(2);
-  const days=['日','一','二','三','四','五','六'];
-  const row=parent.addStack();row.layoutHorizontally();
-  points.forEach((p,idx)=>{
-    const dt=dayBack(6-idx),date=new Date(+dt.slice(0,4),+dt.slice(5,7)-1,+dt.slice(8,10));
-    const cell=row.addStack();cell.layoutVertically();cell.centerAlignContent();
-    cell.size=new Size(width/7,0);
-    const t=wText(cell,days[date.getDay()],11,idx===6?WC.violet:WC.subtle,idx===6);
-    if(typeof t.centerAlignText==='function')t.centerAlignText();
+function addStackedChart(parent,items,width,height=11){
+  return displayImage(parent,makeStackedChart(items,width,height),width,height);
+}
+function donutParts(entries,max=4){
+  const positive=entries.filter(x=>x[1]>0);
+  if(positive.length<=max)return positive;
+  return [...positive.slice(0,max-1),
+    ['其他',positive.slice(max-1).reduce((a,x)=>a+x[1],0)]];
+}
+function makeDonutChart(items,size){
+  const c=createChart(size,size),parts=donutParts(items);
+  const total=parts.reduce((sum,x)=>sum+x[1],0);
+  const mid=size/2,r=size*.47,hole=size*.29;
+  c.setFillColor(new Color(WC.edge));
+  c.fillEllipse(new Rect(mid-r,mid-r,r*2,r*2));
+  if(total>0){
+    let angle=-Math.PI/2;
+    parts.forEach(([name,value],i)=>{
+      const sweep=2*Math.PI*value/total,path=new Path();
+      path.move(new Point(mid,mid));
+      const steps=Math.max(2,Math.ceil(sweep/(Math.PI*2)*100));
+      for(let j=0;j<=steps;j++){
+        const at=angle+sweep*j/steps;
+        path.addLine(new Point(mid+r*Math.cos(at),mid+r*Math.sin(at)));
+      }
+      path.closeSubpath();
+      c.setFillColor(new Color(WCOL[i%WCOL.length]));c.addPath(path);c.fillPath();
+      angle+=sweep;
+    });
+  }
+  c.setFillColor(new Color(WC.bg));
+  c.fillEllipse(new Rect(mid-hole,mid-hole,hole*2,hole*2));
+  return c.getImage();
+}
+function addDonutChart(parent,items,size){
+  return displayImage(parent,makeDonutChart(items,size),size,size);
+}
+function addDonutLegend(parent,entries,gross,count=3){
+  const parts=donutParts(entries);
+  if(!parts.length){wText(parent,'尚無消費',11,WC.subtle);return;}
+  parts.slice(0,count).forEach(([name,amount],i)=>{
+    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
+    const dot=row.addStack();dot.size=new Size(5,5);dot.cornerRadius=2;
+    dot.backgroundColor=new Color(WCOL[i%WCOL.length]);
+    row.addSpacer(4);wText(row,String(name).slice(0,7),11,WC.soft);
+    row.addSpacer(4);
+    wText(row,gross>0?Math.round(amount/gross*100)+'%':'—',11,WC.ink,true);
   });
 }
 function recentTitle(t){
@@ -1546,48 +1581,25 @@ function recentTitle(t){
   const category=categoryForDisplay(t),payment=paymentTypeOf(t);
   return [category&&category!=='未分類'?category:'交易',payment].filter(Boolean).join(' · ');
 }
-function paymentRemainder(s,n=2){
-  if(s.monthlyPayments.length<=n)return null;
-  const remain=Math.round((s.month-s.monthlyPayments.slice(0,n).reduce((a,p)=>a+p[1],0))*100)/100;
-  return Math.abs(remain)>=.005?remain:null;
-}
 function widgetWidth(family){
-  let screen=390;try{screen=Device.screenSize().width||390;}catch(_){}
-  if(family==='small')return Math.max(103,Math.min(139,(screen-125)/2));
-  if(family==='extraLarge')return Math.max(440,Math.min(680,screen-130));
-  return Math.max(245,Math.min(348,screen-76));
+  let screen=390,pad=false;
+  try{screen=Device.screenSize().width||390;pad=Device.isPad();}catch(_){}
+  if(pad){
+    const sm=screen<=768?141:screen<=810?146:screen<=834?150:170;
+    const md=screen<=768?305.5:screen<=810?320.5:screen<=834?327.5:378.5;
+    const xl=screen<=768?634.5:screen<=810?669:screen<=834?682:screen<=970?726:795;
+    if(family==='small')return sm-20;
+    if(family==='extraLarge')return Math.floor(xl-24);
+    return Math.floor(md-24);
+  }
+  if(family==='small')return screen<=320?121:screen<=375?128:screen<=393?138:149;
+  return (screen<=320?292:screen<=375?321:screen<=393?338:screen<=414?360:364)-24;
 }
 function sectionLine(parent,title,right=''){
   const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
   wText(row,title,11,WC.ink,true);
   row.addSpacer(4);
   if(right)wText(row,right,11,WC.subtle);
-}
-function widgetCard(parent,pad=7){
-  const c=parent.addStack();c.layoutVertically();
-  c.backgroundColor=new Color(WC.surface);c.cornerRadius=11;
-  c.setPadding(pad,pad,pad,pad);
-  return c;
-}
-function addSeparator(parent,width){
-  const rule=parent.addStack();rule.size=new Size(width,1);
-  rule.backgroundColor=new Color(WC.edge);
-}
-function addRankRows(parent,rows,count,width=120,showBars=true){
-  const max=Math.max(1,...rows.map(r=>Math.abs(r[1])));
-  if(!rows.length){wText(parent,'本月未有分類支出',11,WC.subtle);return 0;}
-  rows.slice(0,count).forEach(([name,value],idx)=>{
-    const row=parent.addStack();row.layoutHorizontally();row.centerAlignContent();
-    wText(row,name.length>9?name.slice(0,8)+'…':name,11,WC.soft);
-    row.addSpacer(4);wText(row,compactMoney(value),11,WC.ink,true);
-    if(showBars){
-      parent.addSpacer(2);
-      const img=parent.addImage(makeMiniBar(width,Math.abs(value)/max,idx===0?WC.violet:WC.mint));
-      img.imageSize=new Size(width,3);img.applyFittingContentMode();
-    }
-    if(idx<Math.min(count,rows.length)-1)parent.addSpacer(showBars?4:3);
-  });
-  return Math.min(count,rows.length);
 }
 function addPaymentRows(parent,rows,count){
   if(!rows.length){wText(parent,'未有付款方式',11,WC.subtle);return 0;}
@@ -1610,11 +1622,6 @@ function addRecentRows(parent,rows,count,labelMax=25){
   });
   return Math.min(count,rows.length);
 }
-function contextLine(s){
-  if(s.monthOnlyToday)return s.todayCount+'筆交易均在今日';
-  if(s.sevenActive>0)return '近7日 '+s.sevenActive+'個消費日';
-  return '近7日未有交易';
-}
 function simpleHeader(widget,month,transactions,label){
   const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
   wText(row,label||month+'月 · 消費',11,WC.soft,true);
@@ -1628,10 +1635,9 @@ function buildWidget(family=config.widgetFamily||'medium'){
   const s=widgetSummary(),widget=new ListWidget();
   const quick=String(args.widgetParameter||'').trim().toLowerCase()==='quick';
   widget.backgroundColor=new Color(WC.bg);widget.spacing=0;
-  widget.setPadding(family==='small'?8:family.startsWith('accessory')?1:11,
-    family==='small'?10:family.startsWith('accessory')?2:12,
-    family==='small'?8:family.startsWith('accessory')?1:11,
-    family==='small'?10:family.startsWith('accessory')?2:12);
+  const py=family.startsWith('accessory')?1:(family==='small'||family==='medium'?8:11);
+  const px=family.startsWith('accessory')?2:family==='small'?10:12;
+  widget.setPadding(py,px,py,px);
   widget.refreshAfterDate=new Date(Date.now()+30*60*1000);
   const base=URLScheme.forRunningScript();
   widget.url=base+(base.includes('?')?'&':'?')+(quick?'view=manual':'view=dashboard');
@@ -1646,147 +1652,136 @@ function buildWidget(family=config.widgetFamily||'medium'){
   }
   const width=widgetWidth(family),month=Number(today().slice(5,7));
   if(family==='small'){
-    // 100% clean-sheet composition; 7-day heatstrip preserves real daily buckets
-    // without the screen-grabbing single purple column in the user's screenshot.
     simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 支出');
     widget.addSpacer(4);
-    wText(widget,compactMoney(s.month),24,WC.ink,true);
-    widget.addSpacer(5);
-    const principal=s.monthlyCats[0];
-    const positiveCats=s.monthlyCats.reduce((total,row)=>total+Math.max(0,row[1]),0);
-    const line=widget.addStack();line.layoutHorizontally();line.centerAlignContent();
-    wText(line,principal?'主要 '+String(principal[0]).slice(0,6):'暫無交易',11,WC.subtle);
-    line.addSpacer(4);
-    // Use a short genuine share on Small; the precise HKD amount is visible
-    // on Medium/Large. Avoid a second long amount that clips a 141pt card.
-    if(principal){
-      const share=positiveCats>0&&principal[1]>0?
-        Math.round(principal[1]/positiveCats*100)+'%':compactMoney(principal[1]);
-      wText(line,share,11,WC.mint,true);
-    }
+    wText(widget,compactMoney(s.month),23,WC.ink,true);
     widget.addSpacer(4);
-    sectionLine(widget,'近7日',s.sevenActive+'日有紀錄');
-    widget.addSpacer(3);
-    addSevenDayStrip(widget,chartPoints(s.byDay,7),width);
+    sectionLine(widget,'最近7日',s.sevenActive+'日有紀錄');
+    widget.addSpacer(2);
+    addChart(widget,chartPoints(s.byDay,7),width,26);
+    widget.addSpacer(4);
+    const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
+    wText(row,'最多分類',11,WC.subtle);row.addSpacer(4);
+    const best=s.grossCats[0];
+    wText(row,best&&s.gross>0?best[0]+' '+Math.round(best[1]/s.gross*100)+'%':'暫無支出',
+      11,WC.mint,true);
     return widget;
   }
   if(family==='medium'){
-    // At one active day, a second chart is information-poor. Replace it
-    // with real category comparisons, never reprinting the same HKD three times.
-    const sparse=s.fourteenActive<=1;
-    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 支出分析');
-    widget.addSpacer(4);
-    const headline=widget.addStack();headline.layoutHorizontally();headline.centerAlignContent();
-    wText(headline,compactMoney(s.month),23,WC.ink,true);
-    headline.addSpacer(7);wText(headline,contextLine(s),11,WC.mint);
-    widget.addSpacer(5);
-    if(sparse){
-      sectionLine(widget,'分類排行',s.fourteenActive+'個交易日／14日');
-      widget.addSpacer(3);
-      const best=s.monthlyCats.slice(0,2);
-      if(best.length){
-        best.forEach(([name,value],idx)=>{
-          const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
-          wText(row,name,11,WC.soft);row.addSpacer();
-          wText(row,s.month!==0&&best.length===1&&Math.abs(value-s.month)<.005?'100%':compactMoney(value),11,idx===0?WC.violet:WC.ink,true);
-          if(idx===0)widget.addSpacer(3);
-        });
-      }else wText(widget,'目前未有分類資料',11,WC.subtle);
-    }else{
-      sectionLine(widget,'最近14日',s.fourteenActive+'日有紀錄');
-      widget.addSpacer(4);
-      addChart(widget,chartPoints(s.byDay,14),width,22);
-    }
-    widget.addSpacer(5);
-    const pay=s.monthlyPayments[0];
+    const narrow=width<280;
+    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 趨勢');
+    widget.addSpacer(3);
+    const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
+    wText(hero,compactMoney(s.month),narrow?21:23,WC.ink,true);
+    hero.addSpacer(6);
+    wText(hero,s.monthOnlyToday?'全部在今日':s.fourteenActive+'個消費日',11,WC.mint);
+    widget.addSpacer(3);
+    sectionLine(widget,'最近14日 · 每日淨額');
+    widget.addSpacer(2);
+    addChart(widget,chartPoints(s.byDay,14),width,narrow?23:32);
+    widget.addSpacer(3);
+    addStackedChart(widget,donutParts(s.grossCats),width,9);
+    widget.addSpacer(3);
     const footer=widget.addStack();footer.layoutHorizontally();footer.centerAlignContent();
-    wText(footer,'常用 '+(pay?pay[0]:'未指定'),11,WC.subtle);
-    footer.addSpacer(4);
-    if(pay)wText(footer,s.month!==0&&Math.abs(pay[1]-s.month)<.005?'100%':compactMoney(pay[1]),11,WC.mint,true);
+    const category=s.grossCats[0];
+    wText(footer,'分類',11,WC.subtle);footer.addSpacer(5);
+    wText(footer,category&&s.gross?category[0]+' '+Math.round(category[1]/s.gross*100)+'%':'暫無支出',
+      11,WC.violet,true);
+    footer.addSpacer();
+    const payment=s.grossPayments[0];
+    if(payment)wText(footer,String(payment[0]).slice(0,10),11,WC.muted);
     return widget;
   }
   if(family==='large'){
-    // More information, not more decorative cards: full-width ranked category,
-    // compact payment distribution and native full-width recent transactions.
-    const narrow=width<300;
-    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':month+'月 · 消費報告');
+    const narrow=width<290,col=Math.floor((width-8)/2);
+    simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'支出分析 · '+month+'月');
     widget.addSpacer(4);
     const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
-    wText(hero,compactMoney(s.month),25,WC.ink,true);
-    hero.addSpacer(5);wText(hero,contextLine(s),11,WC.mint);
+    wText(hero,compactMoney(s.month),23,WC.ink,true);
+    hero.addSpacer(7);
+    wText(hero,s.refunds?'退款 '+s.refunds+'筆':'近7日 '+s.sevenActive+'日',11,WC.mint);
     widget.addSpacer(4);
-    sectionLine(widget,'14日趨勢',s.fourteenActive+'個交易日');
-    widget.addSpacer(2);addChart(widget,chartPoints(s.byDay,14),width,narrow?13:16);
-    widget.addSpacer(4);addSeparator(widget,width);widget.addSpacer(6);
-    sectionLine(widget,'分類支出',s.monthlyCats.length+'種');
-    widget.addSpacer(5);
-    addRankRows(widget,s.monthlyCats,narrow?2:3,width,false);
-    widget.addSpacer(4);addSeparator(widget,width);widget.addSpacer(6);
-    sectionLine(widget,'付款方式');
-    widget.addSpacer(4);
-    addPaymentRows(widget,s.monthlyPayments,narrow?1:2);
-    const rem=paymentRemainder(s,narrow?1:2);
-    if(rem!==null){
-      const other=widget.addStack();other.layoutHorizontally();
-      wText(other,'其餘',11,WC.subtle);other.addSpacer();
-      wText(other,compactMoney(rem),11,WC.soft,true);
-    }
-    widget.addSpacer(6);addSeparator(widget,width);widget.addSpacer(6);
-    sectionLine(widget,'最近交易',s.recent.length+'筆');
+    sectionLine(widget,'最近14日 · 淨支出');
+    widget.addSpacer(2);
+    addChart(widget,chartPoints(s.byDay,14),width,narrow?34:44);
+    widget.addSpacer(7);
+    const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=8;
+    const left=panels.addStack();left.layoutVertically();left.size=new Size(col,0);
+    sectionLine(left,'支出分類');
+    left.addSpacer(5);
+    const ring=left.addStack();ring.layoutHorizontally();ring.centerAlignContent();
+    const size=narrow?59:75;
+    addDonutChart(ring,s.grossCats,size);
+    ring.addSpacer(4);
+    const legend=ring.addStack();legend.layoutVertically();legend.spacing=2;
+    addDonutLegend(legend,s.grossCats,s.gross,narrow?2:3);
+    const right=panels.addStack();right.layoutVertically();right.size=new Size(col,0);
+    sectionLine(right,'付款構成');
+    right.addSpacer(8);
+    addStackedChart(right,donutParts(s.grossPayments),col,12);
+    right.addSpacer(6);
+    addPaymentRows(right,s.grossPayments,narrow?2:3);
+    widget.addSpacer(7);
+    sectionLine(widget,'最近交易','最近'+Math.min(s.recent.length,narrow?1:2)+'筆');
     widget.addSpacer(3);
-    // The 393pt iPhone has only 354pt Large height. Reserve readable
-    // bottom breathing room; 430pt iPhones can expose an extra transaction.
-    const recentMax=width>=343?(s.monthlyCats.length<=2?4:3):2;
-    addRecentRows(widget,s.recent,recentMax,narrow?15:23);
-    if(s.unresolved){
-      widget.addSpacer(3);widgetPending(widget,s);
-    }
+    addRecentRows(widget,s.recent,narrow?1:2,narrow?13:21);
+    if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
     return widget;
   }
-  // iPad Extra Large is an information-rich 3-zone analytics console,
-  // never an enlarged phone widget. All rows use native 11pt text.
-  simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'財務總覽 · '+month+'月');
-  widget.addSpacer(7);
-  const summary=widget.addStack();summary.layoutHorizontally();summary.centerAlignContent();
-  wText(summary,compactMoney(s.month),28,WC.ink,true);
-  summary.addSpacer(14);
-  wText(summary,contextLine(s),12,WC.mint);
-  summary.addSpacer();
-  wText(summary,'退款 '+s.refunds+'筆',11,WC.soft);
-  widget.addSpacer(10);
-  const cols=widget.addStack();cols.layoutHorizontally();cols.spacing=10;
-  const colWidth=Math.floor((width-20)/3);
-  const a=widgetCard(cols,9);a.size=new Size(colWidth,0);
-  wText(a,'最近30日',11,WC.ink,true);a.addSpacer(6);
-  addChart(a,chartPoints(s.byDay,30),colWidth-18,58);
-  a.addSpacer(9);
-  wText(a,'最近6個月',11,WC.ink,true);a.addSpacer(6);
-  addChart(a,s.sixMonths,colWidth-18,43);
-  const b=widgetCard(cols,9);b.size=new Size(colWidth,0);
-  wText(b,'本月分類 Top 5',11,WC.ink,true);b.addSpacer(8);
-  addRankRows(b,s.monthlyCats,5,colWidth-18);
-  const c=widgetCard(cols,9);c.size=new Size(colWidth,0);
-  wText(c,'付款方式 Top 4',11,WC.ink,true);c.addSpacer(8);
-  addPaymentRows(c,s.monthlyPayments,4);
-  widget.addSpacer(10);
-  sectionLine(widget,'最近六筆交易');
+  // iPad Extra Large: four complementary charts with transparent denominators.
+  const compactPad=Device.screenSize().width<850;
+  simpleHeader(widget,month,s.txCount,quick?'＋ 手動記帳':'財務分析 · '+month+'月');
   widget.addSpacer(5);
-  const trans=widget.addStack();trans.layoutHorizontally();trans.spacing=10;
+  const hero=widget.addStack();hero.layoutHorizontally();hero.centerAlignContent();
+  wText(hero,compactMoney(s.month),25,WC.ink,true);
+  hero.addSpacer(12);
+  wText(hero,'支出 '+compactMoney(s.gross),11,WC.soft);
+  hero.addSpacer(10);
+  wText(hero,'退款 '+compactMoney(s.refundValue),11,WC.mint);
+  widget.addSpacer(compactPad?4:8);
+  const panels=widget.addStack();panels.layoutHorizontally();panels.spacing=12;
+  const leftW=Math.floor(width*.52),rightW=width-leftW-12;
+  const left=panels.addStack();left.layoutVertically();left.size=new Size(leftW,0);
+  sectionLine(left,'最近30日每日淨額');
+  left.addSpacer(4);addChart(left,chartPoints(s.byDay,30),leftW,compactPad?47:60);
+  left.addSpacer(7);
+  sectionLine(left,'最近6個月淨額');
+  left.addSpacer(4);addChart(left,s.sixMonths,leftW,compactPad?30:42);
+  const right=panels.addStack();right.layoutVertically();right.size=new Size(rightW,0);
+  sectionLine(right,'分類 · 正向支出');
+  right.addSpacer(5);
+  const cat=right.addStack();cat.layoutHorizontally();cat.centerAlignContent();
+  addDonutChart(cat,s.grossCats,compactPad?64:84);cat.addSpacer(8);
+  const legend=cat.addStack();legend.layoutVertically();legend.spacing=3;
+  addDonutLegend(legend,s.grossCats,s.gross,compactPad?3:4);
+  right.addSpacer(7);
+  sectionLine(right,'付款構成 · 正向支出');
+  right.addSpacer(4);
+  addStackedChart(right,donutParts(s.grossPayments),rightW,12);
+  right.addSpacer(4);
+  addPaymentRows(right,s.grossPayments,compactPad?1:2);
+  widget.addSpacer(compactPad?4:8);
+  sectionLine(widget,compactPad?'最近三筆交易':'最近六筆交易');
+  widget.addSpacer(4);
+  const recent=widget.addStack();recent.layoutHorizontally();recent.spacing=10;
   for(let i=0;i<3;i++){
-    const col=trans.addStack();col.layoutVertically();col.size=new Size(colWidth,0);
-    addRecentRows(col,s.recent.slice(i*2,i*2+2),2,13);
+    const col=recent.addStack();col.layoutVertically();
+    col.size=new Size(Math.floor((width-20)/3),0);
+    const step=compactPad?1:2;
+    addRecentRows(col,s.recent.slice(i*step,i*step+step),step,13);
   }
-  if(s.unresolved){widget.addSpacer(6);widgetPending(widget,s);}
+  if(s.unresolved){widget.addSpacer(4);widgetPending(widget,s);}
   return widget;
 }
+
 async function previewWidget(){
   const choices=[
-    'Small — 七日熱度條＋本月金額',
-    'Medium — 按交易日數顯示分類／趨勢',
-    'Large — 全寬分類、付款及最近交易'
+    'Small — 7日微型柱圖＋分類',
+    'Medium — 14日趨勢＋分類比例',
+    'Large — 趨勢＋環形圖＋付款構成'
   ];
   let isPad=false;try{isPad=Device.isPad();}catch(_){}
-  if(isPad)choices.push('Extra Large — iPad 三區分析');
+  if(isPad)choices.push('Extra Large — iPad 四圖分析');
   const pick=new Alert();pick.title='預覽記帳 Widget';
   choices.forEach(name=>pick.addAction(name));pick.addCancelAction('取消');
   const choice=await pick.presentSheet();if(choice<0)return;
@@ -1849,7 +1844,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.19.0',status,receipt,
+    version:'3.20.0',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1879,8 +1874,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.19.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.19.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.20.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.20.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1904,7 +1899,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.19.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.20.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -2013,7 +2008,7 @@ if (config.runsInWidget) {
     const source=quickFromTexts?'Texts':'Parameter';
     if (!config.runsInApp){
       recordShortcutAttempt('quick_requires_app',{inputType:'quick_manual',source});
-      emitShortcutReceipt('[EXPENSE-HK-v3.19.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
+      emitShortcutReceipt('[EXPENSE-HK-v3.20.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
     }else{
       recordShortcutAttempt('quick_opened',{inputType:'quick_manual',source});
       await addManual();
@@ -2030,7 +2025,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.19.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.20.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -2051,10 +2046,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.19.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.20.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.19.0',status:'error',receipt:'[EXPENSE-HK-v3.19.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.20.0',status:'error',receipt:'[EXPENSE-HK-v3.20.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

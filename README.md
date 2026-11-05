@@ -13,7 +13,7 @@ Each Widget has its own folder, independent version, installation guide and rele
 |---|---|---|---|
 | 🚌 Bus ETA | [widgets/bus-eta](widgets/bus-eta/) | 2.4.0 | [Changes](widgets/bus-eta/CHANGELOG.md) |
 | 🚇 MTR — Standard and Adaptive | [widgets/mtr-next-train](widgets/mtr-next-train/) | 1.0.0 | [Changes](widgets/mtr-next-train/CHANGELOG.md) |
-| 💳 Expense Tracker | [widgets/expense-tracker](widgets/expense-tracker/) | 3.19.0 | [Changes](widgets/expense-tracker/CHANGELOG.md) |
+| 💳 Expense Tracker | [widgets/expense-tracker](widgets/expense-tracker/) | 3.20.0 | [Changes](widgets/expense-tracker/CHANGELOG.md) |
 
 **Future releases must bump the widget's version and list precisely what changed.** [Versioning policy / 版本管理](VERSIONING.md)
 
