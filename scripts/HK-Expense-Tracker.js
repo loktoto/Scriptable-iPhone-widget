@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.9.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.10.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.9.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.10.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.9.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.10.0',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -530,7 +530,7 @@ function dashboardHTML(flash=''){
   const fxPending=db.transactions.filter(t=>t.fxStatus==='pending').length;
   const recent=db.transactions.map((t,index)=>({t,index})).sort((a,b)=>(b.t.transactionTime||b.t.date||b.t.createdAt||'').localeCompare(a.t.transactionTime||a.t.date||a.t.createdAt||''));
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Expense Tracker</title>
-  <style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'PingFang HK',sans-serif;background:#0d1422;color:#ecf3ff;margin:0;padding:24px 16px 60px}.wrap{max-width:860px;margin:auto}h1{font-size:27px;margin:0}h2{font-size:17px;margin:0 0 16px}.muted{color:#9cacc2}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{font-size:12px;color:#6bbdff;letter-spacing:1px;font-weight:700}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#203047;border-radius:999px;padding:7px 10px;color:#b8c9e2;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{background:#172338;border:1px solid #25334c;border-radius:18px;padding:17px;margin-bottom:12px}.stat{font-size:clamp(22px,5vw,32px);font-weight:750;margin:8px 0 3px}.label{font-size:12px;color:#a9bad2}.sub{font-size:12px;color:#9cacc2}.chart{width:100%;display:block}.chart svg{width:100%;height:auto}.donutrow{display:flex;gap:25px;align-items:center}.donut{width:150px;height:150px;flex-shrink:0;border-radius:50%;display:grid;place-items:center}.hole{width:96px;height:96px;background:#172338;border-radius:50%;display:grid;place-content:center;text-align:center;font-size:12px;color:#9cacc2}.hole b{font-size:20px;color:white}.legend{flex:1;min-width:0}.legend>div{display:flex;gap:9px;align-items:center;margin:9px 0;font-size:12px}.legend span:nth-child(2){flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dot{height:10px;width:10px;border-radius:3px;display:inline-block;flex-shrink:0}.merchant{margin:12px 0}.merchanthead{display:flex;justify-content:space-between;font-size:13px;gap:12px}.merchanthead span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rail{height:7px;background:#25334c;border-radius:99px;margin-top:7px;overflow:hidden}.fill{height:100%;background:#47b6ff;border-radius:99px}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:9px 6px;border-bottom:1px solid #25334c;text-align:left}th{color:#9cacc2;font-weight:500}td:last-child{text-align:right;white-space:nowrap}.scroll{overflow-x:auto}.negative{color:#34d399}.warn{color:#ffbd66}.footer{color:#7587a5;font-size:12px;text-align:center;margin:16px 0}@media(max-width:370px){.donutrow{gap:10px}.donut{width:118px;height:118px}.hole{width:76px;height:76px}} .tx-search{display:block;width:100%;margin:8px 0 12px;padding:11px 12px;border-radius:12px;background:#0d1422;color:#ecf3ff;border:1px solid #40516d;font-size:15px}.tx-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.edit-link{display:inline-block;padding:8px 11px;border-radius:9px;background:#244b78;color:#dcedff;text-decoration:none;white-space:nowrap;font-size:12px;font-weight:650}.edit-link:active{background:#3476ba}.save-flash{background:#174d3d;border:1px solid #2e9475;color:#d1ffeb;border-radius:12px;padding:11px;margin:10px 0}.tx-row[hidden]{display:none}.tx-hint{font-size:12px;color:#9cacc2;margin:9px 0 0}</style></head><body><div class="wrap">
+  <style>*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'PingFang HK',sans-serif;background:#0d1422;color:#ecf3ff;margin:0;padding:24px 16px 60px}.wrap{max-width:860px;margin:auto}h1{font-size:27px;margin:0}h2{font-size:17px;margin:0 0 16px}.muted{color:#9cacc2}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.eyebrow{font-size:12px;color:#6bbdff;letter-spacing:1px;font-weight:700}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#203047;border-radius:999px;padding:7px 10px;color:#b8c9e2;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{background:#172338;border:1px solid #25334c;border-radius:18px;padding:17px;margin-bottom:12px}.stat{font-size:clamp(22px,5vw,32px);font-weight:750;margin:8px 0 3px}.label{font-size:12px;color:#a9bad2}.sub{font-size:12px;color:#9cacc2}.chart{width:100%;display:block}.chart svg{width:100%;height:auto}.donutrow{display:flex;gap:25px;align-items:center}.donut{width:150px;height:150px;flex-shrink:0;border-radius:50%;display:grid;place-items:center}.hole{width:96px;height:96px;background:#172338;border-radius:50%;display:grid;place-content:center;text-align:center;font-size:12px;color:#9cacc2}.hole b{font-size:20px;color:white}.legend{flex:1;min-width:0}.legend>div{display:flex;gap:9px;align-items:center;margin:9px 0;font-size:12px}.legend span:nth-child(2){flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dot{height:10px;width:10px;border-radius:3px;display:inline-block;flex-shrink:0}.merchant{margin:12px 0}.merchanthead{display:flex;justify-content:space-between;font-size:13px;gap:12px}.merchanthead span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rail{height:7px;background:#25334c;border-radius:99px;margin-top:7px;overflow:hidden}.fill{height:100%;background:#47b6ff;border-radius:99px}table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:9px 6px;border-bottom:1px solid #25334c;text-align:left}th{color:#9cacc2;font-weight:500}td:last-child{text-align:right;white-space:nowrap}.scroll{overflow-x:auto}.negative{color:#34d399}.warn{color:#ffbd66}.footer{color:#7587a5;font-size:12px;text-align:center;margin:16px 0}@media(max-width:370px){.donutrow{gap:10px}.donut{width:118px;height:118px}.hole{width:76px;height:76px}} .tx-search{display:block;width:100%;margin:8px 0 12px;padding:11px 12px;border-radius:12px;background:#0d1422;color:#ecf3ff;border:1px solid #40516d;font-size:15px}.tx-title{display:flex;justify-content:space-between;align-items:center;gap:12px}.edit-link{display:inline-block;padding:8px 11px;border-radius:9px;background:#244b78;color:#dcedff;text-decoration:none;white-space:nowrap;font-size:12px;font-weight:650}.edit-link:active{background:#3476ba}.save-flash{background:#174d3d;border:1px solid #2e9475;color:#d1ffeb;border-radius:12px;padding:11px;margin:10px 0}.tx-row[hidden]{display:none}.tx-hint{font-size:12px;color:#9cacc2;margin:9px 0 0}.tx-list{display:grid;gap:9px}.tx-swipe-shell{position:relative;overflow:hidden;border-radius:13px;background:#18283d;isolation:isolate}.tx-swipe-shell[hidden]{display:none}.tx-swipe-action{position:absolute;inset:0 0 0 auto;width:96px;background:#d93647;display:flex;align-items:stretch;justify-content:stretch}.tx-delete{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:96px;color:#fff;text-decoration:none;font-weight:700;font-size:13px}.tx-delete:focus-visible,.tx-more:focus-visible{outline:2px solid white;outline-offset:-4px}.tx-swipe-front{display:flex;align-items:center;gap:10px;min-height:76px;padding:11px 10px 11px 13px;position:relative;z-index:1;background:#1b2b42;transform:translateX(0);transition:transform .18s ease;touch-action:pan-y}.tx-swipe-shell.is-open .tx-swipe-front{transform:translateX(-96px)}.tx-main{flex:1;min-width:0}.tx-line{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.tx-merchant{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:650}.tx-value{font-size:15px;font-weight:750;white-space:nowrap}.tx-meta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px;font-size:11px;color:#9cacc2}.tx-more{background:#223b58;color:#bcd2ef;border:0;border-radius:9px;min-width:27px;min-height:36px;font-size:21px;cursor:pointer}.tx-swipe-shell .edit-link{font-size:12px;padding:9px 10px}.tx-empty{padding:18px;color:#9cacc2;text-align:center}@media(max-width:370px){.tx-swipe-front{gap:6px;padding-left:9px}.tx-swipe-shell .edit-link{padding:8px 7px}.tx-value{font-size:13px}}</style></head><body><div class="wrap">
   <div class="top"><div><div class="eyebrow">EXPENSE TRACKER · HKD</div><h1>記帳儀表板</h1></div><span class="chip">${esc(now)}</span></div>
   ${flash?'<div class="save-flash">'+esc(flash)+'</div>':''}
   <div class="chips"><span class="chip">已儲存 ${db.transactions.length} 筆</span><span class="chip">日期待核對 ${missing}</span><span class="chip">貨幣待核對 ${uncertain}</span><span class="chip">匯率待換算 ${fxPending}</span></div><div style="height:14px"></div>
@@ -539,12 +539,74 @@ function dashboardHTML(flash=''){
   <div class="card"><h2>近 6 個月支出</h2><div class="chart">${barsSVG(monthly,640,185,'#a894ff')}</div></div>
   <div class="card"><h2>本月消費類別</h2>${pieSVG(categoryEntries.slice(0,6).concat(categoryEntries.length>6?[['其他',categoryEntries.slice(6).reduce((a,x)=>a+x[1],0)]]:[]))}</div>
   <div class="card"><h2>本月最多消費商戶</h2>${merchantEntries.length?merchantEntries.map(([name,n])=>`<div class="merchant"><div class="merchanthead"><span>${esc(name)}</span><b>${toMoney(n)}</b></div><div class="rail"><div class="fill" style="width:${Math.max(0,n/merchantEntries[0][1]*100)}%"></div></div></div>`).join(''):'<div class="muted">本月暫無紀錄</div>'}</div>
-  <div class="card"><div class="tx-title"><h2>交易記錄 · 可編輯</h2><span class="muted">${recent.length} 筆</span></div>
-  <input class="tx-search" id="txSearch" type="search" placeholder="搜尋日期、商戶、類別、信用卡…" autocomplete="off" aria-label="搜尋交易">
-  <div class="scroll"><table id="txTable"><thead><tr><th>日期</th><th>商戶 / 類別</th><th>貨幣</th><th>金額</th><th>HKD</th><th>操作</th></tr></thead>
-  <tbody>${recent.map(({t,index})=>`<tr class="tx-row" data-filter="${esc([t.date||"",t.merchant||"",t.category||"",t.card||"",t.currency||""].join(" ").toLowerCase())}"><td>${esc(t.date||"待核對")}</td><td>${esc(t.merchant)}<div class="muted">${esc(t.category)}</div></td><td>${esc(t.currency)}</td><td class="${t.amount<0?"negative":""}">${Number(t.amount).toFixed(2)}</td><td>${Number.isFinite(t.amountHKD)?toMoney(t.amountHKD):"<span class=\"warn\">待換算</span>"}</td><td><a class="edit-link" href="https://expense-editor.invalid/edit?row=${index}">✏️ 編輯</a></td></tr>`).join("")}</tbody></table></div>
-  <div class="tx-hint">按「編輯」可修改本機交易。修改後會更新圖表和 Widget；已加入 Apple Numbers 嘅舊資料列唔會自動修改。</div></div>
-  <script>(function(){var input=document.getElementById("txSearch");if(!input)return;input.addEventListener("input",function(){var q=input.value.trim().toLowerCase();document.querySelectorAll("#txTable tbody tr").forEach(function(row){row.hidden=!row.getAttribute("data-filter").includes(q)});});})();</script>
+  <div class="card"><div class="tx-title"><h2>交易記錄</h2><span class="muted">${recent.length} 筆</span></div>
+  <input class="tx-search" id="txSearch" type="search" placeholder="搜尋商戶、日期、類別、信用卡…" autocomplete="off" aria-label="搜尋交易">
+  <div class="tx-list" id="txList">${recent.length?recent.map(({t,index})=>`<div class="tx-swipe-shell" data-row="${index}" data-filter="${esc([t.date||"",t.merchant||"",t.category||"",t.card||"",t.currency||""].join(" ").toLowerCase())}">
+    <div class="tx-swipe-action"><a class="tx-delete" href="https://expense-editor.invalid/delete?row=${index}" aria-label="刪除第 ${index+1} 筆交易">🗑️<span>刪除</span></a></div>
+    <div class="tx-swipe-front"><div class="tx-main">
+      <div class="tx-line"><span class="tx-merchant">${esc(t.merchant)}</span><span class="tx-value ${t.amount<0?"negative":""}">${esc(t.currency)} ${Number(t.amount).toFixed(2)}</span></div>
+      <div class="tx-meta"><span>${esc(t.transactionTime||t.date||"待核對")}</span><span>${esc(t.category||"未分類")}</span><span>${Number.isFinite(t.amountHKD)?toMoney(t.amountHKD):"HKD 待換算"}</span></div>
+    </div><a class="edit-link" href="https://expense-editor.invalid/edit?row=${index}">✏️ 編輯</a><button class="tx-more" type="button" aria-label="顯示刪除操作" aria-expanded="false">⋯</button></div>
+  </div>`).join(""):"<div class=\"tx-empty\">暫無交易</div>"}</div>
+  <div class="tx-hint">向左滑動交易 → 顯示紅色「刪除」→ 點擊後確認。向右滑動可收起；「⋯」亦可開啟刪除按鈕。編輯及刪除只影響本機 Scriptable，唔會同步 Apple Numbers。</div></div>
+  <script>(function(){
+  var search=document.getElementById("txSearch");
+  var cards=Array.prototype.slice.call(document.querySelectorAll(".tx-swipe-shell"));
+  var opened=null;
+  function reveal(card,yes){
+    if(opened && opened!==card){
+      opened.classList.remove("is-open");
+      var old=opened.querySelector(".tx-more");
+      if(old)old.setAttribute("aria-expanded","false");
+    }
+    card.classList.toggle("is-open",!!yes);
+    var button=card.querySelector(".tx-more");
+    if(button)button.setAttribute("aria-expanded",yes?"true":"false");
+    opened=yes?card:null;
+  }
+  cards.forEach(function(card){
+    var front=card.querySelector(".tx-swipe-front");
+    var toggle=card.querySelector(".tx-more");
+    var x=0,y=0,tracking=false,dragging=false,wasOpen=false;
+    if(toggle)toggle.addEventListener("click",function(e){
+      e.stopPropagation();reveal(card,!card.classList.contains("is-open"));
+    });
+    card.addEventListener("touchstart",function(e){
+      if(e.touches.length!==1 || e.target.closest("a,button"))return;
+      x=e.touches[0].clientX;y=e.touches[0].clientY;
+      wasOpen=card.classList.contains("is-open");tracking=true;dragging=false;
+    },{passive:true});
+    card.addEventListener("touchmove",function(e){
+      if(!tracking || e.touches.length!==1)return;
+      var dx=e.touches[0].clientX-x,dy=e.touches[0].clientY-y;
+      if(!dragging&&(Math.abs(dx)<10 || Math.abs(dx)<Math.abs(dy)*1.3))return;
+      dragging=true;e.preventDefault();
+      front.style.transition="none";
+      front.style.transform="translateX("+Math.max(-96,Math.min(0,(wasOpen?-96:0)+dx))+"px)";
+    },{passive:false});
+    card.addEventListener("touchend",function(e){
+      if(!tracking)return;tracking=false;
+      var dx=e.changedTouches.length?e.changedTouches[0].clientX-x:0;
+      var show=dragging?(wasOpen?dx<35:dx< -40):wasOpen;
+      front.style.transition="";front.style.transform="";
+      reveal(card,show);dragging=false;
+    },{passive:true});
+    card.addEventListener("touchcancel",function(){
+      if(!tracking)return;tracking=false;dragging=false;
+      front.style.transition="";front.style.transform="";reveal(card,wasOpen);
+    },{passive:true});
+  });
+  if(search)search.addEventListener("input",function(){
+    var q=search.value.trim().toLowerCase();
+    cards.forEach(function(card){
+      card.hidden=!card.getAttribute("data-filter").includes(q);
+      if(card.hidden && card.classList.contains("is-open"))reveal(card,false);
+    });
+  });
+  document.addEventListener("click",function(e){
+    if(opened && !opened.contains(e.target))reveal(opened,false);
+  });
+  })();</script>
   <p class="footer">交易本機儲存 · 外幣只向 Frankfurter 傳送貨幣對與日期<br>HKD 圖表只計入日期有效且已換算的交易；匯率為參考值，退款以負數抵銷。</p>
   </div></body></html>`;
 }
@@ -586,6 +648,66 @@ function applyDashboardEdit(rowIndex,snapshot,fields){
   }catch(error){db=previous;throw error;}
   return true;
 }
+function deleteDashboardTransaction(rowIndex,snapshot){
+  if(!Number.isInteger(rowIndex)||rowIndex<0||!snapshot||
+    rowIndex>=db.transactions.length ||
+    JSON.stringify(db.transactions[rowIndex])!==JSON.stringify(snapshot)){
+    throw new Error('交易索引無效或畫面已過時，請重新開啟 Dashboard');
+  }
+  if(!fm.fileExists(dbPath))throw new Error('交易資料庫不存在');
+  const latest=JSON.parse(fm.readString(dbPath));
+  if(!latest||!Array.isArray(latest.transactions))throw new Error('交易資料庫格式異常');
+  let index=rowIndex;
+  if(snapshot.id){
+    const matches=[];
+    latest.transactions.forEach((t,i)=>{if(t.id===snapshot.id)matches.push(i);});
+    if(matches.length!==1)throw new Error('交易 ID 不存在或重複，已拒絕刪除');
+    index=matches[0];
+  }
+  if(!latest.transactions[index] ||
+    JSON.stringify(latest.transactions[index])!==JSON.stringify(snapshot)){
+    throw new Error('交易已被其他操作修改；為避免誤刪，請重新開啟 Dashboard');
+  }
+  latest.transactions.splice(index,1);
+  const previous=db;db=latest;
+  try{
+    save(); // Existing save() writes transactions.previous.json first.
+    const verified=JSON.parse(fm.readString(dbPath));
+    if(!verified||!Array.isArray(verified.transactions) ||
+      JSON.stringify(verified.transactions)!==JSON.stringify(latest.transactions)){
+      throw new Error('刪除後讀回核實失敗，請檢查交易資料庫');
+    }
+  }catch(e){db=previous;throw e;}
+  return true;
+}
+async function showDashboardDelete(rowIndex,web=null){
+  const current=db.transactions[rowIndex];
+  if(!current){await note('交易不存在','請重新開啟 Dashboard');return false;}
+  const snapshot=JSON.parse(JSON.stringify(current));
+  const confirm=new Alert();confirm.title='刪除呢筆交易？';
+  confirm.message=(current.date||'無日期')+'  '+(current.merchant||'未提供商戶')+
+    '\n'+(current.currency||'')+' '+Number(current.amount).toFixed(2)+
+    '\n\n刪除後重新計算圖表；本機上一版備份仍會保留。Apple Numbers 已有行唔會同步刪除。';
+  confirm.addDestructiveAction('刪除交易');confirm.addCancelAction('取消');
+  if(await confirm.presentAlert()!==0)return false;
+  try{
+    deleteDashboardTransaction(rowIndex,snapshot);
+    if(web)await web.loadHTML(dashboardHTML('✓ 已刪除交易；圖表及列表已更新'));
+    else await note('刪除完成','本機交易已更新；其他交易保留。');
+    return true;
+  }catch(e){await note('刪除失敗',String(e.message||e));return false;}
+}
+async function selectDashboardTransactionToDelete(){
+  const rows=db.transactions.map((t,index)=>({t,index})).sort((a,b)=>
+    String(b.t.transactionTime||b.t.date||b.t.createdAt||'').localeCompare(
+      String(a.t.transactionTime||a.t.date||a.t.createdAt||''))).slice(0,20);
+  if(!rows.length){await note('暫無交易','沒有可以刪除的交易');return;}
+  const menu=new Alert();menu.title='選擇要刪除嘅交易';
+  rows.forEach(({t})=>menu.addAction((t.date||'無日期')+' '+String(t.merchant||'').slice(0,16)+' '+t.amount+' '+t.currency));
+  menu.addCancelAction('取消');
+  const chosen=await menu.presentSheet();
+  if(chosen>=0&&chosen<rows.length)await showDashboardDelete(rows[chosen].index);
+}
 async function showDashboardEditor(rowIndex,web=null){
   const current=db.transactions[rowIndex];
   if(!current){await note('交易不存在','交易可能已改動，請重新打開 Dashboard');return false;}
@@ -621,18 +743,20 @@ async function selectDashboardTransaction(){
   if(chosen>=0&&chosen<rows.length)await showDashboardEditor(rows[chosen].index);
 }
 async function dashboard(){
-  const web=new WebView();let editing=false;
+  const web=new WebView();let busy=false;
   web.shouldAllowRequest=(request)=>{
-    const url=String(request.url||''),prefix='https://expense-editor.invalid/edit?row=';
-    if(url.startsWith(prefix)){
-      const row=url.slice(prefix.length);
-      if(/^\d+$/.test(row)&&!editing){
-        editing=true;
-        showDashboardEditor(Number(row),web).catch(e=>console.error('Dashboard edit: '+String(e))).finally(()=>{editing=false;});
+    const url=String(request.url||'');
+    const action=url.match(/^https:\/\/expense-editor\.invalid\/(edit|delete)\?row=(\d+)$/);
+    if(action){
+      if(!busy){
+        busy=true;
+        const method=action[1]==='delete'?showDashboardDelete:showDashboardEditor;
+        method(Number(action[2]),web).catch(e=>console.error('Dashboard '+action[1]+': '+String(e)))
+          .finally(()=>{busy=false;});
       }
-      return false; // Only the row index is in this intercepted URL; no private data sent.
+      return false; // Block all network traffic to this placeholder domain.
     }
-    if(/^https?:/i.test(url))return false; // Local-only dashboard, no network navigation.
+    if(/^https?:/i.test(url))return false;
     return true;
   };
   await web.loadHTML(dashboardHTML());await web.present(true);
@@ -943,7 +1067,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.9.0',status,receipt,
+    version:'3.10.0',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -973,8 +1097,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.9.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.9.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.10.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.10.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -998,7 +1122,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.9.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.10.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -1057,7 +1181,7 @@ async function showShortcutAudit(){
 async function app(){
   if(args.queryParameters && args.queryParameters.view==='dashboard'){await dashboard();return;}
   const menu=new Alert();menu.title='Expense Tracker HK';menu.message=`共 ${db.transactions.length} 筆交易。所有資料只儲存在本機。`;
-  menu.addAction('📊 睇 Dashboard');menu.addAction('📋 匯入剪貼簿記錄');menu.addAction('➕ 手動記帳');menu.addAction('🛠 修正待核對交易');menu.addAction('🔄 重試外幣換算');menu.addAction('📤 匯出 CSV + JSON 備份');menu.addAction('👀 預覽 Widget 尺寸');menu.addAction('🧪 查看 Shortcuts 記帳紀錄');menu.addAction('✏️ 編輯交易');menu.addCancelAction('關閉');
+  menu.addAction('📊 睇 Dashboard');menu.addAction('📋 匯入剪貼簿記錄');menu.addAction('➕ 手動記帳');menu.addAction('🛠 修正待核對交易');menu.addAction('🔄 重試外幣換算');menu.addAction('📤 匯出 CSV + JSON 備份');menu.addAction('👀 預覽 Widget 尺寸');menu.addAction('🧪 查看 Shortcuts 記帳紀錄');menu.addAction('✏️ 編輯交易');menu.addAction('🗑️ 刪除交易');menu.addCancelAction('關閉');
   const choice=await menu.presentSheet();
   if(choice===0)await dashboard();
   if(choice===1)await importData(Pasteboard.pasteString(),true);
@@ -1068,6 +1192,7 @@ async function app(){
   if(choice===6)await previewWidget();
   if(choice===7)await showShortcutAudit();
   if(choice===8)await selectDashboardTransaction();
+  if(choice===9)await selectDashboardTransactionToDelete();
 }
 
 // Backfill missing FX fields from previously saved v2 records.
@@ -1090,7 +1215,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.9.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.10.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -1111,10 +1236,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.9.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.10.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.9.0',status:'error',receipt:'[EXPENSE-HK-v3.9.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.10.0',status:'error',receipt:'[EXPENSE-HK-v3.10.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();
