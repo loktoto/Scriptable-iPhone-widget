@@ -1687,9 +1687,10 @@ function buildWidget(family=config.widgetFamily||'medium'){
     widget.addSpacer(4);
     wText(widget,compactMoney(s.month),23,WC.ink,true);
     widget.addSpacer(4);
-    sectionLine(widget,'最近7日',s.sevenActive+'日有紀錄');
+    sectionLine(widget,s.sevenActive<=2?'近7日 · 記帳日':'近7日 · 淨支出',s.sevenActive+'／7日');
     widget.addSpacer(2);
-    addChart(widget,chartPoints(s.byDay,7),width,26);
+    addContextChart(widget,chartPoints(s.byDay,7),width,23,s.sevenActive);
+    addWeekdayAxis(widget,width);
     widget.addSpacer(4);
     const row=widget.addStack();row.layoutHorizontally();row.centerAlignContent();
     wText(row,'最多分類',11,WC.subtle);row.addSpacer(4);
@@ -1707,20 +1708,22 @@ function buildWidget(family=config.widgetFamily||'medium'){
     hero.addSpacer(6);
     wText(hero,s.monthOnlyToday?'全部在今日':s.fourteenActive+'個消費日',11,WC.mint);
     widget.addSpacer(3);
-    sectionLine(widget,'最近14日 · 每日淨額');
+    sectionLine(widget,s.fourteenActive<=2?'14日 · 記帳日分佈':'14日 · 每日淨額',
+      s.fourteenActive+'／14日');
     widget.addSpacer(2);
-    addChart(widget,chartPoints(s.byDay,14),width,narrow?23:32);
+    addContextChart(widget,chartPoints(s.byDay,14),width,narrow?23:32,s.fourteenActive);
     widget.addSpacer(3);
     addStackedChart(widget,donutParts(s.grossCats),width,9);
     widget.addSpacer(3);
     const footer=widget.addStack();footer.layoutHorizontally();footer.centerAlignContent();
-    const category=s.grossCats[0];
     wText(footer,'分類',11,WC.subtle);footer.addSpacer(5);
-    wText(footer,category&&s.gross?category[0]+' '+Math.round(category[1]/s.gross*100)+'%':'暫無支出',
-      11,WC.violet,true);
-    footer.addSpacer();
-    const payment=s.grossPayments[0];
-    if(payment)wText(footer,String(payment[0]).slice(0,10),11,WC.muted);
+    const categories=s.grossCats.slice(0,2);
+    if(!categories.length)wText(footer,'暫無支出',11,WC.muted);
+    categories.forEach(([name,value],index)=>{
+      if(index)footer.addSpacer(8);
+      wText(footer,String(name).slice(0,5)+' '+Math.round(value/s.gross*100)+'%',
+        11,index===0?WC.violet:WC.mint,true);
+    });
     return widget;
   }
   if(family==='large'){
