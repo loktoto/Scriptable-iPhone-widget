@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.11.1｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.11.2｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -170,3 +170,7 @@ Script 回傳例如：
 
 ## v3.11.1 — 修正 Scriptable 開 App 錯誤
 已修正 v3.11.0 漏咗 `dashboard()` 同 `addManual()` 函式，導致主選單報 `Can't find variable: dashboard`。新版本已實際模擬從主選單開啟 Dashboard、手動記帳頁及 Dashboard 深層連結；資料庫及 Widget 邏輯不變。請將 GitHub 最新整份程式完全覆蓋 Scriptable 內既有 `Expense.js`；唔好喺舊程式後面追加。
+
+## v3.11.2 — 手動記帳 UI 修正
+
+手動記帳頁頂部依家預留 iPhone 狀態列／Scriptable WebView 工具列空間；日期只保留一個可點選欄位，點按會直接開原生日期選擇器。支出金額／幣種、時間／付款方式重新排版，十二個分類縮細以增加顯示範圍，底部儲存按鈕亦調整為較緊湊尺寸。**原有記帳資料及自動記帳流程不受影響。**

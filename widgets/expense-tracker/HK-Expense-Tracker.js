@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.11.1 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.11.2 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.11.1 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.11.2 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.11.1',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.11.2',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -832,7 +832,7 @@ function manualIconSVG(name,color) {
     book:'<path d="M12 7c-4-3-7-3-10-2v14c4-1 7 0 10 3 3-3 6-4 10-3V5c-3-1-6-1-10 2zM12 7v15"/>',
     dumbbell:'<path d="M3 8v8m3-11v14m12-14v14m3-11v8M6 12h12M2 7h2v10H2m18-10h2v10h-2"/>'
   };
-  return '<svg viewBox="0 0 24 24" width="39" height="39" aria-hidden="true" fill="none" stroke="'+color+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[name]+'</svg>';
+  return '<svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" fill="none" stroke="'+color+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+paths[name]+'</svg>';
 }
 
 function manualFormHTML(nonce,flash='') {
@@ -862,7 +862,8 @@ function manualFormHTML(nonce,flash='') {
     }
     document.getElementById('dateBack').addEventListener('click',()=>day(-1));
     document.getElementById('dateNext').addEventListener('click',()=>day(1));
-    document.getElementById('datePicker').addEventListener('click',()=>{try{date.showPicker()}catch(e){date.focus();date.click()}});
+    // Native iOS date picker is triggered by a transparent input over the date label.
+    // Do not use showPicker() here: WKWebView support differs between iOS releases.
     date.addEventListener('change',updateDateTitle);
     updateDateTitle();
     categories.forEach(button=>button.addEventListener('click',()=>{
@@ -892,37 +893,62 @@ function manualFormHTML(nonce,flash='') {
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>手動記帳</title>
 <style>
-*{box-sizing:border-box}html{color-scheme:dark}body{font-family:-apple-system,BlinkMacSystemFont,"PingFang HK",sans-serif;background:#121416;color:#f8fafc;margin:0}
-.screen{max-width:620px;margin:0 auto;padding:20px 16px 125px}.header{display:flex;align-items:center;justify-content:space-between;margin:5px 0 22px}.header h1{font-size:25px;letter-spacing:.5px;margin:0}
-.nav{color:#b6bdc6;text-decoration:none;background:#25292f;padding:9px 13px;border-radius:11px;font-size:13px}
-.success{background:#153b30;border:1px solid #2e9b72;color:#baffdb;padding:13px;border-radius:13px;margin:0 0 15px;font-size:14px}
-.field-line{border-bottom:1px solid #363a40;display:flex;align-items:center;gap:14px;padding:14px 0;min-height:78px}
-.field-line label{font-weight:650;font-size:19px;min-width:64px}
-.center{flex:1;min-width:0}.date-controls{display:flex;align-items:center;gap:7px}
-.arrow{border:0;color:#e9eef7;background:transparent;font-size:30px;min-width:40px;min-height:44px}
-.date-button{flex:1;border:0;color:white;background:#2f3338;border-radius:10px;padding:14px 7px;font-size:17px;font-weight:680;min-height:55px}
-#manualDate{color:#dfe6f1;background:#20262b;border:1px solid #373d44;border-radius:9px;padding:9px;font-size:14px;max-width:100%;margin:8px 0 0}
-.sub{font-size:12px;color:#9aa4af}.line-input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:17px;min-height:48px}
-.line-input::placeholder{color:#8b919b}.moneyline{display:flex;align-items:center;gap:12px;width:100%}
-.currency{background:#2a2e33;color:#fff;border:0;border-radius:8px;padding:10px 8px;font-size:15px;max-width:92px}
-.amount{width:100%;min-width:0;border:0;outline:0;background:#2f3338;color:#fff;border-radius:12px;font-size:31px;padding:12px 15px;font-weight:700}
-.options{display:flex;gap:10px;margin:16px 0 20px}.option{flex:1;min-width:0}.option label{font-size:12px;color:#aab1bd;display:block;margin:0 0 6px}.option input{width:100%;min-height:44px;background:#292d32;color:white;border:1px solid #3c434c;border-radius:10px;padding:8px;font-size:14px}
-h2{font-size:19px;margin:22px 0 15px}.categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-.category{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-width:0;min-height:105px;border:1px solid #424951;border-radius:12px;background:#16191d;color:white;font-size:16px;padding:13px 6px;cursor:pointer}
-.category.selected{border:2px solid #e6e8eb;background:#22262c;box-shadow:inset 0 0 0 1px #b0b7c0}
-.category span{line-height:1.1}.bottom{position:fixed;bottom:0;left:0;right:0;padding:13px max(16px,env(safe-area-inset-left)) calc(15px + env(safe-area-inset-bottom));background:#1e2024;border-top:1px solid #35383d;z-index:5}
-.submit{display:block;width:100%;min-height:65px;border-radius:35px;background:#777d85;color:white;border:1px solid #a1a5ab;font-size:22px;font-weight:750}.submit:disabled{opacity:.65}
-.error{color:#ff8e97;font-size:13px;min-height:18px;margin-top:10px}.hint{color:#949da8;font-size:12px;margin-top:18px;line-height:1.5}
-@media(max-width:360px){.screen{padding:14px 11px 125px}.categories{gap:6px}.category{min-height:93px}.field-line label{min-width:53px}.date-button{font-size:14px}}
+:root{color-scheme:dark;--page:#14171b;--panel:#282d34;--border:#393f47;--label:#aab4c0;--text:#f6f8fb}
+*{box-sizing:border-box}
+html{background:var(--page);-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang HK",sans-serif;background:var(--page);color:var(--text);margin:0;font-size:15px}
+button,input,select{font:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.screen{max-width:600px;margin:0 auto;padding:0 16px 104px;padding-top:max(102px,calc(env(safe-area-inset-top,0px) + 56px))}
+.header{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;margin-bottom:10px}
+.header-heading{min-width:0;display:flex;flex-direction:column;gap:1px}
+.header h1{font-size:21px;line-height:1.24;font-weight:750;letter-spacing:0;margin:0}
+.sub{font-size:11px;color:#9ca7b5}
+.nav{display:inline-flex;align-items:center;justify-content:center;min-height:40px;white-space:nowrap;text-decoration:none;border-radius:11px;color:#d8e7f7;background:#262f39;border:1px solid #394757;padding:7px 11px;font-size:12px}
+.success{background:#163c30;border:1px solid #2d9873;color:#bbffde;padding:10px 12px;border-radius:12px;margin:8px 0;font-size:13px}
+.field-line{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding:9px 0;min-height:61px}
+.field-line>label{flex:0 0 51px;font-size:17px;font-weight:650;white-space:nowrap}
+.center,.moneyline{flex:1;min-width:0}
+.date-row{min-height:66px}
+.date-controls{display:flex;align-items:center;gap:5px;width:100%;min-width:0}
+.arrow{background:transparent;border:0;color:#e7edf8;font-size:26px;flex:0 0 31px;height:45px;padding:0;line-height:1}
+.date-button{position:relative;display:flex;justify-content:center;align-items:center;flex:1;min-width:0;min-height:47px;background:#2c3239;color:#fff;border:1px solid #3b444e;border-radius:11px;font-size:15px;font-weight:700;padding:9px 5px;overflow:hidden}
+#dateTitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;pointer-events:none}
+#manualDate{position:absolute;inset:0;z-index:1;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;border:0;padding:0}
+.line-input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#fff;font-size:16px;padding:5px 0;min-height:41px}
+.line-input::placeholder{color:#8994a2}
+.moneyline{display:flex;align-items:center;gap:9px;width:100%}
+.currency{flex:0 0 76px;width:76px;min-height:47px;background:#2b3139;color:#f3f7fc;border:1px solid #3a4652;border-radius:10px;padding:0 5px;font-size:14px}
+.amount{flex:1;width:100%;min-width:0;height:54px;border:1px solid #39434d;outline:0;background:#2b3138;color:#fff;border-radius:12px;padding:7px 12px;font-size:27px;font-weight:720;font-variant-numeric:tabular-nums}
+.amount::placeholder{color:#98a1aa}
+.options{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:12px 0 0}
+.option{min-width:0}
+.option label{display:block;margin:0 0 6px;color:var(--label);font-size:12px}
+.option input{display:block;width:100%;min-width:0;min-height:45px;max-width:100%;background:#282e35;color:#fff;border:1px solid #424b57;border-radius:11px;padding:7px 11px;font-size:14px}
+.option input[type=time]{-webkit-appearance:none;appearance:none}
+h2{font-size:17px;line-height:1.25;margin:17px 0 11px;font-weight:720}
+.categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.category{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;min-width:0;min-height:88px;border:1px solid #424952;border-radius:12px;background:#181c21;color:#fff;font-size:14px;padding:9px 4px}
+.category.selected{border:2px solid #d6e2f0;background:#262d35;box-shadow:inset 0 0 0 1px #8e9fac}
+.category span{line-height:1.15}
+.category svg{width:32px;height:32px;flex-shrink:0}
+.bottom{position:fixed;bottom:0;left:0;right:0;padding:9px max(16px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom));background:rgba(28,31,36,.98);border-top:1px solid #353a43;z-index:10}
+.submit{display:block;width:100%;max-width:570px;margin:0 auto;min-height:54px;border-radius:28px;background:#797f86;color:white;border:1px solid #a2a9b1;font-size:18px;font-weight:730}
+.submit:disabled{opacity:.6}
+.error{color:#ff9aa1;font-size:12px;min-height:14px;margin:8px 0 0}
+.hint{color:#9ba5b2;font-size:11px;line-height:1.4;margin:14px 0 0}
+@media(max-width:365px){.screen{padding-left:11px;padding-right:11px}.field-line{gap:8px}.field-line>label{flex-basis:45px}.date-button{font-size:13px}.arrow{flex-basis:26px}.currency{flex-basis:69px;width:69px}.options{gap:9px}.category{min-height:80px}}
+@media(min-width:600px){.screen{padding-top:max(92px,calc(env(safe-area-inset-top,0px) + 45px))}.category{min-height:98px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style></head><body><main class="screen">
-<div class="header"><a class="nav" href="https://expense-editor.invalid/manual-back">‹ Dashboard</a><h1>手動支出記錄</h1><span class="sub">本機儲存</span></div>
+<header class="header"><div class="header-heading"><h1>手動記帳</h1><span class="sub">非 Tap Card 交易 · 本機儲存</span></div><a class="nav" href="https://expense-editor.invalid/manual-back">‹ Dashboard</a></header>
 ${flash?'<div class="success">'+esc(flash)+'</div>':''}
 <form id="manualForm" autocomplete="off">
-<div class="field-line"><label>日期</label><div class="center">
+<div class="field-line date-row"><label for="manualDate">日期</label><div class="center">
   <div class="date-controls"><button type="button" id="dateBack" class="arrow" aria-label="前一日">‹</button>
-  <button type="button" id="datePicker" class="date-button"><span id="dateTitle">選擇日期</span></button>
+  <label id="datePicker" class="date-button" for="manualDate"><span id="dateTitle">選擇日期</span><input id="manualDate" type="date" value="${d}" required aria-label="交易日期"></label>
   <button type="button" id="dateNext" class="arrow" aria-label="後一日">›</button></div>
-  <input id="manualDate" type="date" value="${d}" required aria-label="交易日期"></div></div>
+</div></div>
 <div class="field-line"><label for="manualMerchant">記錄</label><div class="center"><input class="line-input" type="text" maxlength="120" id="manualMerchant" placeholder="商戶／備註（可留空）"></div></div>
 <div class="field-line"><label for="manualAmount">支出</label><div class="moneyline">
   <select id="manualCurrency" class="currency" aria-label="貨幣">
@@ -1336,7 +1362,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.11.1',status,receipt,
+    version:'3.11.2',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1366,8 +1392,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.11.1] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.11.1] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.11.2] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.11.2] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1391,7 +1417,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.11.1] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.11.2] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -1477,7 +1503,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.11.1] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.11.2] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -1498,10 +1524,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.11.1',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.11.2',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.11.1',status:'error',receipt:'[EXPENSE-HK-v3.11.1] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.11.2',status:'error',receipt:'[EXPENSE-HK-v3.11.2] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

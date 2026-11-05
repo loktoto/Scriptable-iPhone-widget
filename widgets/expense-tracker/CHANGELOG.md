@@ -1,5 +1,19 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.11.2] — 2026-11-05
+
+### Fixed — Manual entry UI on iPhone
+- Resolved the v3.11.1 manual form header overlapping the iOS status bar and Scriptable WebView toolbar by reserving a safe top area.
+- Removed the visually duplicated date field. The one-line date control now retains native iOS date selection using a full-size, transparent date input over the displayed date.
+- Corrected amount/currency proportions and added spacing between time and payment-method controls.
+- Reduced excessive vertical spacing, category-card heights, icon sizes and fixed footer height to improve visible content on smaller iPhones.
+- Added narrow-screen, reduced-motion and safe-area styles; kept the existing twelve categories, day navigation and accessible labels.
+
+### Reliability
+- Manual save, category selection, Tap Card import, Dashboard edit/delete and original JSON storage are unchanged.
+- New offline UI structure tests explicitly check the date control is nested once, the safe-area layout rules and compact bottom bar.
+- GitHub CI verifies JavaScript and all existing integration tests; physical Scriptable WebView rendering remains a device-only check.
+
 ## [3.11.1] — 2026-11-05
 
 ### Fixed — App launch regression
