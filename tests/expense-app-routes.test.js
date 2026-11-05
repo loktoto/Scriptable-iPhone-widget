@@ -59,7 +59,7 @@ async function runApp(menuChoice,queryParameters={},shortcutParameter=null,runsI
  assert.match(manual.pages[0],/手動記帳/);
  assert.match(manual.pages[0],/id="manualForm"/);
  assert.match(manual.pages[0],/id="manualSave"/);
- assert.match(manual.pages[0],/data-category="餐飲"/);
+ assert.match(manual.pages[0],/data-category="食物"/);
  const deepLink=await runApp(-1,{view:'dashboard'});
  assert.equal(deepLink.presented,1,'Dashboard deep link should invoke the same presenter');
  assert.match(deepLink.pages[0],/記帳儀表板/);

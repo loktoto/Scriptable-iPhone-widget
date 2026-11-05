@@ -1,5 +1,27 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.12.0] — 2026-11-05
+
+### Added — Merchant Type, Payment Type and Remark
+- Standardized the 12 Merchant Types: 食物、飲品、娛樂、日用品、交通、旅行、衣服、水電、醫療、訂閱、進修、運動, across manual entry, transaction editor and Dashboard. Updated icon tiles and added distinct 飲品.
+- Dashboard now shows all 12 categories every month. Empty categories show blank values. A category tile is also a filter of the transaction list.
+- Added payment-type summary and filters, with a dedicated optional `paymentType` alongside the existing optional `card` display name: 信用卡、扣賬卡、現金、八達通、轉數快、銀行轉帳、電子錢包、其他. An unknown payment type remains blank, never guessed.
+- Added optional `remark` to AI/Shortcut normalization, manual-entry WebView, editing, transaction display and keyword search. Search also covers Merchant Type, payment type, card name, merchant and date.
+- Added transaction filters for category, payment type and card, plus a reset control.
+- Included Payment Type and Remark at the END of CSV exports, preserving the previous 15-column order.
+
+### Compatibility and safety
+- Existing `transactions.json` records are **not migrated or rewritten**. Dashboard maps common legacy labels for display (餐飲→食物, 健康醫療→醫療, 超市雜貨→日用品); ambiguous unsupported history is kept under 其他／未分類.
+- An explicitly supplied recognized Merchant Type takes precedence over merchant-name keyword rules.
+- Legacy Card strings remain unchanged; only recognizable values (e.g., SOGO VISA, 現金, 八達通, FPS) are presented with an inferred payment type.
+- Existing Shortcuts/Apple Intelligence six-key payloads remain valid, and the existing Numbers 6-column integration remains backward compatible. Numbers rows are NOT automatically updated by local edits.
+- Optional fields may be blank. Zero/blank amount still never creates a transaction; refunds remain negative.
+- Existing backup, disk verification, duplicate checks, quick-launch and Tap Card automation routes remain unchanged.
+
+### Validation
+- Expanded offline tests cover canonical/legacy Merchant Types, beverage vs food, category-priority override, payment inference and optional remark, HTML escaping, category/payment/card filtering, editor persistence, negative/zero and manual compatibility.
+- Physical iPhone WebView and Numbers actions must still be verified on device.
+
 ## [3.11.5] — 2026-11-05
 
 ### Fixed — Shortcut Texts vs Parameter mismatch
