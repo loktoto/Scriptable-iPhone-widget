@@ -117,7 +117,7 @@ function graphs(node){
  assert.equal(graphs(medium).length,1);
  assert.ok(mt.includes('最近14日'));
  assert.ok(mt.includes('近7日'));
- assert.ok(mt.includes('最多：食飯'));
+ assert.ok(mt.includes('最多：訂閱'),'Medium must show the largest category (訂閱 HK$70)');
  assert.ok(!mt.includes('最近交易'),'Medium must NOT mimic Large');
  assert.ok(lt.includes('本月分類 Top 3'));
  assert.ok(lt.includes('付款方式 Top 2'));
