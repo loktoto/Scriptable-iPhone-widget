@@ -20,7 +20,7 @@ const harness='(async()=>{\n'+source.slice(0,cut)+
 const entries=()=>JSON.parse(disk.get(dbPath)).transactions;
 function fields(patch={}){
  return {date:'2026-11-05',time:'09:44',merchant:'Example Cash Market',
-  amount:'57',currency:'HKD',card:'現金',category:'餐飲',...patch};
+  amount:'57',currency:'HKD',card:'',paymentType:'現金',remark:'',category:'食物',...patch};
 }
 (async()=>{
  const app=await vm.runInContext(harness,ctx);
@@ -45,6 +45,8 @@ function fields(patch={}){
  assert.ok(html.includes('id="manualCategory"'));
  assert.ok(html.includes('已儲存'));
  assert.equal(app.MANUAL_CATEGORIES.length,12);
+ assert.equal(app.MANUAL_CATEGORIES[0].id,'食物');
+ assert.equal(app.MANUAL_CATEGORIES[1].id,'飲品');
  assert.equal((html.match(/class="category(?: selected)?"/g)||[]).length,12);
  assert.ok(html.includes('grid-template-columns:repeat(3'));
  assert.ok(html.includes('touch')===false || html.includes('type="time"'));
@@ -58,11 +60,13 @@ function fields(patch={}){
  assert.equal(row.status,'saved');
  assert.equal(entries().length,1);
  assert.equal(entries()[0].amount,57);
+ assert.equal(entries()[0].remark,'');
  assert.equal(entries()[0].currency,'HKD');
- assert.equal(entries()[0].card,'現金');
+ assert.equal(entries()[0].card,'');
+ assert.equal(entries()[0].paymentType,'現金');
  assert.equal(entries()[0].date,'2026-11-05');
  assert.equal(entries()[0].transactionTime,'2026-11-05T09:44:00');
- assert.equal(entries()[0].category,'餐飲');
+ assert.equal(entries()[0].category ,'食物');
  assert.equal(entries()[0].source,'Manual');
  assert.equal(entries()[0].amountHKD,57);
  assert.ok(entries()[0].id.startsWith('external:manual-form:'));
@@ -73,7 +77,7 @@ function fields(patch={}){
  assert.equal(entries().length,1);
  assert.equal(writes,afterWrite,'Repeated submission must not save again');
  const second=app.saveManualForm(fields({amount:'-9.6',category:'交通',
-  currency:'USD',card:'八達通',merchant:'Metro Shop'}),'1730800000001-b9876543');
+  currency:'USD',card:'八達通',paymentType:'八達通',merchant:'Metro Shop'}),'1730800000001-b9876543');
  assert.equal(second.status,'saved');
  assert.equal(entries().length,2);
  assert.equal(entries()[1].amount,-9.6);

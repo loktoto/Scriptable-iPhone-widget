@@ -27,6 +27,8 @@ jobs:
         run: node tests/expense-manual-entry.test.js
       - name: Test real Scriptable app Dashboard and manual menu paths
         run: node tests/expense-app-routes.test.js
+      - name: Test merchant types, payment types, remarks and Dashboard filters
+        run: node tests/expense-merchant-payment-remark.test.js
       - name: Enforce independent versions, changelogs and mirror parity
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}

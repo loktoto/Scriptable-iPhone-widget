@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.11.5｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.12.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -209,3 +209,11 @@ scriptable:///run?scriptName=Expense&view=manual
 你嘅 iPhone 截圖顯示，Scriptable「Run Expense with Parameter」入面 **Parameter 其實係空白**，文字 `EXPENSE_QUICK_MANUAL` 被加到展開嘅 **Texts** 一欄。呢兩個輸入分別會去 `args.shortcutParameter` 和 `args.plainTexts`。新版 v3.11.5 兩者都支援：**直接保留你截圖中 Texts 的指令、Run In App 保持 ON**，重新執行即可試進入手動表單；亦可以刪除 Texts，改為喺上面 Parameter 傳入同一文字指令。
 
 為咗保護原本 Tap Card Automation，只有 `Parameter` 冇資料而 `Texts` **恰好一項非空白文字**等於指令，先會轉成快速記帳；如 `Parameter` 已有 Wallet/AI 交易 Dictionary，仍然優先入帳。呢個功能只打開表單，輸入有效金額後先會寫入原本 JSON。
+
+## v3.12.0 — Merchant Type／付款類型／Remark
+
+Merchant Type 固定 12 個：**食物、飲品、娛樂、日用品、交通、旅行、衣服、水電、醫療、訂閱、進修、運動**。Dashboard 本月分類會列齊 12 格，冇數值嘅格保持空白；按分類可篩選交易。原有「餐飲」顯示為「食物」、「健康醫療」顯示為「醫療」、「超市雜貨」顯示為「日用品」，但 **唔會批量改寫舊交易資料**；未能確定嘅舊類別保留喺其他／未分類。
+
+付款類型另設 `paymentType`，例如 **信用卡、扣賬卡、現金、八達通、轉數快、銀行轉帳、電子錢包、其他**，而 `card` 原樣保留具體卡名（例如 SOGO VISA SIGNATURE CARD）。唔肯定的付款類型可空白。手動記帳可填 Payment Type、Card 及 Remark；編輯交易時亦可隨時修改。Dashboard 新增付款類型統計／付款類型篩選／卡名篩選／類別篩選，以及包含備註文字嘅搜尋。CSV 匯出會喺舊 15 欄後追加「付款類型」同「Remark」。
+
+舊版 Tap Card 6-key Dictionary 仍然可以直接傳入，另外亦支援可選的 `paymentType`、`remark`。Apple Numbers 原本 6 欄仍然照舊；本機增補／編輯唔會自動改 Numbers 已存列。
