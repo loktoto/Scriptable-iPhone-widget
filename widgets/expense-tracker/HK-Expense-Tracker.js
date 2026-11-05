@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.11.2 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.11.3 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.11.2 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.11.3 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.11.2',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.11.3',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -1189,8 +1189,11 @@ function buildWidget(family=config.widgetFamily||'medium'){
   const accessory=family.startsWith('accessory');
   w.setPadding(accessory?1:(family==='small'?9:11),accessory?2:13,accessory?1:(family==='small'?8:10),accessory?2:13);
   w.refreshAfterDate=new Date(Date.now()+30*60*1000);
+  // Default Widget still opens Dashboard; only a separately configured Quick widget
+  // (Widget Parameter: quick) launches manual input. Tap Card imports are independent.
+  const quickWidget=String(args.widgetParameter||'').trim().toLowerCase()==='quick';
   const url=URLScheme.forRunningScript();
-  w.url=url+(url.includes('?')?'&':'?')+'view=dashboard';
+  w.url=url+(url.includes('?')?'&':'?')+(quickWidget?'view=manual':'view=dashboard');
 
   if(accessory){
     if(family==='accessoryInline'){
@@ -1206,7 +1209,7 @@ function buildWidget(family=config.widgetFamily||'medium'){
 
   const width=widgetWidth(family);
   const headline=w.addStack();headline.layoutHorizontally();headline.centerAlignContent();
-  wText(headline,'💳  記帳分析',11,WC.secondary,true);
+  wText(headline,quickWidget?'➕  快速記帳':'💳  記帳分析',11,WC.secondary,true);
   headline.addSpacer();
   wText(headline,today().slice(5),10,WC.muted);
   w.addSpacer(4);
@@ -1362,7 +1365,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.11.2',status,receipt,
+    version:'3.11.3',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -1392,8 +1395,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.11.2] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.11.2] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.11.3] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.11.3] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -1417,7 +1420,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.11.2] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.11.3] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -1467,9 +1470,13 @@ async function showShortcutAudit(){
   a.addAction('確定');await a.presentAlert();
 }
 async function app(){
-  if(args.queryParameters && args.queryParameters.view==='dashboard'){await dashboard();return;}
+  // URLScheme direct-launch routes. Only inspected for in-app opening,
+  // AFTER the entrypoint has already prioritized valid Shortcut/Wallet data.
+  const view=args.queryParameters&&args.queryParameters.view;
+  if(view==='manual'){await addManual();return;}
+  if(view==='dashboard'){await dashboard();return;}
   const menu=new Alert();menu.title='Expense Tracker HK';menu.message=`共 ${db.transactions.length} 筆交易。所有資料只儲存在本機。`;
-  menu.addAction('📊 睇 Dashboard');menu.addAction('📋 匯入剪貼簿記錄');menu.addAction('➕ 手動記帳');menu.addAction('🛠 修正待核對交易');menu.addAction('🔄 重試外幣換算');menu.addAction('📤 匯出 CSV + JSON 備份');menu.addAction('👀 預覽 Widget 尺寸');menu.addAction('🧪 查看 Shortcuts 記帳紀錄');menu.addAction('✏️ 編輯交易');menu.addAction('🗑️ 刪除交易');menu.addCancelAction('關閉');
+  menu.addAction('📊 睇 Dashboard');menu.addAction('📋 匯入剪貼簿記錄');menu.addAction('➕ 手動記帳');menu.addAction('🛠 修正待核對交易');menu.addAction('🔄 重試外幣換算');menu.addAction('📤 匯出 CSV + JSON 備份');menu.addAction('👀 預覽 Widget 尺寸');menu.addAction('🧪 查看 Shortcuts 記帳紀錄');menu.addAction('✏️ 編輯交易');menu.addAction('🗑️ 刪除交易');menu.addAction('🔗 複製一鍵記帳網址');menu.addCancelAction('關閉');
   const choice=await menu.presentSheet();
   if(choice===0)await dashboard();
   if(choice===1)await importData(Pasteboard.pasteString(),true);
@@ -1481,6 +1488,12 @@ async function app(){
   if(choice===7)await showShortcutAudit();
   if(choice===8)await selectDashboardTransaction();
   if(choice===9)await selectDashboardTransactionToDelete();
+  if(choice===10){
+    const base=URLScheme.forRunningScript();
+    const link=base+(base.includes('?')?'&':'?')+'view=manual';
+    Pasteboard.copyString(link);
+    await note('快速記帳連結已複製','喺「捷徑」建立新 Shortcut：URL → 開啟 URL，貼上連結；再加入主畫面。\n\n唔需要修改原有 Tap Card Automation。');
+  }
 }
 
 // Backfill missing FX fields from previously saved v2 records.
@@ -1503,7 +1516,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.11.2] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.11.3] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -1524,10 +1537,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.11.2',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.11.3',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.11.2',status:'error',receipt:'[EXPENSE-HK-v3.11.2] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.11.3',status:'error',receipt:'[EXPENSE-HK-v3.11.3] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

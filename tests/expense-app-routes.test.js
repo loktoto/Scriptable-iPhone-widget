@@ -63,7 +63,13 @@ async function runApp(menuChoice,queryParameters={}){
  const deepLink=await runApp(-1,{view:'dashboard'});
  assert.equal(deepLink.presented,1,'Dashboard deep link should invoke the same presenter');
  assert.match(deepLink.pages[0],/記帳儀表板/);
+ const quickLink=await runApp(-1,{view:'manual'});
+ assert.equal(quickLink.presented,1,'Manual link must immediately present the entry form');
+ assert.match(quickLink.pages[0],/id="manualForm"/);
+ assert.match(quickLink.pages[0],/id="manualSave"/);
+ assert.equal(quickLink.alerts.some(a=>a.title==='Expense Tracker HK'),false,'Quick link must bypass menu');
+ assert.equal(quickLink.outputs.length,0,'Quick link must not output an automatic import receipt');
  const exit=await runApp(-1);
  assert.equal(exit.presented,0,'Cancel should not show a WebView');
- console.log('PASS: full Scriptable app Dashboard, manual entry, Dashboard deep link, cancel and no runtime errors');
+ console.log('PASS: full Scriptable app Dashboard, manual entry, one-tap manual deep link, Dashboard deep link, cancel and no runtime errors');
 })().catch(e=>{console.error(e);process.exitCode=1;});

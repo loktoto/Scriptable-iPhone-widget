@@ -1,5 +1,22 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.11.3] — 2026-11-05
+
+### Added — One-tap manual expense launcher
+- A direct URL route `view=manual` that immediately opens the existing manual expense form from a Home Screen Shortcut, skipping the Scriptable menu and Dashboard.
+- Added **🔗 複製一鍵記帳網址** to the native Scriptable app menu, dynamically constructing the correct URL with `URLScheme.forRunningScript()` for the installed script name.
+- Added an optional `quick` Scriptable widget parameter: tapping that separately configured widget opens the manual-entry form. The normal widget still opens Dashboard.
+
+### Compatibility / non-regression
+- Priority remains Widget → existing nonempty Shortcut Parameter / Texts import → in-app launch route, so Tap Card Apple Intelligence Dictionary automation is not changed or intercepted.
+- Both direct launch and standard manual entry use the same `ExpenseTrackerHK/transactions.json`, existing nonzero validation, idempotent manual submission, backup, and disk verification.
+- One tap **opens** the entry form; a valid amount and category are still required to actually save a transaction. The script never guesses amounts.
+
+### Tests
+- Full Scriptable app launch test covers `view=manual` and `view=dashboard` with no main menu.
+- Explicit regression tests ensure that when valid Wallet/Shortcut Dictionary data is present, imports take precedence even if an extraneous `view=manual` URL parameter is present.
+- Widget URL selection is checked for default Dashboard and optional `widgetParameter=quick`. Actual Home Screen/URL handoff must still be verified on-device.
+
 ## [3.11.2] — 2026-11-05
 
 ### Fixed — Manual entry UI on iPhone
