@@ -1734,7 +1734,10 @@ function buildWidget(family=config.widgetFamily||'medium'){
     widget.addSpacer(6);addSeparator(widget,width);widget.addSpacer(6);
     sectionLine(widget,'最近交易',s.recent.length+'筆');
     widget.addSpacer(3);
-    addRecentRows(widget,s.recent,narrow?2:(s.monthlyCats.length<=2?4:3),narrow?15:23);
+    // The 393pt iPhone has only 354pt Large height. Reserve readable
+    // bottom breathing room; 430pt iPhones can expose an extra transaction.
+    const recentMax=width>=343?(s.monthlyCats.length<=2?4:3):2;
+    addRecentRows(widget,s.recent,recentMax,narrow?15:23);
     if(s.unresolved){
       widget.addSpacer(3);widgetPending(widget,s);
     }
