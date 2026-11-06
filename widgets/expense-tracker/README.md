@@ -142,3 +142,10 @@ Small 7個原生星期字及有效記帳日熱度；Medium 兩類別名／佔比
 - **驗收：** GitHub Node mock 高度、圖形數目、週期勾稽、320／393pt；真 iOS 截圖驗收仍要以實機畫面確認。
 
 [完整 v3.23 來源與版面審計](../../docs/EXPENSE_WIDGET_LARGE_REDESIGN_V3_23.md)。
+
+
+## v3.23.1 — Medium 圓餅圖空間利用率修正
+- 右側 **本月分類** 改為：上面置中大 Pie（窄機70pt，標準／高身機82pt）；下面貼住圖嘅三個並列分類小欄，每欄有顏色、分類及百分比。比先前嘅55pt Pie＋右邊擠逼 legend 更完整利用高度同寬度。
+- 以原生 Scriptable Stack / Text 繪製，分類／比例都用至少11pt字；額外分類仍用 **其他** 合併，並唔會改變資料庫中類別原文。
+- **只修改 Medium 版面**；Small、Large、iPad XL、Tap Card／Shortcut、自訂付款、退款、外幣、Remark、Numbers及交易庫維持不變。
+- [設計原則、驗收與限制](../../docs/EXPENSE_WIDGET_MEDIUM_PIE_V3_23_1.md)。
