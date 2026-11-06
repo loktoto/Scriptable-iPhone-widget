@@ -1,5 +1,15 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.23.1] — 2026-11-06
+
+### Medium Pie: true right-column occupancy instead of an undersized inline pie
+- Analyzed user-visible Medium 55pt Pie squeezed beside three native legend rows inside a ~130–150pt column; previous side-by-side treatment used only a small fraction of available height and truncated category names.
+- **New visual layout:** right-column header → centered **70pt Pie for compact iPhone**, **82pt Pie for standard/tall iPhone** → 3 equal-width native-text category cells, each with colored key and category label ABOVE a percentage. This uses both the horizontal width and vertical height, rather than forcing three names next to the pie.
+- **Adaptive:** 320pt/375pt or shorter iPhones use 70pt. 393pt/414pt tall/430pt use 82pt. The color key and percentage use native fonts >=11pt and all sectors remain part of one solid Pie.
+- Data semantics **unchanged**: Pie uses monthly gross positive charges, not signed net after refunds; "退款前" text stays hidden as requested, while the methodology stays in documentation.
+- Small/Large/iPad Extra Large unchanged. No edits to Tap Card, Shortcuts, JSON storage, custom payment types, categories, manual entry, edit/delete, FX logic or Numbers bridge.
+- Added responsive widget-tree regressions verifying Pie diameter, centered row, three native legend columns, category and percent labels, empty ledger and device-height limits. Native iOS pixel QA still pending.
+
 ## [3.23.0] — 2026-11-06
 
 ### Full Large Widget rebuild — charts-first editorial grid

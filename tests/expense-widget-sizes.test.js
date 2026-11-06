@@ -158,23 +158,25 @@ function graphs(node){
  assert.ok(pie.draws.some(x=>x.type==='fill-path'),'Pie must have colored sector paths');
  assert.equal(pie.draws.filter(x=>x.type==='ellipse').length,1,
    'Pie is SOLID: background disc only, no center hole as in donut');
- // Medium category Pie must share a horizontal row with its compact legend.
- const hasInlinePieAndLegend=node=>{
-   if(node.direction==='horizontal'){
-     const kids=(node.children||[]).filter(x=>x.type==='stack');
-     if(kids.length===2){
-       const leftImages=graphs(kids[0]);
-       const rightLabels=flatten(kids[1]);
-       if(leftImages.some(x=>x.draws.some(y=>y.type==='fill-path'))&&
-          rightLabels.some(x=>/^\d+%$/.test(x))&&rightLabels.length>=3) return true;
-     }
-   }
-   return (node.children||[]).some(hasInlinePieAndLegend);
- };
- assert.ok(hasInlinePieAndLegend(medium),'Medium must align the Pie and legend side-by-side');
- const inlineLabels=flatten(medium);
- assert.ok(inlineLabels.some(x=>/^\d+%$/.test(x)),'Pie legend retains category percentages');
-
+ // Medium is a vertically integrated block: Pie centered ABOVE a full-width
+ // three-column (category, percentage) key. It must not cram tiny legends beside Pie.
+ const mediumLayout=medium.children.find(x=>x.type==='stack'&&x.direction==='horizontal');
+ assert.ok(mediumLayout,'Medium must use a horizontal two-column outer layout');
+ const mediumRight=mediumLayout.children.filter(x=>x.type==='stack')[1];
+ const rightPie=drawImages(mediumRight)[0];
+ assert.ok(rightPie&&rightPie.size.width===82,'393pt Medium Pie grows from 55pt to 82pt');
+ const centeredPieRow=mediumRight.children.find(x=>x.type==='stack'&&
+   x.direction==='horizontal'&&drawImages(x).length===1);
+ assert.ok(centeredPieRow,'Pie is horizontally centered within the right column');
+ const legendGrid=mediumRight.children.find(x=>x.type==='stack'&&
+   x.direction==='horizontal'&&x.children.filter(k=>k.type==='stack').length===3);
+ assert.ok(legendGrid,'Legend must occupy three equal columns BELOW the Pie');
+ const legendCells=legendGrid.children.filter(x=>x.type==='stack');
+ assert.ok(legendCells.every(x=>x.direction==='vertical'));
+ assert.ok(legendCells.every(x=>flatten(x).some(t=>/^\d+%$/.test(t))));
+ assert.ok(legendCells.every(x=>flatten(x).some(t=>!/^\d+%$/.test(t))),
+   'Legend retains native category labels as well as percentages');
+ assert.ok(!md.includes('退款前'),'Visible labels remain clean');
  assert.ok(!md.includes('近7日')&&!md.includes('最近14日'));
  assert.ok(lg.includes('今日3筆')&&lg.includes('本月8筆'));
  assert.ok(lg.includes('每日淨支出')&&lg.includes('分類分佈'));
@@ -272,6 +274,24 @@ function graphs(node){
    estimatedHeight(tiny.buildWidget('large')));
  assert.ok(estimatedHeight(tiny.buildWidget('small'))<=141);
  assert.ok(estimatedHeight(tiny.buildWidget('medium'))<=141);
+ const compactMedium=tiny.buildWidget('medium');
+ assert.equal(drawImages(compactMedium)[1].size.width,70,'320pt Pie uses a large but safe 70pt diameter');
+ assert.equal(estimatedHeight(compactMedium)<=141,true);
+ for(const [screenWidth,screenHeight,mediumMax,expectedPie] of [
+   [375,667,148,70],[393,852,158,82],
+   [414,736,157,70],[414,896,169,82],[430,932,170,82]
+ ]){
+   const responsiveSuite=createTestSuite(rows,false);
+   responsiveSuite.ctx.Device.screenSize=()=>({width:screenWidth,height:screenHeight});
+   const responsive=await vm.runInContext(responsiveSuite.boot,responsiveSuite.ctx);
+   const mw=responsive.buildWidget('medium');
+   const height=estimatedHeight(mw);
+   console.log('Medium layout',screenWidth,screenHeight,'Pie',drawImages(mw)[1].size.width,'height',height);
+   assert.equal(drawImages(mw)[1].size.width,expectedPie);
+   assert.ok(height<=mediumMax,'Medium height fits '+screenWidth+'×'+screenHeight);
+   assert.equal(drawImages(mw).length,2);
+ }
+
  assert.ok(estimatedHeight(tiny.buildWidget('large'))<=311);
  const tinyLarge=drawImages(tiny.buildWidget('large'));
  assert.equal(tinyLarge.length,6,'320pt Large uses two payments and two weekly comparison bars');
