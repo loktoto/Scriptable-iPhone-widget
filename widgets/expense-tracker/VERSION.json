@@ -1,8 +1,8 @@
 {
   "widget": "expense-tracker",
   "name": "Expense Tracker HK",
-  "version": "3.23.1",
-  "release_date": "2026-11-06",
+  "version": "3.24.0",
+  "release_date": "2026-11-11",
   "main_script": "HK-Expense-Tracker.js",
   "scripts": [
     "HK-Expense-Tracker.js",

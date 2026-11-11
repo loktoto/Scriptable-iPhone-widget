@@ -37,12 +37,12 @@ async function exec(input,disk,texts=[],queryParameters={}){
  let count=0;const mark=()=>count++;
  const entry={merchantName:'Demo Restaurant',merchantType:'Restaurants',amount:57,currency:'HKD',card:'SAMPLE CARD',date:'20261104_203328'};
  let db=store(),a=await exec(entry,db);
- assert.match(a.output.receipt,/\[EXPENSE-HK-v3\.23\.1\] 已儲存 1 筆/);
+ assert.match(a.output.receipt,/\[EXPENSE-HK-v3\.24\.0\] 已儲存 1 筆/);
  assert.match(a.output.receipt,/磁碟核實：1 筆/);
  assert.equal(a.requests,0);assert.equal(a.rows[0].amount,57);
  assert.equal(a.output.shouldAppendNumbers,true);
  assert.equal(a.audit.stage,'saved');
- assert.equal(a.audit.version,'3.23.1');
+ assert.equal(a.audit.version,'3.24.0');
  assert.equal(a.output.status,'saved');
  assert.equal(a.output.numbersRow.length,6);
  assert.equal(a.output.numbersRow[2],'Demo Restaurant');
@@ -78,5 +78,43 @@ async function exec(input,disk,texts=[],queryParameters={}){
  assert.equal(a.rows.length,1);assert.match(a.output.receipt,/接收來源：Texts/);mark();
  a=await exec(null,store());assert.match(a.output.receipt,/未入帳/);assert.equal(a.output.shouldAppendNumbers,false);assert.equal(a.audit.stage,'no_input');mark();
  a=await exec({...entry,amount:'HK$57.00'},store());assert.equal(a.rows[0].amount,57);mark();
+ // Cross-source suppression: 180-second inclusive window, same numeric amount only.
+ let ledger=store();
+ const tx=(date,amount,merchant='Test Merchant',currency='HKD')=>({
+  ...entry,date,amount,merchantName:merchant,currency,card:merchant,source:'WalletTap'
+ });
+ a=await exec(tx('20261111_094358',663.91999999999996,'Wallet Payment'),ledger);
+ assert.equal(a.rows.length,1);assert.equal(a.rows[0].amount,663.92);
+ assert.equal(a.output.numbersRow[5],663.92,'Numbers must not show IEEE-754 noise');mark();
+ a=await exec({...tx('20261111_094658',663.92,'Different Merchant','USD'),source:'WalletNotification'},ledger);
+ assert.equal(a.output.status,'duplicate');
+ assert.equal(a.rows.length,1,'Same amount at exactly +180 seconds must be suppressed');
+ assert.equal(a.output.shouldAppendNumbers,false);
+ assert.equal(a.output.numbersRows.length,0);
+ assert.equal(a.output.localStored,true);
+ assert.equal(a.audit.duplicateAmounts,1);
+ assert.match(a.output.receipt,/180 秒同金額 1 筆/);mark();
+ a=await exec(tx('20261111_094659',663.92,'Later Merchant'),ledger);
+ assert.equal(a.rows.length,2,'+181 seconds is outside the window');
+ assert.equal(a.output.status,'saved');mark();
+ a=await exec(tx('20261111_094659',663.93,'Other Amount'),ledger);
+ assert.equal(a.rows.length,3,'Different amount at same instant must be saved');mark();
+ a=await exec(tx('20261111_094659',-663.92,'Refund'),ledger);
+ assert.equal(a.rows.length,4,'Refund sign must be respected');mark();
+ ledger=store();
+ a=await exec([tx('20261111_100000',25,'Cafe A'),tx('20261111_100100',25,'Cafe B')],ledger);
+ assert.equal(a.rows.length,1,'Batch same-price purchases within 180 seconds must be suppressed');
+ assert.equal(a.output.numbersRows.length,1);
+ assert.equal(a.output.requiresBatchSync,false);mark();
+ ledger=store();
+ a=await exec({...entry,date:'',amount:18,merchantName:'Undated First'},ledger);
+ a=await exec({...entry,date:'',amount:18,merchantName:'Undated Second'},ledger);
+ assert.equal(a.rows.length,1,'Creation time must be used if transaction timestamp unavailable');
+ assert.equal(a.output.status,'duplicate');mark();
+ ledger=store([{id:'legacy',transactionTime:'2026-11-11T09:43:58',date:'2026-11-11',
+   amount:663.91999999999996,currency:'HKD',merchant:'Legacy'}]);
+ a=await exec(tx('20261111_094358',663.92,'Another Card'),ledger);
+ assert.equal(a.rows.length,1,'Old floating-point ledger value must compare as same amount');
+ assert.equal(a.output.status,'duplicate');mark();
  console.log('PASS: '+count+' Expense Tracker offline integration + Numbers bridge scenarios, zero network on import');
 })().catch(e=>{console.error(e);process.exitCode=1;});

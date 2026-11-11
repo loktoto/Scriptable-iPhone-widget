@@ -1,5 +1,17 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.24.0] — 2026-11-11
+
+### 180-second, amount-only deduplication across Wallet Tap, notifications, and manual entry
+- **User-selected aggressive suppression:** when an incoming transaction has the same signed numeric amount as any existing record within **±180 seconds (inclusive)**, do not insert it again. Merchant, card, currency and source are intentionally ignored. True same-price purchases can therefore be skipped.
+- Compare transaction timestamp first, falling back to local record creation time when there is no timestamp. Re-read current transactions.json before inserting to reduce stale-ledger overwrites; simultaneous Scriptable writes are still not atomic.
+- Canonicalize minor IEEE-754 artifacts (e.g. 663.91999999999996 → 663.92), without reducing legitimate sub-cent precision to two digits. This also cleans the Apple Numbers amount output.
+- Fix Shortcuts duplicate handling: verify only the **newly inserted** transaction IDs, return status `duplicate`, `shouldAppendNumbers=false`, `numbersRows=[]`, and distinguish transaction-ID vs 180-second matches in the privacy-preserving audit. Keep existing transaction history untouched.
+- Apply the same rule to manual form submissions and show a duplicate receipt rather than a save error.
+- Preserve all Widget layouts, dashboard totals and categories, FX behavior, original card labels, storage format, Apple Numbers bridge and Wallet Tap automation contract. No database migration.
+- Added regression tests for 180s inclusive / 181s excluded, identical amount across source/card/currency/merchant, different amount, negative refund, batch import, missing timestamps, historical float noise, manual entry and Numbers suppression.
+
+
 ## [3.23.1] — 2026-11-06
 
 ### Medium Pie: true right-column occupancy instead of an undersized inline pie

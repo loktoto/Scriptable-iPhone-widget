@@ -84,8 +84,12 @@ function fields(patch={}){
  assert.equal(entries()[1].category,'交通');
  assert.equal(entries()[1].amountHKD,null);
  assert.equal(entries()[1].fxStatus,'pending');
- // Explicit category overrides a merchant-rule match.
- app.saveManualForm(fields({merchant:'MTR',category:'娛樂'}),'1730800000002-c1234567');
+ // A different manual form with the same amount inside 180s must also be suppressed.
+ const near=app.saveManualForm(fields({merchant:'Other Market',category:'娛樂',time:'09:46'}),'1730800000004-f1234567');
+ assert.equal(near.status,'duplicate');
+ assert.equal(entries().length,2);
+ // Beyond the 180s window, same amount is allowed.
+ app.saveManualForm(fields({merchant:'MTR',category:'娛樂',time:'09:48'}),'1730800000002-c1234567');
  assert.equal(entries()[2].category,'娛樂');
  // A concurrent Shortcut record must not be overwritten by the form.
  const latest=JSON.parse(disk.get(dbPath));
