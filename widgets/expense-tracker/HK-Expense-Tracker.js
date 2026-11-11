@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.23.1 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.24.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.23.1 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.24.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -13,7 +13,7 @@ async function runExpenseTrackerHK() {
 // Strict amount extraction: accepts numeric field or nested {content,uuid}; never guesses an amount from unrelated digits.
 // Keep this script in a non-shared Scriptable installation and back up often.
 // Wallet pipe: date|amount|category|merchant|card|currency|wallet-timestamp-id.
-// A unique payment timestamp ID prevents legitimate same-merchant/same-amount taps from being skipped.
+// Entries with the same numeric amount within 180 seconds are intentionally deduplicated, even across different merchants, cards and sources.
 // Widget: supports small / medium / large / iPad extraLarge; previews from app menu.
 // Storage is on-device. Use Export / Backup regularly.
 // Extraction order: native Dictionary > JSON > JSON in prose > bounded key-value fallback > legacy pipe text.
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.23.1',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.24.0',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -232,8 +232,9 @@ function normalize(t) {
   // Supports PascalCase, camelCase, and nested Shortcut output objects with content/uuid.
   if(!t||typeof t!=='object')return null;
   const rawAmount=field(t,'Amount','amount','totalAmount','transactionAmount','金額','消費金額','付款金額','交易金額');
-  const amount=moneyValue(rawAmount);
-  if(amount===null)return null; // Reject invalid, missing or zero amounts.
+  const parsedAmount=moneyValue(rawAmount);
+  if(parsedAmount===null)return null; // Reject invalid, missing or zero amounts.
+  const amount=canonicalAmount(parsedAmount); // Remove floating-point artifacts without rounding legitimate sub-cent values.
   const rawMerchant=field(t,'MerchantName','merchantName','merchant','shop','store','storeName','vendor','商戶名稱','商戶','店舖');
   const merchant=merchantName(rawMerchant)||'未提供商戶';
   const rawCategory=String(field(t,'MerchantType','merchantType','category','categoryName','消費類別','消費sector','sector','類別')||'');
@@ -517,17 +518,59 @@ function save() {
   if(fm.fileExists(dbPath)) fm.writeString(fm.joinPath(root,'transactions.previous.json'),fm.readString(dbPath));
   fm.writeString(dbPath,serialized);
 }
+// An intentionally aggressive user preference: same numeric amount within +/- 180s
+// counts as a duplicate, regardless of merchant, card, currency or source.
+// Refunds retain their sign; an expense and its refund are different amounts.
+const AMOUNT_DEDUP_WINDOW_MS=180000;
+function canonicalAmount(value) {
+  // Avoid Shortcuts / JS artifacts like 663.91999999999996 while retaining
+  // actual sub-cent amounts (unlike unconditional toFixed(2)).
+  const n=Number(value);
+  return Number.isFinite(n)?Number(n.toPrecision(14)):n;
+}
+function transactionEventMillis(t) {
+  // Prefer the original event time; receipt time is only a fallback when
+  // a transaction has no full date-time. Date-only fields are not timestamps.
+  const event=timestampText(t && t.transactionTime);
+  if(event) {
+    const time=Date.parse(event);
+    if(Number.isFinite(time))return time;
+  }
+  const created=Date.parse(String(t && t.createdAt || ''));
+  return Number.isFinite(created)?created:null;
+}
+function sameAmountWithin3Minutes(t,prior) {
+  const amount=moneyValue(t && t.amount), time=transactionEventMillis(t);
+  if(amount===null || time===null)return false;
+  const key=canonicalAmount(amount);
+  return prior.some(other=>{
+    const priorAmount=moneyValue(other && other.amount);
+    if(priorAmount===null || canonicalAmount(priorAmount)!==key)return false;
+    const previousTime=transactionEventMillis(other);
+    return previousTime!==null && Math.abs(time-previousTime)<=AMOUNT_DEDUP_WINDOW_MS;
+  });
+}
 function addRows(rows) {
+  // Re-read at entry to avoid overwriting a Shortcut that completed after
+  // this invocation initially loaded the ledger. File writes are not atomic.
+  if(fm.fileExists(dbPath)){
+    const latest=JSON.parse(fm.readString(dbPath));
+    if(!latest || !Array.isArray(latest.transactions))throw new Error('資料庫格式錯誤；未有修改資料');
+    db=latest;
+  }
   const existing=new Set(db.transactions.map(x=>x.id));
-  let added=0, skipped=0;
+  let added=0, skipped=0, duplicateIds=0, duplicateAmounts=0;
   const insertedRows=[];
   for(const t of giveIds(rows)) {
-    if(existing.has(t.id)){skipped++;continue;}
+    if(existing.has(t.id)){skipped++;duplicateIds++;continue;}
+    if(sameAmountWithin3Minutes(t,db.transactions)){
+      skipped++;duplicateAmounts++;continue;
+    }
     ensureFxFields(t);db.transactions.push(t);existing.add(t.id);added++;
     insertedRows.push(t);
   }
   if(added) save();
-  return {added,skipped,insertedRows,missingDate:db.transactions.filter(t=>!t.date).length, unknownCurrency:db.transactions.filter(t=>t.currency==='UNKNOWN').length};
+  return {added,skipped,duplicateIds,duplicateAmounts,insertedRows,missingDate:db.transactions.filter(t=>!t.date).length, unknownCurrency:db.transactions.filter(t=>t.currency==='UNKNOWN').length};
 }
 function sum(rows){return Math.round(rows.reduce((a,t)=>a+(t.amountHKD||0),0)*100)/100;}
 function hk(rows){return rows.filter(t=>validDate(t.date)&&Number.isFinite(t.amountHKD));}
@@ -682,7 +725,7 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
 @media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.wrap{padding-top:max(104px,calc(env(safe-area-inset-top,0px) + 60px))}}
 @media(prefers-reduced-motion:reduce){.tx-swipe-front{transition:none}}
   
-/* v3.23.1 — Research-informed, iPhone-first premium money dashboard.
+/* v3.24.0 — Research-informed, iPhone-first premium money dashboard.
    Explicitly authored after Apple HIG / NNGroup / Tableau / Carbon / WCAG review.
    No external fonts, libraries, logos, tracking or network resources. */
 :root{--bg:#0b101a;--panel:#131c2b;--panel2:#1c293b;--line:#29374b;--text:#f7f8ff;--muted:#9aa9bb;--blue:#a99bff;--green:#7ce5c0;--violet:#a897ff;--amber:#ffc688}
@@ -1343,9 +1386,9 @@ function saveManualForm(payload,nonce) {
   const previous=db;db=latest;
   try{
     const result=addRows([rec]);
-    if(result.added!==1)throw new Error('未有新增交易');
     const check=verifyStored(result.insertedRows);
-    if(check.verified!==1)throw new Error('磁碟核實失敗');
+    if(result.added===0 && result.skipped===1)return {status:'duplicate',amount,currency,merchant:rec.merchant};
+    if(result.added!==1 || check.verified!==1)throw new Error('磁碟核實失敗');
   }catch(e){db=previous;throw e;}
   return {status:'saved',amount,currency,merchant:rec.merchant};
 }
@@ -1373,7 +1416,7 @@ async function presentExpenseWeb(initial='dashboard') {
               const data=await readManualFormWeb(web);
               const receipt=saveManualForm(data,nonce);
               nonce=String(Date.now())+'-'+Math.random().toString(36).slice(2,12);
-              const msg=receipt.status==='duplicate'?'同一表單已記帳，冇重複新增':'✓ 已儲存 '+receipt.currency+' '+receipt.amount+' · '+receipt.merchant;
+              const msg=receipt.status==='duplicate'?'3 分鐘內同金額／交易 ID 已存在，冇重複新增':'✓ 已儲存 '+receipt.currency+' '+receipt.amount+' · '+receipt.merchant;
               await web.loadHTML(manualFormHTML(nonce,msg));
             }catch(e){
               const message=String(e.message||e).slice(0,180);
@@ -1975,7 +2018,7 @@ function amountHint(input){
   if(!input || typeof input!=='object' || Array.isArray(input))return '';
   const original=field(input,'Amount','amount','totalAmount','transactionAmount','金額','消費金額');
   const amount=moneyValue(original);
-  if(amount!==null)return '；頂層金額 '+amount;
+  if(amount!==null)return '；頂層金額 '+canonicalAmount(amount);
   if(original!==null)return '；頂層金額無效／為 0';
   return '；頂層找不到 amount';
 }
@@ -2003,12 +2046,12 @@ function verifyStored(rows){
 // If Numbers fails after local save, reconcile manually before retrying.
 function toNumbersRow(t){
   return [t.transactionTime||t.date||'',t.card||'',t.merchant||'',t.category||'',
-    t.currency==='UNKNOWN'?'':t.currency,t.amount];
+    t.currency==='UNKNOWN'?'':t.currency,canonicalAmount(t.amount)];
 }
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.23.1',status,receipt,
+    version:'3.24.0',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -2038,8 +2081,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.23.1] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.23.1] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.24.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.24.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -2051,19 +2094,19 @@ async function importData(input,ask){
     a.addAction('匯入');a.addCancelAction('取消');
     if(await a.presentAlert()===-1)return;
   }
-  const amounts=rows.slice(0,5).map(t=>t.amount+' '+t.currency).join(', ');
+  const amounts=rows.slice(0,5).map(t=>canonicalAmount(t.amount)+' '+t.currency).join(', ');
   recordShortcutAttempt('parsed',{parser:lastParseMethod,source,validCount:rows.length});
   // Shortcuts must not block a HKD purchase on unrelated pending FX network calls.
   // Record on local disk and verify FIRST; run currency conversion later from the app.
   __expensePhase = '儲存交易';
   const result=addRows(rows);
   __expensePhase = '讀回核實 transactions.json';
-  const check=verifyStored(rows);
-  recordShortcutAttempt(result.added?'saved':'duplicate',{added:result.added,duplicates:result.skipped,verified:check.verified,total:check.total,parser:lastParseMethod,source});
+  const check=verifyStored(result.insertedRows); // Do not verify suppressed IDs as if newly stored.
+  recordShortcutAttempt(result.added?'saved':'duplicate',{added:result.added,duplicates:result.skipped,duplicateIds:result.duplicateIds,duplicateAmounts:result.duplicateAmounts,verified:check.verified,total:check.total,parser:lastParseMethod,source});
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.23.1] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.24.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n去重：交易 ID ${result.duplicateIds} 筆、180 秒同金額 ${result.duplicateAmounts} 筆\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -2172,7 +2215,7 @@ if (config.runsInWidget) {
     const source=quickFromTexts?'Texts':'Parameter';
     if (!config.runsInApp){
       recordShortcutAttempt('quick_requires_app',{inputType:'quick_manual',source});
-      emitShortcutReceipt('[EXPENSE-HK-v3.23.1] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
+      emitShortcutReceipt('[EXPENSE-HK-v3.24.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
     }else{
       recordShortcutAttempt('quick_opened',{inputType:'quick_manual',source});
       await addManual();
@@ -2189,7 +2232,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.23.1] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.24.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -2210,10 +2253,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.23.1',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.24.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.23.1',status:'error',receipt:'[EXPENSE-HK-v3.23.1] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.24.0',status:'error',receipt:'[EXPENSE-HK-v3.24.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();
