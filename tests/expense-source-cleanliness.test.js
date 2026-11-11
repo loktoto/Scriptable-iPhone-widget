@@ -8,7 +8,7 @@ const canonical='widgets/expense-tracker/HK-Expense-Tracker.js';
 const src=read(canonical);
 assert.equal(src,read('scripts/HK-Expense-Tracker.js'),
  'Intentional Scriptable compatibility mirror must be EXACTLY equal to canonical source');
-assert.match(src,/v3\.23\.1/);
+assert.match(src,/v3\.24\.0/);
 const version=JSON.parse(read('widgets/expense-tracker/VERSION.json'));
 assert.equal(version.version,'3.24.0');
 assert.match(read('widgets/expense-tracker/CHANGELOG.md'),/## \[3\.23\.1\]/);
