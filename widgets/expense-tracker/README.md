@@ -2,11 +2,11 @@
 
 **Main:** [HK-Expense-Tracker.js](HK-Expense-Tracker.js)  
 **Read-only diagnostic:** [HK-Expense-Input-Diagnostic.js](HK-Expense-Input-Diagnostic.js)  
-**Current version:** [3.22.0](VERSION.json) · [Release notes](CHANGELOG.md)
+**Current version:** [3.24.0](VERSION.json) · [Release notes](CHANGELOG.md)
 
 - Apple Intelligence / Shortcuts Dictionary, nested `amount.content`, regular JSON, constrained key-based text extraction.
 - Save valid nonzero amounts only. Negative transactions are refunds; other missing fields may still be saved.
-- After saving, re-open `transactions.json` to verify persistence and return a marked `[EXPENSE-HK-v3.16.0]` receipt.
+- After saving, re-open `transactions.json` to verify persistence and return a marked `[EXPENSE-HK-v3.24.0]` receipt.
 - Adaptive Small / Medium / Large / iPad Extra Large widgets, category charts, recent transactions, optional FX reference conversion, CSV and JSON export.
 - Local Scriptable data only. **Never publish your real transaction CSV, JSON, card information or AI text to this public repo.**
 
@@ -149,3 +149,5 @@ Small 7個原生星期字及有效記帳日熱度；Medium 兩類別名／佔比
 - 以原生 Scriptable Stack / Text 繪製，分類／比例都用至少11pt字；額外分類仍用 **其他** 合併，並唔會改變資料庫中類別原文。
 - **只修改 Medium 版面**；Small、Large、iPad XL、Tap Card／Shortcut、自訂付款、退款、外幣、Remark、Numbers及交易庫維持不變。
 - [設計原則、驗收與限制](../../docs/EXPENSE_WIDGET_MEDIUM_PIE_V3_23_1.md)。
+
+**180-second duplicate rule (v3.24.0):** incoming transactions with the same signed amount within 3 minutes of an existing transaction are ignored, irrespective of merchant, card, currency, or source. The rule is deliberately aggressive; separate legitimate purchases can be skipped. No new Numbers row is appended for suppressed transactions.
