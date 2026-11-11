@@ -1,8 +1,8 @@
-// Expense Tracker HK v3.24.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
+// Expense Tracker HK v3.25.0 — Adaptive widgets, resilient Dictionary / JSON / fallback text, non-zero amount, Siri-safe
 // Replace ALL code in the existing Scriptable script; do NOT append to the old script.
 let __expensePhase = "初始化";
 async function runExpenseTrackerHK() {
-// Expense Tracker HK v3.24.0 — iPhone Scriptable + Apple Intelligence + FX
+// Expense Tracker HK v3.25.0 — iPhone Scriptable + Apple Intelligence + FX
 // No API key; FX uses Frankfurter (https://frankfurter.dev/).
 // FX only sends currency pair + date (NOT merchant, amount or card) over HTTPS.
 // Record only non-zero valid amounts (positive expenses; negative refunds).
@@ -27,7 +27,7 @@ const dbPath = fm.joinPath(root, 'transactions.json');
 const shortcutAuditPath = fm.joinPath(root,'last-shortcut-run.json');
 function recordShortcutAttempt(stage,details={}) {
   try {
-    const report={version:'3.24.0',lastAttemptAt:new Date().toISOString(),
+    const report={version:'3.25.0',lastAttemptAt:new Date().toISOString(),
       script:typeof Script.name==='function'?Script.name():'unknown',
       stage,...details};
     fm.writeString(shortcutAuditPath,JSON.stringify(report,null,2));
@@ -725,7 +725,7 @@ h2{font-size:16px;line-height:1.2;margin:0;font-weight:740}.small{font-size:11px
 @media(min-width:650px){.category-overview{grid-template-columns:repeat(4,minmax(0,1fr))}.wrap{padding-top:max(104px,calc(env(safe-area-inset-top,0px) + 60px))}}
 @media(prefers-reduced-motion:reduce){.tx-swipe-front{transition:none}}
   
-/* v3.24.0 — Research-informed, iPhone-first premium money dashboard.
+/* v3.25.0 — Research-informed, iPhone-first premium money dashboard.
    Explicitly authored after Apple HIG / NNGroup / Tableau / Carbon / WCAG review.
    No external fonts, libraries, logos, tracking or network resources. */
 :root{--bg:#0b101a;--panel:#131c2b;--panel2:#1c293b;--line:#29374b;--text:#f7f8ff;--muted:#9aa9bb;--blue:#a99bff;--green:#7ce5c0;--violet:#a897ff;--amber:#ffc688}
@@ -1829,6 +1829,20 @@ function addTodayMonthPanel(parent,s,width,chartH,heroSize=22,axis=true){
   addChart(parent,days,width,chartH);
   if(axis){parent.addSpacer(2);addMonthAxis(parent);}
 }
+// Compact iPhone screens differ in available Widget height as well as width.
+// Spend vertical room on the plot and the Pie, rather than leaving a large
+// unused bottom margin. Keep all small/medium labels at >= 11pt.
+function compactWidgetMetrics(family,screen,width){
+  const w=Number(screen.width)||393,h=Number(screen.height)||0;
+  if(family==='small'){
+    const chart=w<=320?39:w<=375?44:w<=393?52:w<=414?(h>=820?61:51):(h>=900?63:52);
+    return {chart};
+  }
+  const compact=width<305||(h>0&&h<800);
+  const pie=w<=320?74:w<=375?79:compact?89:w<=393?89:w<=414?98:100;
+  const chart=w<=320?43:w<=375?47:compact?56:w<=393?53:w<=414?63:65;
+  return {compact,pie,chart};
+}
 function buildWidget(family=config.widgetFamily||'medium'){
   const s=widgetSummary(),widget=new ListWidget();
   const quick=String(args.widgetParameter||'').trim().toLowerCase()==='quick';
@@ -1850,27 +1864,30 @@ function buildWidget(family=config.widgetFamily||'medium'){
   }
   const width=widgetWidth(family),month=Number(today().slice(5,7));
   if(family==='small'){
-    // Today first, month-to-date second. The former "largest category" row is gone.
-    const short=width<=121;
-    addTodayMonthPanel(widget,s,width,short?32:40,short?21:24,true);
+    // Today first, month-to-date second; expand the monthly bars toward the
+    // bottom edge while retaining all date labels and existing visual hierarchy.
+    const screen=Device.screenSize(),short=width<=121;
+    const metrics=compactWidgetMetrics('small',screen,width);
+    addTodayMonthPanel(widget,s,width,metrics.chart,short?21:24,true);
     return widget;
   }
   if(family==='medium'){
     // Left mirrors Small; the RIGHT half is a true solid category PIE.
     // The previous 55pt Pie and side legend wasted the right-hand vertical area.
     // Fill the right half with a dominant centered Pie and a compact 3-column key.
-    const screen=Device.screenSize(),compact=width<305||(screen.height>0&&screen.height<800),space=9;
+    const screen=Device.screenSize(),metrics=compactWidgetMetrics('medium',screen,width);
+    const compact=metrics.compact,space=9;
     const half=Math.floor((width-space)/2),rightWidth=width-half-space;
     const layout=widget.addStack();layout.layoutHorizontally();layout.spacing=space;
     const left=layout.addStack();left.layoutVertically();left.spacing=0;left.size=new Size(half,0);
-    addTodayMonthPanel(left,s,half,compact?29:35,compact?19:21,true);
+    addTodayMonthPanel(left,s,half,metrics.chart,compact?19:21,true);
     const right=layout.addStack();right.layoutVertically();right.spacing=0;
     right.size=new Size(rightWidth,0);
     sectionLine(right,'本月分類');
     right.addSpacer(compact?3:4);
     const pieRow=right.addStack();pieRow.layoutHorizontally();pieRow.centerAlignContent();
     pieRow.addSpacer();
-    const pieSize=compact?70:82;
+    const pieSize=metrics.pie;
     addPieChart(pieRow,s.grossCats,pieSize,3);
     pieRow.addSpacer();
     right.addSpacer(3);
@@ -2051,7 +2068,7 @@ function toNumbersRow(t){
 function emitShortcutReceipt(receipt,status,inserted=[]){
   const rows=inserted.map(toNumbersRow);
   Script.setShortcutOutput({
-    version:'3.24.0',status,receipt,
+    version:'3.25.0',status,receipt,
     shouldAppendNumbers:rows.length===1,
     requiresBatchSync:rows.length>1,
     numbersRow:rows.length===1?rows[0]:[],
@@ -2081,8 +2098,8 @@ async function importData(input,ask){
   }
   if(!rows.length){
     const reason='未入帳：未找到有效非零 amount（可能模型冇輸出金額、輸出為 0，或格式仍不可解析）';
-    const message='[EXPENSE-HK-v3.24.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
-    console.log('[ExpenseTrackerHK v3.24.0] '+reason+' | '+received);
+    const message='[EXPENSE-HK-v3.25.0] 未入帳\n'+reason+'\n接收來源：'+source+'\n接收：'+received+'\n解析：'+lastParseMethod+'\n沒有修改交易資料庫。';
+    console.log('[ExpenseTrackerHK v3.25.0] '+reason+' | '+received);
     recordShortcutAttempt('skipped',{reason:'no valid nonzero amount',parser:lastParseMethod});
     emitShortcutReceipt(message,'skipped');
     if(ask && config.runsInApp)await note('沒有記帳',message);
@@ -2106,7 +2123,7 @@ async function importData(input,ask){
   const pendingFX=db.transactions.filter(t=>t.fxStatus==='pending').length;
   __expensePhase = '回傳記帳結果';
   const status=result.added>0?'已儲存 '+result.added+' 筆':(result.skipped>0?'已存在 '+result.skipped+' 筆（沒有再次入帳）':'沒有新增交易');
-  const message=`[EXPENSE-HK-v3.24.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n去重：交易 ID ${result.duplicateIds} 筆、180 秒同金額 ${result.duplicateAmounts} 筆\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
+  const message=`[EXPENSE-HK-v3.25.0] ${status}\n磁碟核實：${check.verified} 筆，資料庫現有 ${check.total} 筆\n接收來源：${source}\n接收：${received}\n解析：${lastParseMethod}\n識別金額：${amounts}\n去重：交易 ID ${result.duplicateIds} 筆、180 秒同金額 ${result.duplicateAmounts} 筆\n待換算外幣：${pendingFX} 筆（不阻塞本次入帳）\n日期待核對 ${result.missingDate} 筆，貨幣待核對 ${result.unknownCurrency} 筆`;
   emitShortcutReceipt(message,result.added?'saved':(result.skipped?'duplicate':'skipped'),result.insertedRows);
   if(ask && config.runsInApp)await note('記帳完成',message);
 }
@@ -2215,7 +2232,7 @@ if (config.runsInWidget) {
     const source=quickFromTexts?'Texts':'Parameter';
     if (!config.runsInApp){
       recordShortcutAttempt('quick_requires_app',{inputType:'quick_manual',source});
-      emitShortcutReceipt('[EXPENSE-HK-v3.24.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
+      emitShortcutReceipt('[EXPENSE-HK-v3.25.0] 快速記帳指令已收到（'+source+'），但 Run In App 未開啟；請在 Shortcut 開啟 Run In App。','quick_requires_app');
     }else{
       recordShortcutAttempt('quick_opened',{inputType:'quick_manual',source});
       await addManual();
@@ -2232,7 +2249,7 @@ if (config.runsInWidget) {
   } else if (config.runsWithSiri || config.runsInActionExtension || !config.runsInApp) {
     __expensePhase = 'Shortcuts 無輸入';
     recordShortcutAttempt('no_input',{inputType:'none',hasShortcutParameter:false});
-    emitShortcutReceipt('[EXPENSE-HK-v3.24.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
+    emitShortcutReceipt('[EXPENSE-HK-v3.25.0] 未入帳\nShortcut Parameter 同 Texts 都冇資料。','no_input');
   } else {
     __expensePhase = '顯示主選單';
     await app();
@@ -2253,10 +2270,10 @@ try {
     const am=FileManager.local(),dir=am.joinPath(am.documentsDirectory(),'ExpenseTrackerHK');
     if(!am.fileExists(dir))am.createDirectory(dir,true);
     am.writeString(am.joinPath(dir,'last-shortcut-run.json'),
-      JSON.stringify({version:'3.24.0',lastAttemptAt:new Date().toISOString(),
+      JSON.stringify({version:'3.25.0',lastAttemptAt:new Date().toISOString(),
         stage:'error',phase:__expensePhase,error:message.slice(0,250)},null,2));
   } catch(_) {}
-  try { Script.setShortcutOutput({version:'3.24.0',status:'error',receipt:'[EXPENSE-HK-v3.24.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
+  try { Script.setShortcutOutput({version:'3.25.0',status:'error',receipt:'[EXPENSE-HK-v3.25.0] 記帳失敗（未確認儲存）\n階段：' + __expensePhase + '\n錯誤：' + message,shouldAppendNumbers:false,requiresBatchSync:false,numbersRow:[],numbersRows:[],transactionId:'',localStored:false}); } catch (_) {}
   try {
     if (config.runsInApp && !config.runsInWidget && !config.runsWithSiri && !config.runsInActionExtension) {
       const alert = new Alert();

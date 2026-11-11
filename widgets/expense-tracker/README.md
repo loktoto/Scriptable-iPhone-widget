@@ -2,7 +2,7 @@
 
 **Main:** [HK-Expense-Tracker.js](HK-Expense-Tracker.js)  
 **Read-only diagnostic:** [HK-Expense-Input-Diagnostic.js](HK-Expense-Input-Diagnostic.js)  
-**Current version:** [3.24.0](VERSION.json) · [Release notes](CHANGELOG.md)
+**Current version:** [3.25.0](VERSION.json) · [Release notes](CHANGELOG.md)
 
 - Apple Intelligence / Shortcuts Dictionary, nested `amount.content`, regular JSON, constrained key-based text extraction.
 - Save valid nonzero amounts only. Negative transactions are refunds; other missing fields may still be saved.
@@ -151,3 +151,5 @@ Small 7個原生星期字及有效記帳日熱度；Medium 兩類別名／佔比
 - [設計原則、驗收與限制](../../docs/EXPENSE_WIDGET_MEDIUM_PIE_V3_23_1.md)。
 
 **180-second duplicate rule (v3.24.0):** incoming transactions with the same signed amount within 3 minutes of an existing transaction are ignored, irrespective of merchant, card, currency, or source. The rule is deliberately aggressive; separate legitimate purchases can be skipped. No new Numbers row is appended for suppressed transactions.
+
+**Small + Medium v3.25.0 layout:** improved bottom-edge vertical utilization via taller daily bars and a larger responsive solid Pie, with the three-column native-text legend below. The exact iPhone widget appearance should be confirmed by preview.

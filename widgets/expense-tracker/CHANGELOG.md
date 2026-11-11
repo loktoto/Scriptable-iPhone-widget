@@ -1,5 +1,15 @@
 # Expense Tracker HK — Version History / 版本紀錄
 
+## [3.25.0] — 2026-11-11
+
+### Small and Medium: full-height utilization and adaptive larger Pie
+- **Small:** spend previously unused lower space on a taller month-to-date daily bar chart. Responsive chart heights: 39pt on 320pt screens, 44pt at 375pt, 52pt at 393pt, 51pt for short 414pt, and 61–63pt on tall 414–430pt iPhones. Keep 11pt native labels, existing headline, month amount, dates, padding and navigation.
+- **Medium left:** enlarge daily month-to-date bar charts to 43–65pt depending on screen; align lower content coverage more closely with the right column instead of leaving the left half visually short.
+- **Medium right:** increase the **solid category Pie** from 70/82pt to an adaptive 74/79/89/98/100pt, retaining centered placement and three-column native-text category + percentage legend below. The gross-positive Pie denominator is unchanged.
+- The changes fill available space within tested compact/tall iPhone height budgets rather than stretching fonts or shrinking system margins. Large, iPad Extra Large, data calculations, Wallet Tap, 180-second dedup, transaction editing, FX, Numbers and existing JSON ledger remain unchanged.
+- Extended Scriptable widget-tree regression coverage for 320pt, 375pt, 393pt, 414pt (short/tall) and 430pt iPhone widths, validating chart/Pie dimensions, no height overflow, 11pt labels, true solid Pie and mirrored source parity. Pixel-exact iPhone preview still needed.
+
+
 ## [3.24.0] — 2026-11-11
 
 ### 180-second, amount-only deduplication across Wallet Tap, notifications, and manual entry

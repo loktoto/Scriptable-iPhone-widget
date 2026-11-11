@@ -147,7 +147,7 @@ function graphs(node){
  assert.ok(sm.includes('HK$85.00')&&sm.includes('本月支出')&&sm.includes('HK$218.00'));
  assert.ok(!sm.includes('最多分類')&&!sm.includes('近7日'),'Small removes category and last-7-day headers');
  assert.equal(drawImages(small).length,1);
- assert.equal(drawImages(small)[0].size.height,40,'Small month chart expands well beyond v3.21 chart');
+ assert.equal(drawImages(small)[0].size.height,52,'393pt Small fills lower space with a taller month chart');
  assert.ok(sm.includes('1日')&&sm.includes('日（今日）'),'Monthly daily axis labels actual dates');
  assert.ok(md.includes('今日支出')&&md.includes('HK$85.00'));
  assert.ok(md.includes('本月支出')&&md.includes('HK$218.00'));
@@ -164,7 +164,7 @@ function graphs(node){
  assert.ok(mediumLayout,'Medium must use a horizontal two-column outer layout');
  const mediumRight=mediumLayout.children.filter(x=>x.type==='stack')[1];
  const rightPie=drawImages(mediumRight)[0];
- assert.ok(rightPie&&rightPie.size.width===82,'393pt Medium Pie grows from 55pt to 82pt');
+ assert.ok(rightPie&&rightPie.size.width===89,'393pt Medium Pie grows from 82pt to 89pt');
  const centeredPieRow=mediumRight.children.find(x=>x.type==='stack'&&
    x.direction==='horizontal'&&drawImages(x).length===1);
  assert.ok(centeredPieRow,'Pie is horizontally centered within the right column');
@@ -274,12 +274,16 @@ function graphs(node){
    estimatedHeight(tiny.buildWidget('large')));
  assert.ok(estimatedHeight(tiny.buildWidget('small'))<=141);
  assert.ok(estimatedHeight(tiny.buildWidget('medium'))<=141);
+ assert.equal(drawImages(tiny.buildWidget('small'))[0].size.height,39,
+   '320pt Small chart must grow without clipping');
  const compactMedium=tiny.buildWidget('medium');
- assert.equal(drawImages(compactMedium)[1].size.width,70,'320pt Pie uses a large but safe 70pt diameter');
+ assert.equal(drawImages(compactMedium)[1].size.width,74,'320pt Pie uses an enlarged but safe 74pt diameter');
+ assert.equal(drawImages(compactMedium)[0].size.height,43,
+   '320pt Medium left chart shares bottom-edge fill with Pie');
  assert.equal(estimatedHeight(compactMedium)<=141,true);
- for(const [screenWidth,screenHeight,mediumMax,expectedPie] of [
-   [375,667,148,70],[393,852,158,82],
-   [414,736,157,70],[414,896,169,82],[430,932,170,82]
+ for(const [screenWidth,screenHeight,mediumMax,expectedPie,expectedLeftChart,expectedSmallChart] of [
+   [375,667,148,79,47,44],[393,852,158,89,53,52],
+   [414,736,157,89,56,51],[414,896,169,98,63,61],[430,932,170,100,65,63]
  ]){
    const responsiveSuite=createTestSuite(rows,false);
    responsiveSuite.ctx.Device.screenSize=()=>({width:screenWidth,height:screenHeight});
@@ -288,6 +292,13 @@ function graphs(node){
    const height=estimatedHeight(mw);
    console.log('Medium layout',screenWidth,screenHeight,'Pie',drawImages(mw)[1].size.width,'height',height);
    assert.equal(drawImages(mw)[1].size.width,expectedPie);
+   assert.equal(drawImages(mw)[0].size.height,expectedLeftChart,
+     'Medium left bar chart should fill available vertical space');
+   const sw=responsive.buildWidget('small');
+   assert.equal(drawImages(sw)[0].size.height,expectedSmallChart,
+     'Small should use its free lower area for the month chart');
+   assert.ok(estimatedHeight(sw)<=mediumMax,
+     'Small must not clip on '+screenWidth+'×'+screenHeight);
    assert.ok(height<=mediumMax,'Medium height fits '+screenWidth+'×'+screenHeight);
    assert.equal(drawImages(mw).length,2);
  }
