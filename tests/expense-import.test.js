@@ -37,7 +37,7 @@ async function exec(input,disk,texts=[],queryParameters={}){
  let count=0;const mark=()=>count++;
  const entry={merchantName:'Demo Restaurant',merchantType:'Restaurants',amount:57,currency:'HKD',card:'SAMPLE CARD',date:'20261104_203328'};
  let db=store(),a=await exec(entry,db);
- assert.match(a.output.receipt,/\[EXPENSE-HK-v3\.23\.1\] 已儲存 1 筆/);
+ assert.match(a.output.receipt,/\[EXPENSE-HK-v3\.24\.0\] 已儲存 1 筆/);
  assert.match(a.output.receipt,/磁碟核實：1 筆/);
  assert.equal(a.requests,0);assert.equal(a.rows[0].amount,57);
  assert.equal(a.output.shouldAppendNumbers,true);
