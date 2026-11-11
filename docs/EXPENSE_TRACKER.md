@@ -1,4 +1,4 @@
-# Expense Tracker HK v3.22.0｜記帳 Widget / Shortcuts Guide
+# Expense Tracker HK v3.24.0｜記帳 Widget / Shortcuts Guide
 
 > Script: [widgets/expense-tracker/HK-Expense-Tracker.js](../widgets/expense-tracker/HK-Expense-Tracker.js)  
 > Sample JSON: [simple](../examples/expense-transaction.example.json) · [nested Shortcuts object](../examples/expense-transaction.nested.example.json) · [schema](../schemas/expense-transaction.schema.json)
@@ -6,6 +6,9 @@
 ## 廣東話 / 繁體中文
 
 ### 主要功能
+- **v3.24.0 去重**：任何新交易如果喺現有交易時間前後 **180 秒內**有一筆**相同正負號、相同數字金額**嘅記錄，就直接跳過（不檢查商戶、卡名、來源、幣種）。真正兩筆同額消費亦有機會被跳過，屬用戶選擇嘅簡化規則。
+- 按原始交易時間比對；缺完整交易時間時用記錄建立時間。沒有新資料入帳就回傳 `status=duplicate`、`shouldAppendNumbers=false`、`numbersRows=[]`；Apple Numbers 不應再加行。
+- IEEE-754 浮點尾數會喺新交易解析及 Numbers 輸出時整理，例如 `663.91999999999996` → `663.92`。原有交易資料不會自動改寫。
 - iPhone Scriptable Widget：Small（7日）、Medium（14日）、Large（分類 + 最近交易）、iPad Extra Large（30日）。
 - 用 Apple Shortcuts + Apple Intelligence 產生 Dictionary，直接傳入 Scriptable 的 **Run Script → Shortcut Parameter**。
 - 多層輸入解析：原生 Dictionary、JSON、Markdown/文字包住嘅 JSON、已知欄位名稱 Regex 容錯、舊 Wallet pipe 格式。
